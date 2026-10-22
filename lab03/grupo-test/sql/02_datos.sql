@@ -33,4 +33,12 @@ INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario) V
     (3, 2, 3, 12.50),
     (4, 4, 1, 18.00);
 
+
+INSERT INTO detalle_pedido_pppp (pedido_id, producto_id, cantidad, precio_unitario) VALUES
+    (1, 1, 1, 35.00),
+    (1, 2, 2, 12.50),
+    (2, 3, 1, 150.00),
+    (3, 2, 3, 12.50),
+    (4, 4, 1, 18.00);
+
 COMMIT;
