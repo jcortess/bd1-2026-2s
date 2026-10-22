@@ -8,49 +8,126 @@ permissions:
   contents: read
 
 jobs:
-  validar-lab3:
-    name: validar-lab3
+  validar-lab03:
+    name: validar-lab03
     runs-on: ubuntu-latest
     steps:
       - name: Descargar repositorio
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - name: Revisar los archivos modificados
+      - name: Validar estructura, extensiones y entregables
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
         run: |
           python3 - <<'PY'
           import os
+          import re
           import subprocess
           import sys
 
+          ROOT = 'lab03/'
+          EXTENSIONES = {'.md', '.sql', '.pdf', '.png', '.jpg', '.jpeg'}
+          SCRIPTS = {
+              '01_esquema.sql',
+              '02_datos.sql',
+              '03_consultas.sql',
+              '04_rutinas.sql',
+              '05_pruebas.sql',
+          }
+          MAX_TEXTO = 1024 * 1024       # 1 MiB por .md/.sql
+          MAX_PDF = 10 * 1024 * 1024    # 10 MiB por .pdf
+          MAX_IMAGEN = 5 * 1024 * 1024  # 5 MiB por .png/.jpg/.jpeg
+          FIRMAS_IMAGEN = {
+              '.png': (b'\x89PNG\r\n\x1a\n',),
+              '.jpg': (b'\xff\xd8\xff',),
+              '.jpeg': (b'\xff\xd8\xff',),
+          }
+          errores = []
+
+          def git(*args):
+              return subprocess.check_output(['git', *args])
+
           base = os.environ['BASE_SHA']
           head = os.environ['HEAD_SHA']
-          result = subprocess.run(
-              ['git', 'diff', '--name-only', '-z', '--diff-filter=ACMRT', f'{base}...{head}'],
-              capture_output=True, check=True
-          )
-          paths = [os.fsdecode(p) for p in result.stdout.split(b'\0') if p]
-          if not paths:
-              print('ERROR: el Pull Request no agrega ni modifica archivos para entregar.')
-              sys.exit(1)
+          # Los cambios se calculan sobre el PR, no sobre todo el repositorio.
+          cambios = [os.fsdecode(p) for p in git(
+              'diff', '--name-only', '-z', f'{base}...{head}'
+          ).split(b'\0') if p]
 
-          errors = []
-          for path in paths:
-              if not path.startswith('lab3/'):
-                  errors.append(f'{path}: solo se admiten entregas dentro de lab3/')
-              elif not path.lower().endswith(('.md', '.sql', '.pdf')):
-                  errors.append(f'{path}: extensión no permitida; use .md, .sql o .pdf')
-              else:
-                  print(f'OK: {path}')
+          if not cambios:
+              errores.append('El Pull Request no tiene archivos modificados.')
 
-          if errors:
+          grupos_cambiados = set()
+          for ruta in cambios:
+              if not ruta.startswith(ROOT):
+                  errores.append(f'{ruta}: solo se admiten cambios dentro de {ROOT}')
+                  continue
+              partes = ruta.split('/')
+              if len(partes) < 3 or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]*', partes[1]):
+                  errores.append(f'{ruta}: use {ROOT}<grupo>/<archivo>')
+                  continue
+              grupos_cambiados.add(partes[1])
+              if os.path.splitext(ruta)[1].lower() not in EXTENSIONES:
+                  errores.append(f'{ruta}: extensión no permitida ({", ".join(sorted(EXTENSIONES))})')
+
+          if len(grupos_cambiados) > 1:
+              errores.append('Un Pull Request debe contener cambios de un solo grupo: '
+                             + ', '.join(sorted(grupos_cambiados)))
+
+          # Inspeccionar el árbol real propuesto por el PR, sin ejecutar SQL.
+          archivos = [os.fsdecode(p) for p in git(
+              'ls-tree', '-r', '--name-only', '-z', head
+          ).split(b'\0') if p]
+          conjunto = set(archivos)
+
+          for grupo in sorted(grupos_cambiados):
+              prefijo = f'{ROOT}{grupo}/'
+              entregados = [p for p in archivos if p.startswith(prefijo)]
+              if f'{prefijo}README.md' not in conjunto:
+                  errores.append(f'{prefijo}: falta README.md')
+              for nombre in sorted(SCRIPTS):
+                  if f'{prefijo}sql/{nombre}' not in conjunto:
+                      errores.append(f'{prefijo}: falta sql/{nombre}')
+              for ruta in entregados:
+                  extension = os.path.splitext(ruta)[1].lower()
+                  if extension not in EXTENSIONES:
+                      errores.append(f'{ruta}: archivo no permitido dentro de la entrega')
+                      continue
+                  contenido = git('show', f'{head}:{ruta}')
+                  if extension == '.pdf':
+                      limite = MAX_PDF
+                  elif extension in FIRMAS_IMAGEN:
+                      limite = MAX_IMAGEN
+                  else:
+                      limite = MAX_TEXTO
+                  if not contenido:
+                      errores.append(f'{ruta}: archivo vacío')
+                  if len(contenido) > limite:
+                      errores.append(f'{ruta}: supera el tamaño permitido ({limite // 1048576} MiB)')
+                  if extension == '.pdf' and not contenido.startswith(b'%PDF-'):
+                      errores.append(f'{ruta}: no parece ser un PDF válido (firma incorrecta)')
+                  if extension in FIRMAS_IMAGEN and not contenido.startswith(FIRMAS_IMAGEN[extension]):
+                      errores.append(f'{ruta}: no parece ser una imagen válida (firma incorrecta)')
+                  if extension in {'.md', '.sql'}:
+                      try:
+                          contenido.decode('utf-8')
+                      except UnicodeDecodeError:
+                          errores.append(f'{ruta}: debe guardarse como texto UTF-8')
+                      if b'\0' in contenido:
+                          errores.append(f'{ruta}: contiene datos binarios')
+                  if ruta.endswith('.sql') and re.search(rb'(?i)\b(CREATE|INSERT|UPDATE|DELETE|SELECT|DO|CALL)\b', contenido) is None:
+                      print(f'AVISO: {ruta} no parece contener sentencias SQL habituales.')
+
+          print(f'Archivos cambiados: {len(cambios)}')
+          print('Grupos detectados:', ', '.join(sorted(grupos_cambiados)) or '(ninguno)')
+          if errores:
               print('\nENTREGA RECHAZADA:')
-              for error in errors:
+              for error in dict.fromkeys(errores):
                   print(' - ' + error)
               sys.exit(1)
-          print('\nValidación de archivos aprobada.')
+          print('\nENTREGA APROBADA: estructura, formatos y archivos requeridos correctos.')
           PY
