@@ -39,7 +39,7 @@ propietario_id es de 14 caracteres, finca_id es de 10 caracteres, historial_resp
 
 se usaron CHECK para fijar un formato en los id, fechas, telefonos, correos, y area aproximada, y para fijar un rango de valores posibles para columnas como provincia, canton, y condicion.
 # link al md de evidencias
-Link: grupo-11/evidencias/resultados.md
+Link: [md de evidencias de consultas y pruebas de integridad](evidencias/resultados.md) 
 # Capturas de evidencias
 ## evidencias de consultas
 
