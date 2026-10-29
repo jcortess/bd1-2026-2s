@@ -303,5 +303,5 @@ Conforme a las directrices de la Sección 4 (D3) del laboratorio (toma continua 
 | Integrante | Rol / Componentes expuestos | Enlace al video de defensa |
 | :---- | :---- | :---- |
 | **Joan Steven Cordero Coto** | Transformación de modelo lógico a físico, restricciones declarativas, procedimiento `sp_sustituir_tratamiento` y pruebas de rechazo P04/P07. | [Enlace al video de Joan Cordero](https://drive.google.com/...) |
-| **Jason René Martínez Gutiérrez** | Versionado inmutable de observaciones clínicas, cursor explícito, consultas agregadas Q02/Q03 y pruebas de integridad P01/P06. | [Enlace al video de Jason Martínez](https://drive.google.com/...) |
+| **Jason René Martínez Gutiérrez** | Versionado inmutable de observaciones clínicas, cursor explícito, consultas agregadas Q02/Q03 y pruebas de integridad P01/P06. | [Enlace al video de Jason Martínez](https://drive.google.com/file/d/1ZxF0uWgL3NOIasYSHmAuFi1MBQBUwGSH/view?usp=sharing) |
 
