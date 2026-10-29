@@ -1,9 +1,6 @@
 
 -- LABORATORIO 3 - TALLER RUTA 27
--- GRUPO 02
--- Archivo: 03_consultas.sql
--- Responsable: Jimena
--- Consultas útiles para la gestión del taller.
+
 
 -- ==========================================
 -- CONSULTA 1: ÓRDENES PENDIENTES DE ATENCIÓN

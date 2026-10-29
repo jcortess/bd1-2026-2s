@@ -1,9 +1,6 @@
 
 -- LABORATORIO 3 - TALLER RUTA 27 / GRUPO 02
--- 02_datos.sql
--- Responsable: Jimena
--- Datos ficticios para pruebas.
--- Ejecutar después de 01_esquema.sql.
+
 
 -- 1. REGISTRAR CLIENTES
 INSERT INTO cliente

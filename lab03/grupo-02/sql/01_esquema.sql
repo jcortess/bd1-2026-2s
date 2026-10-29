@@ -1,9 +1,6 @@
 
 -- LABORATORIO 3 - TALLER RUTA 27 / GRUPO 02
--- 01_esquema.sql | Responsable: Jimena
--- PostgreSQL 17. Ejecutar sobre una BASE DE DATOS VACÍA.
--- Subsistema: recepción, diagnóstico y seguimiento de órdenes.
--- El orden de las tablas respeta las dependencias de claves foráneas.
+
 
 -- 1. Datos maestros: clientes.
 CREATE TABLE cliente (
