@@ -685,7 +685,7 @@ Los vídeos se almacenarán fuera del repositorio y sus enlaces se agregarán a 
 
 ### Defensa de Rachel Priscilla Ramírez González
 
-**Enlace:** Pendiente de incorporar.
+**Enlace:** [Ver defensa individual de Rachel](https://drive.google.com/file/d/1f6OolKHHJoLgc13_Goo4GrzqtnL6Ulk_/view?usp=drive_link)
 
 ## 14. Estado de la entrega
 
