@@ -36,5 +36,5 @@ pruebas no permanecen en la base de datos.
 
 ## Evidencia visual
 
-Adjuntar la captura de la terminal donde aparecen
-los mensajes P01 a P07 y el ROLLBACK final.
+La terminal donde aparecen los mensajes P01 a P07 y el ROLLBACK final.
+![Resultados de las siete pruebas de integridad en PostgreSQL](pruebas_integridad.png)
