@@ -2,7 +2,7 @@
 
 # Consultas
 
-Consulta 1 - responsables de una finca durante un periodo
+## Consulta 1 - responsables de una finca durante un periodo
 
 (para finca-0001 del productor-0001)
 
@@ -10,7 +10,7 @@ Consulta 1 - responsables de una finca durante un periodo
 |---|---|---|---|
 | responsable-0001 | María Fernández Solís | 15/03/2021 | null |
 
-Consulta 2 - todas las fincas de un productor
+## Consulta 2 - todas las fincas de un productor
 
 (fincas del productor-0001)
 
@@ -19,7 +19,7 @@ Consulta 2 - todas las fincas de un productor
 | finca-0001 | responsable-0001 | Alajuela | San Carlos | Quesada | 200 metros norte de la iglesia católica | 1500 m² |
 | finca-0002 | responsable-0002 | Heredia | Sarapiqui | Puerto Viejo | Camino a La Chiripa, 3 km al este de la escuela | 25000 m² |
 
-Consulta 3 - total de fincas de las que un responsable estuvo a cargo alguna vez
+## Consulta 3 - total de fincas de las que un responsable estuvo a cargo alguna vez
 
 (fincas que estuvieron a cargo de responsable-0001 alguna vez)
 
