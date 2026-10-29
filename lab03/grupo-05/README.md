@@ -135,4 +135,6 @@ El script ejecuta **12 pruebas aisladas** mediante una transacción (`BEGIN` ...
 - **Entorno de pruebas:** Los cinco scripts y las rutinas se ejecutaron sobre una base vacía en PostgreSQL 16.15; se registraron los resultados en [`evidencias/resultados.md`](evidencias/resultados.md).
 - **Alcance de las reglas:** El esquema exige un `veterinario_id` en cada revisión y los campos clínicos obligatorios. `PERSONA` es una entidad mínima sin `PARTICIPACION`, por lo que este subsistema no comprueba el rol profesional vigente. Tampoco puede imponer con una FK simple que todo animal tenga una evaluación inicial inmediatamente después de insertarse; la carga de datos sí registra una para cada animal.
 
+video: https://estudianteccr-my.sharepoint.com/:v:/g/personal/j_segura_1_estudiantec_cr/IQDVYp0fJi52TaOhdbw6jpR4AYk31sQDgWK3xAbbo-THq9c?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=IzpzTM
+
 ---
