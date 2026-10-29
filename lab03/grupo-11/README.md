@@ -38,8 +38,10 @@ Las principales decisiones fue ponerle limites exactos a las id para que siguier
 propietario_id es de 14 caracteres, finca_id es de 10 caracteres, historial_responsables_id es de 15 caracteres, responsable_id es de 16 caracteres.
 
 se usaron CHECK para fijar un formato en los id, fechas, telefonos, correos, y area aproximada, y para fijar un rango de valores posibles para columnas como provincia, canton, y condicion.
-
-# evidencias de consultas
+# link al md de evidencias
+Link: https://github.com/jcortess/bd1-2026-2s/blob/grupo-11_DilanSibaja/lab03/grupo-11/evidencias/resultados.md
+# Capturas de evidencias
+## evidencias de consultas
 
 Consulta 1 (c01): responsables de una finca durante un periodo dado (en este caso: de la finca (productor-0001,finca-0001))
 
@@ -54,7 +56,7 @@ Consulta 3 (c03): total de fincas de las que un responsable dado a estado a carg
 
 ![resultado de consulta 3](img/Consulta3_prueba.png)
 
-# resultados de pruebas
+## evidencia de pruebas de integridad
 p01: se realizo la insercion del productor correctamente
 
 p02: no permitio que se insertara una finca de canton invalido
