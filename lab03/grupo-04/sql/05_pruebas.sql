@@ -42,9 +42,9 @@ DO $$
 BEGIN
     INSERT INTO public.autorizacion (id_cliente, id_persona, inicio_vigencia, fin_vigencia)
     VALUES (1, 2, '2026-12-01 00:00:00-06', '2026-01-01 00:00:00-06');
-    RAISE NOTICE 'ERROR: El trigger no bloqueó la fecha inválida.';
+    RAISE NOTICE 'ERROR: El trigger no bloqueo la fecha invalida.';
 EXCEPTION WHEN OTHERS THEN
-    RAISE NOTICE 'ÉXITO (Trigger capturó el error): %', SQLERRM;
+    RAISE NOTICE 'EXITO (Trigger capturo el error): %', SQLERRM;
 END;
 $$;
 
@@ -58,8 +58,8 @@ BEGIN
         NULL, 
         ARRAY[1]::bigint[]
     );
-    RAISE NOTICE 'ERROR: El procedimiento no validó el cliente inexistente.';
+    RAISE NOTICE 'ERROR: El procedimiento no valido el cliente inexistente.';
 EXCEPTION WHEN OTHERS THEN
-    RAISE NOTICE 'ÉXITO (Procedimiento capturó el error): %', SQLERRM;
+    RAISE NOTICE 'EXITO (Procedimiento capturo el error): %', SQLERRM;
 END;
 $$;

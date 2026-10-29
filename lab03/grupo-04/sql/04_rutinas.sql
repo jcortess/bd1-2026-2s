@@ -96,7 +96,7 @@ BEGIN
         VALUES (v_id_autorizacion, v_facultad_id);
     END LOOP;
 
-    RAISE NOTICE 'Autorización ID % creada exitosamente.', v_id_autorizacion;
+    RAISE NOTICE 'Autorizacion ID % creada exitosamente.', v_id_autorizacion;
 END;
 $$;
 
