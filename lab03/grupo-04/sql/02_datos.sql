@@ -1,49 +1,26 @@
--- IC-4301 | Laboratorio 3 | Grupo 04 | Alquileres El Roble
--- Script de inserción de datos de prueba (02_datos.sql)
-
+-- Datos ficticios; IDs explicitos compatibles con 01_esquema.sql.
+-- Fecha de referencia: 2026-10-29 10:00:00-06.
 BEGIN;
-
--- 1. Insertar Personas
-INSERT INTO public.persona (tipo_identificacion, identificacion, nombre) VALUES
-('Cédula Física', '101110222', 'Carlos Hidalgo'),
-('Cédula Física', '202220333', 'Jeremy Solis'),
-('Cédula Física', '303330444', 'Keilyn Vega'),
-('Cédula Física', '404440555', 'Bryan Charpentier'),
-('DIMEX',         '155800123456', 'Stefanie Lara');
-
--- 2. Insertar Clientes
--- Cliente Físico (asociado a la persona 1)
-INSERT INTO public.cliente (tipo_cliente, id_persona, identificacion_organizacion, razon_social, direccion) VALUES
-('Física', 1, NULL, NULL, 'Ciudad Quesada, Alajuela');
-
--- Cliente Organización
-INSERT INTO public.cliente (tipo_cliente, id_persona, identificacion_organizacion, razon_social, direccion) VALUES
-('Organización', NULL, '3-101-123456', 'Constructora El Roble S.A.', 'Santa Clara, San Carlos');
-
--- 3. Insertar Catálogo de Facultades
-INSERT INTO public.facultad (nombre) VALUES
-('Firmar Contratos de Arrendamiento'),
-('Retirar Maquinaria y Equipo'),
-('Autorizar Mantenimiento'),
-('Gestionar Cobros y Facturación');
-
--- 4. Insertar Autorizaciones
--- Autorización 1: Cliente Organización (ID 2) autoriza a la Persona 2 (Felipe Salazar)
-INSERT INTO public.autorizacion (id_cliente, id_persona, inicio_vigencia, fin_vigencia) VALUES
-(2, 2, '2026-01-01 08:00:00-06', '2026-12-31 18:00:00-06');
-
--- Autorización 2: Cliente Físico (ID 1) autoriza a la Persona 3 (Santiago Víquez) sin fin de vigencia (indefinida)
-INSERT INTO public.autorizacion (id_cliente, id_persona, inicio_vigencia, fin_vigencia) VALUES
-(1, 3, '2026-06-01 08:00:00-06', NULL);
-
--- 5. Asignar Facultades a las Autorizaciones
--- La Autorización 1 tiene facultades 1 y 2
+INSERT INTO public.persona (id_persona, tipo_identificacion, identificacion, nombre) VALUES
+(1, 'Documento de prueba', 'DOC-FICT-001', 'Ana Prueba'),
+(2, 'Documento de prueba', 'DOC-FICT-002', 'Bruno Prueba'),
+(3, 'Documento de prueba', 'DOC-FICT-003', 'Carla Prueba'),
+(4, 'Documento de prueba', 'DOC-FICT-004', 'Diego Prueba'),
+(5, 'Documento de prueba', 'DOC-FICT-005', 'Elena Prueba');
+INSERT INTO public.cliente (id_cliente, tipo_cliente, id_persona, identificacion_organizacion, razon_social, direccion) VALUES
+(1, 'Física', 1, NULL, NULL, 'Direccion ficticia A'),
+(2, 'Organización', NULL, 'ORG-FICT-002', 'Constructora de Prueba', 'Direccion ficticia B'),
+(3, 'Organización', NULL, 'ORG-FICT-003', 'Jardines de Prueba', 'Direccion ficticia C'),
+(4, 'Organización', NULL, 'ORG-FICT-004', 'Organizacion sin Autorizaciones', 'Direccion ficticia D');
+INSERT INTO public.facultad (id_facultad, nombre) VALUES
+(1, 'Reservar'), (2, 'Recibir'), (3, 'Devolver'), (4, 'Consultar cotizacion');
+INSERT INTO public.autorizacion (id_autorizacion, id_cliente, id_persona, inicio_vigencia, fin_vigencia) VALUES
+(1, 2, 2, '2026-01-01 08:00:00-06', '2026-12-31 18:00:00-06'),
+(2, 2, 3, '2026-06-01 08:00:00-06', NULL),
+(3, 2, 4, '2026-01-01 08:00:00-06', '2026-02-01 08:00:00-06'),
+(4, 2, 5, '2026-12-01 08:00:00-06', '2027-01-01 08:00:00-06'),
+(5, 3, 2, '2026-01-01 08:00:00-06', '2026-12-31 18:00:00-06'),
+(6, 2, 2, '2026-10-01 08:00:00-06', '2026-12-31 18:00:00-06');
 INSERT INTO public.autorizacion_facultad (id_autorizacion, id_facultad) VALUES
-(1, 1),
-(1, 2);
-
--- La Autorización 2 tiene la facultad 2
-INSERT INTO public.autorizacion_facultad (id_autorizacion, id_facultad) VALUES
-(2, 2);
-
+(1,1), (1,2), (2,2), (2,3), (3,1), (4,1), (5,3), (6,1);
 COMMIT;
