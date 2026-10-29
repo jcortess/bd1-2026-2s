@@ -38,7 +38,7 @@ lab03/grupo-06/
     ├── evidencia_09_consulta_q5.png
     ├── evidencia_10_pruebas_detalle.png
     ├── evidencia_11_pruebas_resumen.png
-    └── resultados.md                     detalle textual de consultas y pruebas
+    └── Evidencias_Laboratorio3_Grupo06.pdf detalle textual de consultas y pruebas
 ```
 
 ## 1. Proceso implementado y límite del subsistema
@@ -122,7 +122,7 @@ Dos **supuestos de laboratorio** (no cambian el modelo lógico; el caso no los d
 
 ## 5. Consultas (B2)
 
-En `sql/03_consultas.sql`; cada una trae su pregunta de negocio, la necesidad de información del Proyecto 1 y el resultado esperado calculado a mano. Observados en [evidencias/resultados.md](evidencias/resultados.md).
+En `sql/03_consultas.sql`; cada una trae su pregunta de negocio, la necesidad de información del Proyecto 1 y el resultado esperado calculado a mano. Observados en [evidencias/Evidencias_Laboratorio3_Grupo06.pdf](evidencias/Evidencias_Laboratorio3_Grupo06.pdf).
 
 | ID | Pregunta de negocio | Técnica |
 |---|---|---|
@@ -144,7 +144,7 @@ Todas en `sql/04_rutinas.sql`, con parámetros, retorno, reglas y ejemplos en lo
 | `sp_marcar_reservaciones_vencidas(corte, dias)` | Procedimiento con **cursor explícito** (C3) | Ver discusión abajo. |
 | `sp_marcar_reservaciones_vencidas_conjunto(corte, dias)` | Alternativa basada en conjuntos | Mismo resultado en una sola sentencia con CTE. |
 
-**Discusión de C3 (honesta):** el cursor recorre las reservaciones pendientes y, para cada una, hace `UPDATE … WHERE CURRENT OF`, calcula el siguiente `id_modificacion`, inserta el historial y emite un aviso por reservación. Esa trazabilidad fila a fila es lo único que aporta. Para este problema la solución por conjuntos (`sp_marcar_reservaciones_vencidas_conjunto`) es más simple, más corta y más rápida con muchas filas, y la verificación E02 (en `evidencias/resultados.md`) demuestra que ambas producen el mismo resultado sobre los mismos datos. Se eligió el cursor porque el laboratorio pide una técnica del temario de la semana 12 y porque ilustra el bloqueo `FOR UPDATE`; en producción se preferiría la versión por conjuntos. No se usó SQL dinámico porque las consultas son de estructura fija.
+**Discusión de C3 (honesta):** el cursor recorre las reservaciones pendientes y, para cada una, hace `UPDATE … WHERE CURRENT OF`, calcula el siguiente `id_modificacion`, inserta el historial y emite un aviso por reservación. Esa trazabilidad fila a fila es lo único que aporta. Para este problema la solución por conjuntos (`sp_marcar_reservaciones_vencidas_conjunto`) es más simple, más corta y más rápida con muchas filas, y la verificación E02 (en `evidencias/Evidencias_Laboratorio3_Grupo06.pdf`) demuestra que ambas producen el mismo resultado sobre los mismos datos. Se eligió el cursor porque el laboratorio pide una técnica del temario de la semana 12 y porque ilustra el bloqueo `FOR UPDATE`; en producción se preferiría la versión por conjuntos. No se usó SQL dinámico porque las consultas son de estructura fija.
 
 ## 7. Pruebas de integridad (B3) y evidencias (D2)
 
@@ -168,7 +168,7 @@ Cada prueba documenta precondición, sentencia ejecutada, resultado esperado, re
 
 Las pruebas inválidas **no detienen el resto**: cada una se ejecuta dentro de un subbloque con manejo de excepciones y se deshace al terminar, así que la base queda igual que antes (el propio script lo comprueba al final). Las dos funciones auxiliares que lo hacen y la tabla `resultado_pruebas` se crean en el esquema `hotel` al inicio del script; al final se borran las funciones y se conserva `resultado_pruebas`, que se puede consultar con `SELECT * FROM hotel.resultado_pruebas ORDER BY id;`. No son rutinas del negocio y el script se puede repetir sin errores.
 
-Resultado de la corrida: **9 pruebas, 9 pasan, 0 fallan.** Todo el detalle, con las sentencias y los mensajes observados, está en [evidencias/resultados.md](evidencias/resultados.md).
+Resultado de la corrida: **9 pruebas, 9 pasan, 0 fallan.** Todo el detalle, con las sentencias y los mensajes observados, está en [evidencias/Evidencias_Laboratorio3_Grupo06.pdf](evidencias/Evidencias_Laboratorio3_Grupo06.pdf).
 
 ## 8. Evidencias de ejecución
 
