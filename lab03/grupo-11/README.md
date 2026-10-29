@@ -10,9 +10,7 @@ Se implemento usando SQL el proceso de registrar una finca, junto su debido hist
 
 # Fragmento del modelo logico
 
-# Matriz de trazabilidad
-
-Matriz de trazabilidad
+## Matriz de trazabilidad
 
 | Relación lógica | Tabla física | Clave primaria | Claves foráneas | Restricciones relevantes |
 |---|---|---|---|---|
