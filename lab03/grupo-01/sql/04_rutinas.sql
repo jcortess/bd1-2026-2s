@@ -210,7 +210,7 @@ BEGIN
         WHERE id_tratamiento = p_id_tratamiento_previo
     ) LOOP
         INSERT INTO tratamiento_diagnostico_nm (id_tratamiento, codigo_diagnostico)
-        VALUES (p_nuevo_tratamiento, v_reg_diag.codigo_diagnostico)
+        VALUES (p_id_nuevo_tratamiento, v_reg_diag.codigo_diagnostico)
         ON CONFLICT DO NOTHING;
     END LOOP;
 
