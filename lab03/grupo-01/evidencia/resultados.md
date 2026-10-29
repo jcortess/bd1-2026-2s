@@ -2,7 +2,7 @@
 
 **Curso:** IC-4301 · Bases de Datos I  
 **Equipo:** Grupo 01 (Joan Cordero Coto, Jason Martínez Gutiérrez)  
-**Caso:** Clínica Los Robles — Subsistema de Atención Médica Efectiva, Diagnóstico Clínico y Prescripción Terapéutica  
+**Caso:** Clínica Los Robles — Subsistema de Atención médica, diagnóstico y tratamiento clínico  
 **Entorno de ejecución:** PostgreSQL 14+ sobre Docker Compose
 
 ---

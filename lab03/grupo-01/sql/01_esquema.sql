@@ -1,5 +1,5 @@
 -- Laboratorio 03 - Grupo 01
--- Subsistema de Atención Médica Efectiva, Diagnóstico Clínico y Prescripción Terapéutica
+-- Subsistema de Atención médica, diagnóstico y tratamiento clínico
 -- Caso: Clínica Los Robles
 -- Motor: PostgreSQL 14+
 
