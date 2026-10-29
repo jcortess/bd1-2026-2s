@@ -1,97 +1,40 @@
 # Alcance del Laboratorio 3 — Grupo 04
 
-## 1. Proceso y objetivo
+## Proceso, fuentes y cobertura
 
-Se selecciona la administración y consulta de autorizaciones de personas para clientes organización de Alquileres El Roble. El proceso comienza con un cliente, una persona y facultades previamente registrados; termina con una autorización completa y consultable por fecha, o con un rechazo explicado sin inserciones parciales.
+Administrar y consultar autorizaciones de personas para clientes organización. Con cliente, persona y facultades previamente registrados, la operación termina con una autorización completa y consultable por fecha o con rechazo explicado sin filas parciales. La preparación de datos de referencia está incluida. No se ejecutan reservas, entregas ni devoluciones.
 
-La preparación de esos datos de referencia forma parte del laboratorio. El proceso no ejecuta las acciones de reservar, recibir o devolver equipos: consulta la facultad registrada que tales acciones utilizarían.
+Fuentes: Análisis, RN-01/RN-02 y AS-01/AS-02/AS-03; Modelo relacional, secciones 3, 4 y 11; Diccionario de las cinco relaciones; Matriz y correspondencia del resultado normalizado.
 
-Esta es una decisión de alcance del laboratorio, no una aprobación del profesor. La revisión docente sigue pendiente de identificación y podría motivar correcciones documentadas.
+Se conservan PERSONA, CLIENTE, AUTORIZACION, FACULTAD y AUTORIZACION_FACULTAD, con sus 19 atributos. Todas sus FK tienen destino en el subconjunto. CLIENTE mantiene ambos tipos y su enlace opcional a PERSONA; los clientes físicos permiten probar el rechazo de autorizaciones no admitidas. No se eliminan referencias ni se agregan asociaciones artificiales.
 
-## 2. Fuentes y reglas conservadas
+RN-01 permite varias personas autorizadas; RN-02 exige comprobar facultad y vigencia. AS-01 sustenta la representación de tipos de cliente; AS-02 limita autorizaciones a organizaciones; AS-03 mantiene el catálogo administrable. Estos supuestos no se presentan como reglas explícitas del caso.
 
-Fuentes: Análisis, secciones de reglas y supuestos; Modelo relacional, secciones 3, 4 y 11; Matriz de trazabilidad, RN-01 y RN-02 y correspondencia del resultado normalizado; Diccionario, las cinco relaciones seleccionadas. Los archivos se identifican en base-proyecto-1.md.
+La retroalimentación docente ya está identificada en las hojas aportadas; su tratamiento se registra en retroalimentacion-y-uso-ia.md. No exige sustituir el modelo relacional ni la normalización, calificados como excelentes, y no constituye aprobación del alcance del laboratorio.
 
-| Referencia | Cobertura prevista |
-|---|---|
-| RN-01 | Registrar varias personas autorizadas por una organización |
-| RN-02 | Registrar facultades diferentes y comprobar vigencia para la consulta |
-| AS-01 | Conservar CLIENTE con tipo y datos condicionales; PERSONA evita duplicar identidad de clientes físicos |
-| AS-02 | Rechazar el otorgamiento a clientes físicos |
-| AS-03 | Mantener un catálogo administrable de facultades, no tres columnas booleanas |
+## Operación principal prevista
 
-No se renumeran estas referencias. El análisis representa supuestos con AS; no deben presentarse como reglas explícitas originales.
+Otorgar autorización: comprobar existencia de cliente y persona, tipo organización, período válido y lista de facultades válida; insertar autorización y vínculos de forma atómica o rechazar sin inserciones parciales. Firmas y manejo transaccional se concretarán al implementar.
 
-## 3. Relaciones incluidas y dependencias
+## Decisiones funcionales conservadas
 
-| Relación | Papel y relaciones relevantes |
-|---|---|
-| PERSONA | Identidad; identificación única por tipo y valor; referenciada por CLIENTE y AUTORIZACION |
-| CLIENTE | Cliente responsable; enlace opcional a PERSONA según tipo; concede autorizaciones solo si es organización |
-| AUTORIZACION | Vincula un cliente con una persona, inicio obligatorio y fin opcional |
-| FACULTAD | Catálogo con nombre único |
-| AUTORIZACION_FACULTAD | PK compuesta por autorización y facultad; materializa la relación muchos-a-muchos |
+- DL-01: intervalo [inicio, fin), con inicio incluido y fin excluido. Fin ausente significa sin límite superior establecido; fin presente debe ser posterior al inicio. Una autorización futura no cuenta antes de su inicio. Probar instante anterior, inicio, interior y fin exacto. Si cambia la convención, ajustar consultas y pruebas.
+- DL-02: fecha y hora explícitas; fecha nula inválida. La consulta de facultades devuelve conjunto vacío si las entidades existen pero no hay facultades vigentes; rechaza identificadores inexistentes. La función de decisión distingue entrada inválida de ausencia de autorización suficiente. Retornos exactos pendientes de especificación.
+- DL-03: rechazar listas nulas, vacías, con nulos, duplicados o facultades inexistentes; no depurar silenciosamente. Al menos una facultad por autorización creada mediante la operación.
+- DL-04: no imponer UNIQUE(cliente, persona) ni prohibir traslapes sin regla del negocio. Unir facultades vigentes sin duplicarlas y contar personas distintas.
+- DL-05: mantener PK, FK, NOT NULL, UNIQUE y CHECK; el procedimiento agrega validación de organización y conjunto no vacío. No garantiza esas condiciones frente a cualquier escritura directa: pueden eliminarse todas las facultades o cambiarse el tipo de un cliente si existen permisos. Garantía global y control de permisos quedan fuera y no deben afirmarse como implementados.
+- DL-06: ofrecer registro, no rutinas de modificación, revocación o eliminación. Expiración derivada de fechas, sin borrar historial ni añadir estado sin fundamento.
 
-Se conservan los atributos y claves de estas relaciones. No se elimina la FK de CLIENTE a PERSONA ni se convierte CLIENTE en una tabla exclusiva de organizaciones. Se requieren clientes físicos para demostrar la validación del tipo.
+Son decisiones adicionales del laboratorio, no observaciones atribuidas al profesor.
 
-Todas las FK de las cinco relaciones tienen destino dentro del subconjunto. Contactos, suspensiones y certificaciones son módulos relacionados pero no prerrequisitos de integridad referencial para registrar una autorización. La omisión de esos módulos se declara como límite funcional, no como cumplimiento de sus reglas.
+## Exclusiones
 
-## 4. Operación de negocio prevista
+Contactos, suspensiones, certificaciones y permisos del personal interno; contratos, reservas, inventario, tarifas, asignaciones, inspecciones, entregas, devoluciones, mantenimiento, garantías y cargos; revocación anticipada y auditoría completa. No se implementan sus módulos ni se eliminan sus reglas del proyecto global.
 
-Otorgar una autorización con una o varias facultades.
+Una respuesta positiva solo demuestra facultad registrada y vigente para organización, persona y fecha. No acredita condiciones de entrega, suspensión, garantía, certificación o disponibilidad; no certifica las otras 23 RN.
 
-1. Comprobar existencia de cliente y persona.
-2. Comprobar que el cliente es organización.
-3. Validar fechas y lista de facultades.
-4. Comprobar que todas las facultades existen.
-5. Insertar AUTORIZACION y sus vínculos de AUTORIZACION_FACULTAD como una operación atómica.
-6. Si se rechaza cualquier condición, comunicar el motivo sin conservar una autorización incompleta.
+## Cobertura del laboratorio y estado
 
-El diseño de parámetros, tipos físicos y manejo transaccional se concretará en las etapas de esquema y rutinas. No se ha implementado ni probado esta operación.
+A: fragmento, matriz y restricciones. B: datos representativos, tres consultas con combinación y agregación, seis pruebas como mínimo, tres válidas y tres rechazadas. C: dos funciones útiles, procedimiento de otorgamiento y demostración con tabla temporal y alternativa basada en conjuntos. D: instrucciones, evidencias y videos individuales.
 
-## 5. Decisiones adicionales del laboratorio
-
-Son decisiones propuestas para hacer verificable la implementación, no información explícita atribuida al caso o al profesor. Su aprobación permite usarlas como contrato de implementación.
-
-### DL-01 — Límites de vigencia
-
-Se utilizará el intervalo [inicio, fin): el inicio está incluido y el fin excluido. Si fin está ausente, no hay límite superior establecido. Fin presente debe ser estrictamente posterior al inicio. Una autorización futura puede registrarse, pero no cuenta como vigente antes de su inicio.
-
-La elección resuelve una ambigüedad de frontera. Si el negocio exige fin inclusivo, deben cambiar el predicado de consulta y las pruebas, no solo la documentación. Se probarán el instante anterior al inicio, el inicio exacto, un punto interior y el fin exacto.
-
-### DL-02 — Fecha explícita y resultados
-
-Las consultas funcionales recibirán una fecha y hora de referencia explícita, no dependerán implícitamente del reloj actual. Una fecha nula será entrada inválida. La función de facultades devolverá un conjunto vacío si los identificadores existen pero no hay facultades vigentes; identificadores inexistentes se rechazarán con explicación. La función de decisión distinguirá entrada inválida de ausencia de autorización vigente suficiente. Los tipos exactos de retorno quedan para la especificación de rutinas.
-
-### DL-03 — Lista de facultades
-
-El otorgamiento rechazará listas nulas, vacías, con elementos nulos, duplicados o inexistentes. No eliminará silenciosamente duplicados. Una autorización válida tendrá al menos una facultad y nunca repetirá un vínculo.
-
-### DL-04 — Varias autorizaciones
-
-No se impondrá unicidad global a (id_cliente, id_persona) ni se inventará una prohibición de períodos superpuestos. Si varias autorizaciones vigentes conceden la misma facultad, las consultas de facultades la mostrarán una sola vez. Los conteos de personas usarán personas distintas.
-
-### DL-05 — Separación de controles
-
-PK, FK, obligatoriedad, unicidad y restricciones de fila permanecerán en el esquema. El procedimiento comprobará cliente organización y lista no vacía, además de las validaciones necesarias. La evidencia deberá demostrar que el rechazo no deja filas parciales.
-
-No se afirmará que el procedimiento garantiza las reglas frente a todo acceso directo. Sin medidas adicionales, un usuario con permisos de escritura puede eludir validaciones procedimentales, eliminar todas las facultades o cambiar el tipo del cliente referenciado. El control de permisos y una garantía global para tales escrituras quedan fuera de esta implementación académica y deben constar como limitación.
-
-### DL-06 — Conservación y operación acotada
-
-La operación ofrecida registra nuevas autorizaciones; no incluirá rutinas para revocar, eliminar o modificar autorizaciones existentes. El paso del tiempo no borra sus registros. La expiración se obtiene de las fechas, no de un estado nuevo añadido sin fundamento.
-
-## 6. Exclusiones y límites de la respuesta
-
-Quedan fuera contratos, reservaciones, inventario, tarifas, asignaciones, inspecciones, entregas, devoluciones, mantenimiento, garantías, cargos y sus respectivos procesos. También quedan fuera contactos, suspensiones, certificaciones, permisos del personal interno, revocación anticipada y auditoría completa de cambios.
-
-Una respuesta positiva significa únicamente que existe una facultad registrada y vigente para la persona, organización y fecha consultadas. No significa que pueda completarse una entrega: RN-03, RN-04, RN-08 y RN-10, entre otras, necesitan controles no incluidos. No se certifica el cumplimiento de las otras 23 reglas RN por este recorte.
-
-## 7. Cobertura prevista del enunciado
-
-- A: cinco relaciones del modelo final, fragmento lógico, trazabilidad y restricciones físicas.
-- B: datos ficticios con autorizaciones vigentes, vencidas, futuras y abiertas; tres consultas útiles, con combinación y agregación; al menos seis pruebas, tres válidas y tres rechazadas.
-- C: función de facultades vigentes, función con decisión, procedimiento de otorgamiento y demostración con tabla temporal y alternativa basada en conjuntos. Nombres y firmas se concretarán después.
-- D: instrucciones reproducibles, evidencias identificadas y videos individuales.
-
-Esta cobertura es planificación, no calificación ni evidencia de ejecución. La siguiente etapa elaborará el fragmento lógico y la matriz lógica-física; no se crean SQL ni diagramas definitivos en este paso.
+El paso 3 documenta el diseño en ../modelo/fragmento-modelo-logico.md y diseno-fisico-y-trazabilidad.md. La cobertura sigue siendo planificación: aún no hay DDL ni ejecución. Las decisiones físicas DF complementan, sin renumerar, las DL.

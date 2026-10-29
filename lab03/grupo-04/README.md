@@ -2,61 +2,42 @@
 
 ## Identificación
 
-- Curso: IC-4301 Bases de Datos I.
-- Caso: Alquileres El Roble.
+- IC-4301 Bases de Datos I; caso Alquileres El Roble.
 - Integrantes: Carlos Andrés Hidalgo Gutiérrez y Brack Roxel Rivas Hernández.
-- Rama: `grupo-04`.
-- Carpeta de entrega: `lab03/grupo-04/`.
+- Rama: `grupo-04`; entrega: `lab03/grupo-04/`.
 
-## Estado del trabajo
+## Estado
 
-Preparación documental y definición del alcance. Todavía no existe una implementación SQL ejecutable ni evidencia de pruebas. La revisión del profesor sigue pendiente de identificación; no se presume aprobación docente.
+Pasos 1 a 3 documentados: base, alcance y diseño lógico-físico previsto. La retroalimentación del Proyecto 1 ya fue identificada en las dos hojas de calificación aportadas. No se han implementado ni ejecutado scripts SQL; tampoco se presume aprobación docente del laboratorio.
 
-## Continuidad con el Proyecto 1
+## Proceso y continuidad
 
-El modelo inicial tiene 26 relaciones y la normalización produce el modelo final de 29, al que corresponden el diccionario y la matriz. El laboratorio implementará un subconjunto coherente de ese resultado, sin sustituirlo por un diseño nuevo.
+Se implementará la administración y consulta de autorizaciones de personas para clientes organización mediante PERSONA, CLIENTE, AUTORIZACION, FACULTAD y AUTORIZACION_FACULTAD. Corresponde a RN-01, RN-02 y los supuestos AS-01 a AS-03 aplicables. Una respuesta positiva de autorización no valida suspensión, garantía, certificación ni disponibilidad del equipo.
 
-- [Base documental y pendientes](documentacion/base-proyecto-1.md).
-- [Alcance, reglas y decisiones del subsistema](documentacion/alcance-laboratorio.md).
+La base es el resultado normalizado de 29 relaciones, no únicamente la transformación inicial de 26. El subsistema conserva sus cinco relaciones y 19 atributos; no se rediseña el proyecto completo.
 
-Los PDF y SVG aportados en la planificación no están incorporados al repositorio. Su inventario no equivale a haberlos publicado.
+## Documentación
 
-## Proceso seleccionado
+- [Base y pendientes](documentacion/base-proyecto-1.md).
+- [Alcance y decisiones funcionales](documentacion/alcance-laboratorio.md).
+- [Fragmento lógico con diagrama y cardinalidades](modelo/fragmento-modelo-logico.md).
+- [Diccionario físico y matrices de trazabilidad](documentacion/diseno-fisico-y-trazabilidad.md).
+- [Retroalimentación, uso de IA y validación pendiente](documentacion/retroalimentacion-y-uso-ia.md).
 
-Administración y consulta de autorizaciones de personas para clientes organización: registrar una autorización y sus facultades, conservar su vigencia y consultar si una persona posee una facultad vigente para una organización en una fecha explícita.
+Los PDF, SVG y Excel originales no están publicados aquí. Los Excel no son un formato admitido para la entrega; se registra su retroalimentación en Markdown. El diagrama se incluye como código Mermaid dentro de un archivo .md; su representación visual debe revisarse en GitHub antes de entregar. No se ha generado un PDF ni se afirma haber validado visualmente los SVG originales.
 
-Se implementarán PERSONA, CLIENTE, AUTORIZACION, FACULTAD y AUTORIZACION_FACULTAD. La base funcional es RN-01, RN-02, AS-02 y AS-03; AS-01 sirve de apoyo para representar tipos de cliente. El documento de alcance distingue reglas originales, decisiones adicionales y limitaciones.
+## Próximo paso y pendientes
 
-Una respuesta positiva de autorización no equivale a aprobar una reserva, entrega o devolución: no valida suspensión, garantía, certificación ni disponibilidad del equipo.
+Implementar `sql/01_esquema.sql` conforme al diseño documentado y comprobarlo en una base PostgreSQL vacía. Después completar datos, consultas, rutinas, pruebas, evidencias y videos.
 
-## Secuencia y avance
-
-1. Preparación documental: realizada; retroalimentación del profesor pendiente.
-2. Alcance, exclusiones y decisiones funcionales: documentados; sujetos a ajustes trazables si aparece retroalimentación.
-3. Próximo paso: fragmento lógico y matriz de trazabilidad lógica-física.
-4. Después: esquema, datos, rutinas, consultas y pruebas.
-5. Cierre: ejecución limpia, evidencias, videos individuales y PR de entrega.
-
-## Entregables pendientes
-
-- Fragmento lógico y matriz lógica-física.
-- `sql/01_esquema.sql`.
-- `sql/02_datos.sql`.
-- `sql/03_consultas.sql`.
-- `sql/04_rutinas.sql`.
-- `sql/05_pruebas.sql`.
-- Evidencias identificadas, instrucciones verificadas y videos individuales.
-
-No se agregan scripts vacíos o simulados.
+Faltan los cinco scripts obligatorios: `01_esquema.sql`, `02_datos.sql`, `03_consultas.sql`, `04_rutinas.sql` y `05_pruebas.sql`, dentro de sql/. No se agregan archivos vacíos ni se presenta la planificación como ejecución exitosa.
 
 ## Ejecución y entrega
 
-Se prevé PostgreSQL 17. El entorno y sus instrucciones quedan pendientes de verificación.
+Se prevé PostgreSQL 17. Preparación del entorno e instrucciones verificadas: pendientes. Orden exigido: esquema → datos → rutinas → consultas → pruebas.
 
-Orden exigido: `01_esquema.sql` → `02_datos.sql` → `04_rutinas.sql` → `03_consultas.sql` → `05_pruebas.sql`.
+Todos los cambios permanecerán en la carpeta del grupo. Solo se usarán extensiones permitidas; videos externos y enlaces individuales. El PR hacia main debe permanecer abierto, sin merge, con validaciones aprobadas. Se entregarán su enlace y el SHA completo final.
 
-Todos los cambios permanecerán en esta carpeta. Los diagramas se exportarán a PDF o imagen permitida; los videos se alojarán externamente. El PR hacia main debe permanecer abierto y con validaciones aprobadas; no se realizará merge. Se entregarán enlace del PR y SHA completo del commit final.
+## IA
 
-## Uso de IA
-
-Perplexity se utilizó para apoyar la planificación y contrastar el alcance con los documentos aportados. El equipo debe revisar y comprender cada decisión, conservar prompts relevantes y validar la futura implementación. En esta etapa no se han ejecutado pruebas de base de datos.
+Perplexity apoya la documentación. El registro enlazado conserva prompts, propuestas y validación documental, sin atribuir al equipo comprobaciones técnicas que aún no realizó.
