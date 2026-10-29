@@ -69,7 +69,7 @@ p04: no permitio que se insertara un responsable sin nombre
 
 p05: no permitio que se insertara que hiciera que dos responsables tuvieran el mismo correo
 
-![resultado de p02](img/p02_lab03_evidencia.png)
+![resultado de p05](img/p05_lab03_evidencia.png)
 
 p06: se realizo la insercion del correo correctamente pues no violaba unicidad
 # enlace a video de defensa
