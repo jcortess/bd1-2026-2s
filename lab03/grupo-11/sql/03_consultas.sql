@@ -62,6 +62,3 @@ WHERE r.responsable_id = 'responsable-0001'
 GROUP BY r.responsable_id,
       r.nombre;
 --se espera que devuelva: (responsable-0001,María Fernández Solís,2)
---consulta temporal para la prueba de productores
-SELECT *
-FROM productores
