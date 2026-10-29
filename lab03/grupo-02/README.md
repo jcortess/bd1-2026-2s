@@ -59,7 +59,62 @@ Se seleccionaron seis relaciones que permiten registrar los datos principales de
 ### 3.1. Diagrama de relaciones
 
 ```mermaid
+
 erDiagram
+    CLIENTE {
+        INTEGER cliente_id PK
+        VARCHAR identificacion UK
+        VARCHAR nombre_razon_social
+        VARCHAR tipo_cliente
+    }
+
+    VEHICULO {
+        VARCHAR vin PK
+        VARCHAR placa
+        VARCHAR marca
+        VARCHAR modelo
+        INTEGER anio
+        VARCHAR tipo_combustible
+    }
+
+    PERSONAL {
+        INTEGER personal_id PK
+        VARCHAR nombre
+        VARCHAR rol
+    }
+
+    ORDEN_TRABAJO {
+        INTEGER orden_id PK
+        VARCHAR vin FK
+        INTEGER cliente_factura_id FK
+        INTEGER entregado_por_cliente_id FK
+        INTEGER autorizador_cliente_id FK
+        INTEGER receptor_id FK
+        TIMESTAMP fecha_hora_recepcion
+        INTEGER kilometraje_ingreso
+        VARCHAR nivel_combustible
+        TEXT motivo_informado
+        TEXT observaciones_visibles
+        TIMESTAMP fecha_prometida_actual
+    }
+
+    HISTORIAL_ORDEN {
+        INTEGER historial_id PK
+        INTEGER orden_id FK
+        VARCHAR estado
+        TIMESTAMP fecha_hora
+        INTEGER personal_id FK
+    }
+
+    HALLAZGO {
+        INTEGER hallazgo_id PK
+        INTEGER orden_id FK
+        TEXT sintoma_comprobado
+        TEXT posible_causa
+        VARCHAR urgencia
+        TEXT recomendacion
+    }
+
     VEHICULO ||--o{ ORDEN_TRABAJO : ingresa
     CLIENTE ||--o{ ORDEN_TRABAJO : factura
     CLIENTE ||--o{ ORDEN_TRABAJO : entrega
@@ -68,6 +123,7 @@ erDiagram
     ORDEN_TRABAJO ||--o{ HISTORIAL_ORDEN : registra
     PERSONAL ||--o{ HISTORIAL_ORDEN : actualiza
     ORDEN_TRABAJO ||--o{ HALLAZGO : contiene
+
 ```
 
 ### 3.2. Relaciones implementadas
@@ -529,7 +585,9 @@ Los resultados se documentaron en el siguiente archivo:
 
 [Ver resultados de las pruebas](evidencias/resultados.md)
 
-La captura de ejecución se incorporará a la carpeta de evidencias del repositorio.
+
+La captura de ejecución se encuentra disponible en [pruebas_integridad.png](evidencias/pruebas_integridad.png).
+
 
 ### 9.5. Importancia de las pruebas
 
@@ -604,7 +662,12 @@ Los archivos se organizan en la carpeta evidencias del Grupo 02.
 
 **Captura de las pruebas de integridad:**
 
-Pendiente de incorporar la imagen correspondiente al repositorio.
+**Captura de las siete pruebas de integridad:**
+
+![Resultados de las siete pruebas de integridad en PostgreSQL](evidencias/pruebas_integridad.png)
+
+Las siete pruebas finalizaron correctamente. La captura muestra los mensajes de aprobación y el ROLLBACK final.
+
 
 Las evidencias muestran los resultados obtenidos al ejecutar el laboratorio en PostgreSQL 17.
 
