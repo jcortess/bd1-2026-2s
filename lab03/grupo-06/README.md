@@ -67,7 +67,12 @@ Son más que las 4 a 6 de referencia porque el proceso necesita sus tablas vincu
 
 No se eliminó ninguna clave foránea del modelo lógico entre las tablas implementadas.
 
-## 2. Trazabilidad modelo lógico → esquema físico (A1)
+
+### A1. Fragmento del Modelo y Matriz de Trazabilidad
+
+El siguiente fragmento presenta las entidades y relaciones principales del subsistema de reservaciones implementado para el Hotel Mirador del Valle.
+
+![Fragmento del modelo lógico](modelo/fragmento-modelo-logico.png)
 
 | Relación lógica | Tabla física | Clave primaria | Claves foráneas | Restricciones relevantes | Justificación de cambios |
 |---|---|---|---|---|---|
