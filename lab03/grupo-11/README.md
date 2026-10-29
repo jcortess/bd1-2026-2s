@@ -41,8 +41,37 @@ se usaron CHECK para fijar un formato en los id, fechas, telefonos, correos, y a
 
 # evidencias de consultas
 
+Consulta 1: responsables de una finca durante un periodo dado (en este caso: de la finca (productor-0001,finca-0001))
+
+![resultado de consulta 1](img/Consulta1_prueba.png)
+
+Consulta 2: todas las fincas pertenecientes a un productor dado (en este caso: fincas del productor-0001)
+
+![resultado de consulta 2](img/Consulta2_prueba.png)
 
 
+Consulta 3: total de fincas de las que un responsable dado a estado a cargo (en este caso: del responsable-0001)
+
+![resultado de consulta 3](img/Consulta3_prueba.png)
+
+# resultados de pruebas
+p01: se realizo la insercion del productor correctamente
+
+p02: no permitio que se insertara una finca de canton invalido
+
+![resultado de p02](img/p02_lab03_evidencia.png)
+
+p03: se realizo la insercion de la finca correctamente
+
+p04: no permitio que se insertara un responsable sin nombre
+
+![resultado de p04](img/p04_lab03_evidencia.png)
+
+p05: no permitio que se insertara que hiciera que dos responsables tuvieran el mismo correo
+
+![resultado de p02](img/p02_lab03_evidencia.png)
+
+p06: se realizo la insercion del correo correctamente pues no violaba unicidad
 # enlace a video de defensa
 
 
