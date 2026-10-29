@@ -5,60 +5,58 @@
 - Curso: IC-4301 Bases de Datos I.
 - Caso: Alquileres El Roble.
 - Integrantes: Carlos Andrés Hidalgo Gutiérrez y Brack Roxel Rivas Hernández.
-- Rama de trabajo: `grupo-04`.
+- Rama: `grupo-04`.
 - Carpeta de entrega: `lab03/grupo-04/`.
 
 ## Estado del trabajo
 
-Etapa inicial de preparación documental. Este documento no constituye todavía el informe final ni una implementación ejecutable.
+Preparación documental y definición del alcance. Todavía no existe una implementación SQL ejecutable ni evidencia de pruebas. La revisión del profesor sigue pendiente de identificación; no se presume aprobación docente.
 
-El laboratorio continuará el Proyecto 1 mediante la implementación en PostgreSQL de un proceso completo y acotado. No se implementará automáticamente la totalidad del modelo.
+## Continuidad con el Proyecto 1
 
-## Documentos de partida
+El modelo inicial tiene 26 relaciones y la normalización produce el modelo final de 29, al que corresponden el diccionario y la matriz. El laboratorio implementará un subconjunto coherente de ese resultado, sin sustituirlo por un diseño nuevo.
 
-Consultar el [registro de documentos y pendientes](documentacion/base-proyecto-1.md). Los archivos fuente fueron aportados en la conversación de planificación; este commit no incorpora sus PDF ni sus diagramas al repositorio.
+- [Base documental y pendientes](documentacion/base-proyecto-1.md).
+- [Alcance, reglas y decisiones del subsistema](documentacion/alcance-laboratorio.md).
 
-El modelo relacional inicial contiene 26 relaciones. La normalización produce el modelo final de 29 relaciones, al que corresponden el diccionario y la matriz de trazabilidad. La selección física deberá partir de ese resultado final y documentar cualquier corrección.
+Los PDF y SVG aportados en la planificación no están incorporados al repositorio. Su inventario no equivale a haberlos publicado.
 
-## Alcance por confirmar
+## Proceso seleccionado
 
-Se propone el proceso de administración y consulta de autorizaciones de personas para clientes organización, mediante PERSONA, CLIENTE, AUTORIZACION, FACULTAD y AUTORIZACION_FACULTAD. Esta selección es una propuesta de planificación, no una aprobación del profesor ni un esquema físico definitivo.
+Administración y consulta de autorizaciones de personas para clientes organización: registrar una autorización y sus facultades, conservar su vigencia y consultar si una persona posee una facultad vigente para una organización en una fecha explícita.
 
-Antes de implementar deben identificarse las observaciones del profesor, confirmar el alcance y documentar las decisiones de vigencia y validación.
+Se implementarán PERSONA, CLIENTE, AUTORIZACION, FACULTAD y AUTORIZACION_FACULTAD. La base funcional es RN-01, RN-02, AS-02 y AS-03; AS-01 sirve de apoyo para representar tipos de cliente. El documento de alcance distingue reglas originales, decisiones adicionales y limitaciones.
 
-## Secuencia de trabajo
+Una respuesta positiva de autorización no equivale a aprobar una reserva, entrega o devolución: no valida suspensión, garantía, certificación ni disponibilidad del equipo.
 
-1. Identificar la retroalimentación del profesor y registrar las correcciones aplicables.
-2. Confirmar proceso, alcance, exclusiones y reglas cubiertas.
-3. Preparar fragmento lógico y matriz de trazabilidad lógica-física.
-4. Implementar esquema y datos representativos.
-5. Implementar dos funciones, un procedimiento y la técnica adicional justificada.
-6. Preparar consultas y pruebas válidas e inválidas.
-7. Repetir la ejecución completa sobre una base vacía.
-8. Completar evidencias, documentación y videos individuales.
-9. Presentar el PR hacia main, mantenerlo abierto y entregar su enlace y SHA final.
+## Secuencia y avance
+
+1. Preparación documental: realizada; retroalimentación del profesor pendiente.
+2. Alcance, exclusiones y decisiones funcionales: documentados; sujetos a ajustes trazables si aparece retroalimentación.
+3. Próximo paso: fragmento lógico y matriz de trazabilidad lógica-física.
+4. Después: esquema, datos, rutinas, consultas y pruebas.
+5. Cierre: ejecución limpia, evidencias, videos individuales y PR de entrega.
 
 ## Entregables pendientes
 
-- Fragmento del modelo lógico.
-- Matriz de trazabilidad lógica-física.
+- Fragmento lógico y matriz lógica-física.
 - `sql/01_esquema.sql`.
 - `sql/02_datos.sql`.
 - `sql/03_consultas.sql`.
 - `sql/04_rutinas.sql`.
 - `sql/05_pruebas.sql`.
-- Evidencias identificadas y enlaces a videos individuales.
+- Evidencias identificadas, instrucciones verificadas y videos individuales.
 
-Los scripts se crearán con contenido real en sus etapas correspondientes; no se agregan archivos vacíos ni scripts simulados para aparentar una entrega completa.
+No se agregan scripts vacíos o simulados.
 
-## Condiciones de ejecución y entrega
+## Ejecución y entrega
 
-Se prevé usar PostgreSQL 17 para alinearse con la validación automática. Las instrucciones definitivas del entorno quedan pendientes de implementación y verificación.
+Se prevé PostgreSQL 17. El entorno y sus instrucciones quedan pendientes de verificación.
 
 Orden exigido: `01_esquema.sql` → `02_datos.sql` → `04_rutinas.sql` → `03_consultas.sql` → `05_pruebas.sql`.
 
-Todos los cambios deben permanecer en la carpeta del grupo. Solo se entregarán formatos permitidos por el enunciado. Los SVG de origen deberán exportarse a PDF o imagen admitida antes de incorporarlos. Los videos se alojarán externamente. No se realizará el merge del PR.
+Todos los cambios permanecerán en esta carpeta. Los diagramas se exportarán a PDF o imagen permitida; los videos se alojarán externamente. El PR hacia main debe permanecer abierto y con validaciones aprobadas; no se realizará merge. Se entregarán enlace del PR y SHA completo del commit final.
 
-## Uso de IA y validación
+## Uso de IA
 
-Se utilizó Perplexity como apoyo para organizar esta planificación. El equipo deberá revisar y validar las propuestas antes de incorporarlas a la implementación y conservar los prompts relevantes. No se han ejecutado scripts ni pruebas de base de datos en esta etapa.
+Perplexity se utilizó para apoyar la planificación y contrastar el alcance con los documentos aportados. El equipo debe revisar y comprender cada decisión, conservar prompts relevantes y validar la futura implementación. En esta etapa no se han ejecutado pruebas de base de datos.

@@ -2,7 +2,7 @@
 
 ## Inventario de fuentes aportadas
 
-Estos nombres identifican archivos proporcionados para la planificación; no son enlaces ni archivos incluidos por este commit.
+Estos nombres identifican archivos proporcionados para la planificación; no son enlaces ni archivos incorporados al repositorio.
 
 | Archivo | Utilización prevista |
 |---|---|
@@ -22,18 +22,20 @@ Estos nombres identifican archivos proporcionados para la planificación; no son
 
 El resultado normalizado es la base lógica final, conforme a las aclaraciones del Proyecto 1. No debe sustituirse por el esquema inicial sin justificación.
 
-Cambios identificados en la documentación: RESERVACION separa la identidad y cliente de las versiones de RESERVA; CARGO_ASIGNACION y CARGO_INCIDENCIA separan los vínculos opcionales de CARGO. Las relaciones seleccionadas para el laboratorio deberán contrastarse con el diccionario y la matriz finales.
+RESERVACION separa la identidad y cliente de las versiones de RESERVA; CARGO_ASIGNACION y CARGO_INCIDENCIA separan vínculos opcionales de CARGO. Esos módulos quedan fuera del subsistema seleccionado; sus cambios no deben revertirse en futuras ampliaciones. Las cinco relaciones seleccionadas conservan las definiciones del modelo relacional, según la correspondencia del resultado normalizado indicada por la matriz.
 
-## Registro inicial de pendientes
+## Registro de pendientes y decisiones
 
 | ID | Asunto | Estado y acción |
 |---|---|---|
-| P-01 | Revisión del profesor | Pendiente de identificar el archivo, imagen o página que contiene la retroalimentación. No se atribuyen observaciones no verificadas. |
-| P-02 | Alcance del laboratorio | Confirmar la propuesta de autorizaciones y sus cinco relaciones antes del diseño físico. |
-| P-03 | Vigencia | Definir límites temporales y comportamiento ante consultas fuera de vigencia. |
-| P-04 | Reglas procedimentales | Precisar validación de cliente organización y exigencia de al menos una facultad; documentar límites ante escrituras directas. |
-| P-05 | Coherencia gráfica | Contrastar el fragmento elegido con los diagramas originales y exportarlo a un formato permitido. |
+| P-01 | Revisión del profesor | Pendiente de identificar archivo, imagen o página. No se atribuyen observaciones no verificadas. |
+| P-02 | Alcance | Definido en alcance-laboratorio.md: autorizaciones y cinco relaciones. No equivale a aprobación docente. |
+| P-03 | Vigencia | Decisiones DL-01 y DL-02 documentadas; implementación y pruebas de límites pendientes. |
+| P-04 | Reglas procedimentales | Decisiones DL-03 a DL-06 y límites de escrituras directas documentados; implementación pendiente. |
+| P-05 | Coherencia gráfica | Pendiente contrastar el fragmento con diagramas originales y exportarlo a formato permitido. |
+
+Consultar el [documento de alcance](alcance-laboratorio.md). Los asuntos definidos documentalmente aún requieren verificación técnica; no se consideran pruebas aprobadas.
 
 ## Tratamiento de correcciones
 
-Cada observación identificada se registrará con su fuente, elemento afectado, decisión adoptada, justificación y prueba prevista. Las correcciones del laboratorio no modificarán silenciosamente los archivos históricos entregados en el Proyecto 1 ni renumerarán las reglas RN o los supuestos AS.
+Cada observación se registrará con fuente, elemento afectado, decisión, justificación y prueba prevista. No se modificarán silenciosamente los archivos históricos del Proyecto 1 ni se renumerarán RN o AS. Las decisiones DL son adicionales del laboratorio, no reglas originales ni observaciones atribuidas al profesor.
