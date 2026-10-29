@@ -681,7 +681,9 @@ Los vídeos se almacenarán fuera del repositorio y sus enlaces se agregarán a 
 
 ### Defensa de Jimena Pérez Alfaro
 
-**Enlace:** Pendiente de incorporar.
+**Enlace:** 
+[Ver defensa individual de Jimena](https://drive.google.com/file/d/1bJYkuD26DFLWt0MLesppgn4ObVDUdecR/view?usp=sharing)
+
 
 ### Defensa de Rachel Priscilla Ramírez González
 
