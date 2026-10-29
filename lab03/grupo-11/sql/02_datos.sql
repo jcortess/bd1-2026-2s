@@ -1,6 +1,6 @@
 -- ==================================
 -- Labotario 3 - Dilan Andrey Sibaja Ugalde
--- 02_datos - definicion del esquema fisico (Postgress)
+-- 02_datos - datos de prueba de la base de datos
 --proceso de negocio: registro de una finca por un productor
 --version de PostgreSQL utilizada: 18
 -- ==================================
