@@ -231,5 +231,5 @@ Durante el desarrollo se utilizaron herramientas de inteligencia artificial como
 
 | Integrante | Enlace al video (máx. 5 min) |
 |---|---|
-| Fernanda Arce Estrada | [pegar enlace] |
-| Fabián Campos Santamaría | [pegar enlace] |
+| Fernanda Arce Estrada | [https://youtu.be/0MEe9ZRqsmU] |
+| Fabián Campos Santamaría | [https://1drv.ms/v/c/7e51439ce456e072/IQD1XbhwVVRVTZh3ku9KT-RiAdX1seztII7KEwo1r1m0Bfg?e=fexTdi] |
