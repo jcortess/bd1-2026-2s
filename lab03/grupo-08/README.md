@@ -242,5 +242,5 @@ El cursor se incorpora como una técnica de procesamiento procedural que permite
 ## 6. Videos de la defensa individual
 | Integrante | Enlace |
 |---|---|
-|Eddy Guiltres Rivas|---|
-|Gherlan Cerdas|---|
+|Eddy Guiltres Rivas|https://youtu.be/HuT_a3Hb1bs|
+|Gherlan Cerdas|https://youtu.be/A-fNPkZVCvQ|
