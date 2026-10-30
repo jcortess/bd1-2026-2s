@@ -2,10 +2,6 @@
 
 ¡Hola! Bienvenidos al repositorio del **Grupo 08** para el Laboratorio 3 del curso IC-4301 · Bases de Datos I.
 
-# Laboratorio 3 – Grupo 08
-IC-4301 Bases de Datos I · II semestre 2026
-Integrantes: (nombres y carnés)
-
 ## 1. Descripción del proceso implementado
 
 ### Proceso de negocio de Envíos Conecta
