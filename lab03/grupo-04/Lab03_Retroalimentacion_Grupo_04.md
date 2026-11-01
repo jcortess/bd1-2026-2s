@@ -3,7 +3,9 @@
 ## Alquileres El Roble
 
 **Calificación: 100/100.** Trabajo del grupo: **80/80**. Defensa individual: **20/20** por integrante activo.
+
 **Carlos no publicó el video de la presentación**
+
 **Versión evaluada:** `c55142cfdfab8caaaa56871d526d21e30e8d0584`.
 
 ## Desglose de la calificación
