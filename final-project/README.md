@@ -1,4 +1,4 @@
-# IC-4301 Bases de Datos I — Proyecto 1, segunda entrega
+# IC-4301 Bases de Datos I — Proyecto, entrega final
 
 ## 1. Propósito y resultados de aprendizaje
 
