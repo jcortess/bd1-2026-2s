@@ -113,9 +113,9 @@ No entreguen solamente un respaldo binario ni dependan de una base ya preparada 
 
 Todos los integrantes deben participar de manera identificable. Cada persona debe explicar una parte sustantiva, relacionar una decisión con su regla, recorrer el efecto de una operación sobre los datos e interpretar una prueba o rechazo. La participación no se limita a leer la introducción o mostrar su nombre.
 
-En el video deben poder reconocerse el entorno, la versión entregada, una ejecución con comprobación de datos y la explicación de integridad, transacción y concurrencia pertinente. El README y los guiones deben permitir repetir lo mostrado. No se establece aquí duración del video ni fecha de entrega.
+En el video deben poder reconocerse el entorno, la versión entregada, una ejecución con comprobación de datos y la explicación de integridad, transacción y concurrencia pertinente. El README y los guiones deben permitir repetir lo mostrado. **Sin cortes ni edición.**
 
-La defensa conserva su modalidad de video, cámara encendida siempre y buena iluminación por favor. Se permite entregar un enlace accesible desde `README.md` que permita al profesor revisar la grabación; no se exige incorporar archivos de video pesados al repositorio o paquete de entrega. La identificación de participantes y el índice se documentan en Markdown, conforme a la sección 9.
+La defensa conserva su modalidad de video, **cámara encendida siempre y buena iluminación por favor**. Se permite entregar un enlace accesible desde `README.md` que me permita revisar la grabación; no se exige incorporar archivos de video pesados al repositorio o paquete de entrega. La identificación de participantes y el índice se documentan en Markdown, conforme a la sección 9.
 
 **Está permitido usar IA** para desarrollar, revisar y probar SQL. Se valora funcionamiento real, fidelidad al caso, pruebas reproducibles e independientes de mensajes de éxito y comprensión individual. El tiempo de escritura manual no es la medida principal de dificultad. Quien incorpora una propuesta debe poder explicar su propósito, límites y evidencia de validación; no basta atribuir una decisión a una herramienta.
 
@@ -126,3 +126,6 @@ El anexo de su grupo precisa la aceptación funcional. Las pruebas de aceptació
 Los valores temporales definidos expresamente en el caso, las aclaraciones o los requisitos de esta entrega son obligatorios: apliquen la cantidad de días y su contexto y prueben sus fronteras. No creen plazos numéricos adicionales cuando no sean necesarios para los procesos. Si una regla requiere un valor que las fuentes no fijan, documenten la interpretación y su efecto; un ejemplo o supuesto de Lab03 no se convierte por sí solo en requisito general.
 
 Si el caso admite varias interpretaciones, documenten fragmento, pregunta, supuesto e impacto. Una decisión que contradiga una condición explícita o reduzca un proceso asignado requiere aclaración docente; no puede quedar escondida entre supuestos.
+
+## 12. Fecha de entrega
+La entrega se tiene que realizar el Jueves 3 de diciembre del 2026 antes de las 12 medio día, al igual que en entregas pasadas se debe de realiza un PR a main, todo lo que entregue después de esa hora no se calificará, al igual que el video de presentación.
