@@ -39,7 +39,7 @@ y **demostrar con pruebas** que tu corrección es correcta.
    
    2.1 -- Iniciar la línea de comandos en la base de datos:
    ```
-   docker compose exec db psql -U platano -d platano
+   docker compose exec db psql -U platano -d platano -f /test/pruebas_publicas.sql
    ```
    
 4. Explora el esquema y los datos (`database/`), las consultas actuales
