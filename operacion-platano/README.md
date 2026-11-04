@@ -36,14 +36,19 @@ y **demostrar con pruebas** que tu corrección es correcta.
    Esto crea un contenedor de PostgreSQL 16 y ejecuta automáticamente
    `database/01_schema.sql` y `database/02_seed.sql` la primera vez que
    se crea el volumen de datos.
-3. Explora el esquema y los datos (`database/`), las consultas actuales
+   2.1 -- Iniciar la línea de comandos en la base de datos:
+   ```
+      docker compose exec db psql -U platano -d platano
+   ```
+   
+4. Explora el esquema y los datos (`database/`), las consultas actuales
    del sistema (`database/03_queries.sql`) y la documentación heredada
    (`docs/notas_migracion.md`, `docs/historial_cambios.md`).
-4. Ejecuta las pruebas públicas:
+5. Ejecuta las pruebas públicas:
    ```
    psql -h localhost -p 5432 -U platano -d platano -f tests/pruebas_publicas.sql
    ```
-5. Revisa `entregables/INSTRUCCIONES.md` para los detalles de la entrega,
+6. Revisa `entregables/INSTRUCCIONES.md` para los detalles de la entrega,
    la defensa individual y la bonificación propuesta.
 
 ## Estructura del repositorio
