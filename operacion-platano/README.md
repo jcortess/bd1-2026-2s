@@ -36,9 +36,10 @@ y **demostrar con pruebas** que tu corrección es correcta.
    Esto crea un contenedor de PostgreSQL 16 y ejecuta automáticamente
    `database/01_schema.sql` y `database/02_seed.sql` la primera vez que
    se crea el volumen de datos.
+   
    2.1 -- Iniciar la línea de comandos en la base de datos:
    ```
-      docker compose exec db psql -U platano -d platano
+   docker compose exec db psql -U platano -d platano
    ```
    
 4. Explora el esquema y los datos (`database/`), las consultas actuales
