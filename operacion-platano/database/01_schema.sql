@@ -28,9 +28,9 @@ CREATE TABLE carrera (
 -- ----------------------------------------------------------------------------
 CREATE TABLE estudiante (
     id_estudiante  SERIAL PRIMARY KEY,
-    carnet         VARCHAR(15) NOT NULL,
+    carnet         VARCHAR(15) NOT NULL UNIQUE, -- Reglas §1: también para inactivos.
     nombre         VARCHAR(120) NOT NULL,
-    id_carrera     INTEGER REFERENCES carrera(id_carrera),
+    id_carrera     INTEGER NOT NULL REFERENCES carrera(id_carrera), -- Reglas §1.
     fecha_ingreso  DATE NOT NULL,
     activo         BOOLEAN NOT NULL DEFAULT TRUE
 );
@@ -40,7 +40,7 @@ CREATE TABLE estudiante (
 -- ----------------------------------------------------------------------------
 CREATE TABLE profesor (
     id_profesor  SERIAL PRIMARY KEY,
-    cedula       VARCHAR(15) NOT NULL,
+    cedula       VARCHAR(15) NOT NULL UNIQUE, -- Reglas §2.
     nombre       VARCHAR(120) NOT NULL,
     id_carrera   INTEGER REFERENCES carrera(id_carrera)
 );
@@ -52,7 +52,7 @@ CREATE TABLE curso (
     id_curso   SERIAL PRIMARY KEY,
     codigo     VARCHAR(15) NOT NULL UNIQUE,
     nombre     VARCHAR(120) NOT NULL,
-    creditos   INTEGER NOT NULL,
+    creditos   INTEGER NOT NULL CHECK (creditos >= 1), -- Reglas §3.
     id_carrera INTEGER NOT NULL REFERENCES carrera(id_carrera)
 );
 
@@ -74,9 +74,12 @@ CREATE TABLE matricula (
     id_matricula   SERIAL PRIMARY KEY,
     id_estudiante  INTEGER NOT NULL REFERENCES estudiante(id_estudiante),
     id_grupo       INTEGER NOT NULL REFERENCES grupo(id_grupo),
-    nota           NUMERIC(5,1),
+    -- Reglas §4-5: conservar la precisión evita redondear 69.99 a 70.
+    -- NULL sigue siendo pendiente; el CHECK rechaza también NaN e infinitos.
+    nota           NUMERIC CHECK (nota >= 0 AND nota <= 100),
     estado         VARCHAR(15) NOT NULL DEFAULT 'matriculado'
-                     CHECK (estado IN ('matriculado', 'retirado'))
+                     CHECK (estado IN ('matriculado', 'retirado')),
+    UNIQUE (id_estudiante, id_grupo) -- Reglas §4: todos los estados.
 );
 
 -- ----------------------------------------------------------------------------
@@ -88,7 +91,8 @@ CREATE TABLE requisito (
     id_requisito        SERIAL PRIMARY KEY,
     id_curso            INTEGER NOT NULL REFERENCES curso(id_curso),
     id_curso_requisito  INTEGER NOT NULL REFERENCES curso(id_curso),
-    UNIQUE (id_curso, id_curso_requisito)
+    UNIQUE (id_curso, id_curso_requisito),
+    CHECK (id_curso <> id_curso_requisito) -- Reglas §6.
 );
 
 -- ----------------------------------------------------------------------------

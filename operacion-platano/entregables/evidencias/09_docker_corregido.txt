@@ -1,0 +1,16 @@
+﻿Comando: docker compose up -d --wait --wait-timeout 60
+ Network operacion-platano_default Creating 
+ Volume operacion-platano_platano_data Creating 
+ Network operacion-platano_default Creating 
+ Volume operacion-platano_platano_data Creating 
+ Volume operacion-platano_platano_data Created 
+ Volume operacion-platano_platano_data Created 
+ Network operacion-platano_default Created 
+ Network operacion-platano_default Created 
+ Container platano_db Creating 
+ Container platano_db Created 
+ Container platano_db Starting 
+ Container platano_db Started 
+ Container platano_db Waiting 
+ Container platano_db Healthy 
+Exit code: 0

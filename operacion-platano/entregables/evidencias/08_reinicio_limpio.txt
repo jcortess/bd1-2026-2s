@@ -1,0 +1,10 @@
+﻿Comando: docker compose down --volumes
+ Container platano_db Stopping 
+ Container platano_db Stopped 
+ Container platano_db Removing 
+ Container platano_db Removed 
+ Network operacion-platano_default Removing 
+ Volume operacion-platano_platano_data Removing 
+ Volume operacion-platano_platano_data Removed 
+ Network operacion-platano_default Removed 
+Exit code: 0

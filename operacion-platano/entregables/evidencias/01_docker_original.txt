@@ -1,0 +1,3 @@
+﻿Comando: docker compose up -d
+ Container platano_db Running 
+Exit code: 0

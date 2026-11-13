@@ -1,0 +1,7 @@
+﻿Fecha local: 2026-10-30 (America/Costa_Rica)
+Commit inicial: ce468aa5ae8cd00887a7c26e2a94381b08bad798
+Rama: JasonMadrigalPineda
+Estado inicial de Git (vacío antes de crear evidencias):
+Verificado mediante git status --short antes de cualquier escritura.
+Docker Desktop estaba detenido; iniciado en segundo plano.
+Comando: docker compose up -d
