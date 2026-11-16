@@ -1,0 +1,83 @@
+Fecha local: 2026-11-04T00:20:10.604017-06:00
+Comando: docker compose logs --no-color db
+
+platano_db  | The files belonging to this database system will be owned by user "postgres".
+platano_db  | This user must also own the server process.
+platano_db  | 
+platano_db  | The database cluster will be initialized with locale "en_US.utf8".
+platano_db  | The default database encoding has accordingly been set to "UTF8".
+platano_db  | The default text search configuration will be set to "english".
+platano_db  | 
+platano_db  | Data page checksums are disabled.
+platano_db  | 
+platano_db  | fixing permissions on existing directory /var/lib/postgresql/data ... ok
+platano_db  | creating subdirectories ... ok
+platano_db  | selecting dynamic shared memory implementation ... posix
+platano_db  | selecting default max_connections ... 100
+platano_db  | selecting default shared_buffers ... 128MB
+platano_db  | selecting default time zone ... Etc/UTC
+platano_db  | creating configuration files ... ok
+platano_db  | running bootstrap script ... ok
+platano_db  | performing post-bootstrap initialization ... ok
+platano_db  | initdb: warning: enabling "trust" authentication for local connections
+platano_db  | initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+platano_db  | syncing data to disk ... ok
+platano_db  | 
+platano_db  | 
+platano_db  | Success. You can now start the database server using:
+platano_db  | 
+platano_db  |     pg_ctl -D /var/lib/postgresql/data -l logfile start
+platano_db  | 
+platano_db  | waiting for server to start....2026-11-04 06:19:19.784 UTC [55] LOG:  starting PostgreSQL 16.15 (Debian 16.15-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+platano_db  | 2026-11-04 06:19:19.791 UTC [55] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+platano_db  | 2026-11-04 06:19:19.829 UTC [58] LOG:  database system was shut down at 2026-11-04 06:19:17 UTC
+platano_db  | 2026-11-04 06:19:19.856 UTC [55] LOG:  database system is ready to accept connections
+platano_db  |  done
+platano_db  | server started
+platano_db  | CREATE DATABASE
+platano_db  | 
+platano_db  | 
+platano_db  | /usr/local/bin/docker-entrypoint.sh: running /docker-entrypoint-initdb.d/01_schema.sql
+platano_db  | DROP SCHEMA
+platano_db  | CREATE SCHEMA
+platano_db  | CREATE TABLE
+platano_db  | CREATE TABLE
+platano_db  | CREATE TABLE
+platano_db  | CREATE TABLE
+platano_db  | CREATE TABLE
+platano_db  | CREATE TABLE
+platano_db  | CREATE TABLE
+platano_db  | CREATE TABLE
+platano_db  | 
+platano_db  | 
+platano_db  | /usr/local/bin/docker-entrypoint.sh: running /docker-entrypoint-initdb.d/02_seed.sql
+platano_db  | INSERT 0 3
+platano_db  | INSERT 0 8
+platano_db  | INSERT 0 5
+platano_db  | INSERT 0 12
+platano_db  | INSERT 0 4
+platano_db  | INSERT 0 8
+platano_db  | INSERT 0 18
+platano_db  | INSERT 0 4
+platano_db  | 
+platano_db  | 
+platano_db  | 2026-11-04 06:19:22.397 UTC [55] LOG:  received fast shutdown request
+platano_db  | waiting for server to shut down....2026-11-04 06:19:22.414 UTC [55] LOG:  aborting any active transactions
+platano_db  | 2026-11-04 06:19:22.418 UTC [55] LOG:  background worker "logical replication launcher" (PID 61) exited with exit code 1
+platano_db  | 2026-11-04 06:19:22.429 UTC [56] LOG:  shutting down
+platano_db  | 2026-11-04 06:19:22.460 UTC [56] LOG:  checkpoint starting: shutdown immediate
+platano_db  | ..2026-11-04 06:19:25.009 UTC [56] LOG:  checkpoint complete: wrote 983 buffers (6.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.252 s, sync=2.230 s, total=2.580 s; sync files=330, longest=0.102 s, average=0.007 s; distance=4471 kB, estimate=4471 kB; lsn=0/1950758, redo lsn=0/1950758
+platano_db  | 2026-11-04 06:19:25.082 UTC [55] LOG:  database system is shut down
+platano_db  |  done
+platano_db  | server stopped
+platano_db  | 
+platano_db  | PostgreSQL init process complete; ready for start up.
+platano_db  | 
+platano_db  | 2026-11-04 06:19:25.311 UTC [1] LOG:  starting PostgreSQL 16.15 (Debian 16.15-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+platano_db  | 2026-11-04 06:19:25.323 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+platano_db  | 2026-11-04 06:19:25.323 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+platano_db  | 2026-11-04 06:19:25.340 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+platano_db  | 2026-11-04 06:19:25.363 UTC [82] LOG:  database system was shut down at 2026-11-04 06:19:24 UTC
+platano_db  | 2026-11-04 06:19:25.395 UTC [1] LOG:  database system is ready to accept connections
+
+EXIT_CODE=0

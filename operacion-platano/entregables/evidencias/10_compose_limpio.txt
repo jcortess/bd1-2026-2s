@@ -1,0 +1,15 @@
+Fecha local: 2026-11-04T00:24:16.857969-06:00
+Comando: docker compose -p platano_mariapaula -f docker-compose.yml -f entregables/compose.validacion.yml up -d --wait --wait-timeout 90
+
+ Network platano_mariapaula_default Creating 
+ Network platano_mariapaula_default Created 
+ Volume platano_mariapaula_platano_data Creating 
+ Volume platano_mariapaula_platano_data Created 
+ Container platano_validacion_db Creating 
+ Container platano_validacion_db Created 
+ Container platano_validacion_db Starting 
+ Container platano_validacion_db Started 
+ Container platano_validacion_db Waiting 
+ Container platano_validacion_db Healthy 
+
+EXIT_CODE=0

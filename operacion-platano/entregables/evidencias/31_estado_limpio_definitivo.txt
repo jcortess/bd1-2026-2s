@@ -1,0 +1,63 @@
+Fecha local: 2026-11-04T00:39:59.594215-06:00
+Comando: docker exec -i platano_validacion_db psql -X -v ON_ERROR_STOP=1 -U platano -d platano_final -f -
+Entrada SQL: tests/estado_final.sql
+
+Pager usage is off.
+CONTEOS TRAS ROLLBACK: 3,12,3,8,8,17,4,4
+   tabla    | count 
+------------+-------
+ carrera    |     3
+ estudiante |    12
+ profesor   |     3
+ curso      |     8
+ grupo      |     8
+ matricula  |    17
+ requisito  |     4
+ auditoria  |     4
+(8 rows)
+
+RESIDUOS SINTETICOS: CERO
+ filas_sinteticas 
+------------------
+                0
+(1 row)
+
+TIPO DEFINITIVO DE NOTA: numeric SIN ESCALA FIJA
+ tipo_nota 
+-----------
+ numeric
+(1 row)
+
+EXPEDIENTES HEREDADOS: MATRICULAS CON REQUISITOS SIN APROBACION REGISTRADA
+ carnet  | curso_matriculado |   estado    | nota | requisito_sin_respaldo 
+---------+-------------------+-------------+------+------------------------
+ 2021001 | INF-2003          | matriculado |      | INF-2002
+ 2021005 | INF-2001          | matriculado | 69.9 | INF-1001
+ 2021010 | INF-1002          | matriculado | 80.0 | INF-1001
+ 2021012 | INF-2001          | matriculado | 90.0 | INF-1001
+(4 rows)
+
+RELACIONES PROTEGIDAS POR CLAVES FORANEAS
+   tabla    |                            referencia                            
+------------+------------------------------------------------------------------
+ curso      | FOREIGN KEY (id_carrera) REFERENCES carrera(id_carrera)
+ estudiante | FOREIGN KEY (id_carrera) REFERENCES carrera(id_carrera)
+ grupo      | FOREIGN KEY (id_curso) REFERENCES curso(id_curso)
+ grupo      | FOREIGN KEY (id_profesor) REFERENCES profesor(id_profesor)
+ matricula  | FOREIGN KEY (id_estudiante) REFERENCES estudiante(id_estudiante)
+ matricula  | FOREIGN KEY (id_grupo) REFERENCES grupo(id_grupo)
+ profesor   | FOREIGN KEY (id_carrera) REFERENCES carrera(id_carrera)
+ requisito  | FOREIGN KEY (id_curso) REFERENCES curso(id_curso)
+ requisito  | FOREIGN KEY (id_curso_requisito) REFERENCES curso(id_curso)
+(9 rows)
+
+NULABILIDAD: ESTUDIANTE CARRERA NO; GRUPO PROFESOR SI; MATRICULA NOTA SI
+ table_name | column_name | is_nullable 
+------------+-------------+-------------
+ estudiante | id_carrera  | NO
+ grupo      | id_profesor | YES
+ matricula  | nota        | YES
+(3 rows)
+
+
+EXIT_CODE=0

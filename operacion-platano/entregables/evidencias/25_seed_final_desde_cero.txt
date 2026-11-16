@@ -1,0 +1,14 @@
+Fecha local: 2026-11-04T00:38:28.499129-06:00
+Comando: docker exec -i platano_validacion_db psql -X -v ON_ERROR_STOP=1 -U platano -d platano_final -f -
+Entrada SQL: database/02_seed.sql
+
+INSERT 0 3
+INSERT 0 8
+INSERT 0 4
+INSERT 0 12
+INSERT 0 3
+INSERT 0 8
+INSERT 0 17
+INSERT 0 4
+
+EXIT_CODE=0

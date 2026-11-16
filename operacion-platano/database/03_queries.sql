@@ -1,11 +1,9 @@
 -- ============================================================================
 -- OPERACIÓN P.L.A.T.A.N.O. — Consultas del sistema académico
 --
--- Estas consultas fueron heredadas del proveedor "Datos Rápidos S.A." y se
--- usan hoy para generar reportes oficiales de Registraduría. Algunas
--- producen resultados correctos. Otras producen resultados incorrectos,
--- y no siempre de forma evidente: varias funcionan "bien" con los datos
--- actuales y solo fallan en casos límite.
+-- Consultas revisadas según docs/reglas_negocio.md. Las versiones heredadas
+-- del proveedor "Datos Rápidos S.A." y sus resultados se conservan en
+-- entregables/evidencias/original/ y se explican en entregables/CAMBIOS.md.
 --
 -- No asumas que una consulta es correcta porque no lanza error ni porque
 -- el resultado "se ve razonable". Verifica cada una contra las reglas de
@@ -31,12 +29,14 @@ ORDER BY c.nombre, e.nombre;
 SELECT ca.nombre AS carrera,
        cu.codigo,
        cu.nombre AS curso,
+       COUNT(DISTINCT g.id_grupo) AS total_grupos,
        COUNT(m.id_matricula) AS total_matriculas
 FROM carrera ca
 JOIN curso cu ON cu.id_carrera = ca.id_carrera
-JOIN grupo g ON g.id_curso = cu.id_curso
-JOIN matricula m ON m.id_grupo = g.id_grupo
-GROUP BY ca.nombre, cu.codigo, cu.nombre
+-- Sección 3: conservar cada curso, incluso sin grupos o sin matrícula.
+LEFT JOIN grupo g ON g.id_curso = cu.id_curso
+LEFT JOIN matricula m ON m.id_grupo = g.id_grupo
+GROUP BY ca.id_carrera, cu.id_curso
 ORDER BY ca.nombre, cu.codigo;
 
 
@@ -44,38 +44,40 @@ ORDER BY ca.nombre, cu.codigo;
 -- Consulta 3: Matrícula por grupo del ciclo 2026-1 (control de cupo)
 -- ----------------------------------------------------------------------------
 SELECT g.id_grupo, cu.codigo, cu.nombre AS curso, g.cupo,
-       COUNT(*) AS matriculados
+       COUNT(m.id_matricula) AS matriculados
 FROM grupo g
 JOIN curso cu ON cu.id_curso = g.id_curso
-LEFT JOIN matricula m ON m.id_grupo = g.id_grupo
+-- Control de cupo: las matrículas retiradas no ocupan plazas.
+LEFT JOIN matricula m ON m.id_grupo = g.id_grupo AND m.estado = 'matriculado'
 WHERE g.ciclo = '2026-1'
 GROUP BY g.id_grupo, cu.codigo, cu.nombre, g.cupo
 ORDER BY g.id_grupo;
 
 
 -- ----------------------------------------------------------------------------
--- Consulta 4: Resumen de matrícula histórica del curso "Bases de Datos I"
+-- Consulta 4: Resumen de matrícula del ciclo 2026-1 de "Bases de Datos I"
 -- (código INF-2001). Reporte solicitado para evaluar la carga del curso
 -- en el ciclo actual.
 -- ----------------------------------------------------------------------------
 SELECT cu.codigo, cu.nombre, COUNT(m.id_matricula) AS matriculas
 FROM curso cu
-JOIN grupo g ON g.id_curso = cu.id_curso
-JOIN matricula m ON m.id_grupo = g.id_grupo
+LEFT JOIN grupo g ON g.id_curso = cu.id_curso AND g.ciclo = '2026-1'
+LEFT JOIN matricula m ON m.id_grupo = g.id_grupo
 WHERE cu.codigo = 'INF-2001'
-GROUP BY cu.codigo, cu.nombre;
+GROUP BY cu.id_curso;
 
 
 -- ----------------------------------------------------------------------------
--- Consulta 5: Matrícula total histórica por nombre de curso, para detectar
+-- Consulta 5: Matrícula total histórica por identidad de curso, para detectar
 -- cursos populares a través de las distintas carreras que los ofrecen.
 -- ----------------------------------------------------------------------------
-SELECT cu.nombre AS curso, COUNT(m.id_matricula) AS total_matriculas
+-- Sección 3: un nombre compartido no identifica un curso.
+SELECT cu.codigo, cu.nombre AS curso, COUNT(m.id_matricula) AS total_matriculas
 FROM curso cu
-JOIN grupo g ON g.id_curso = cu.id_curso
-JOIN matricula m ON m.id_grupo = g.id_grupo
-GROUP BY cu.nombre
-ORDER BY total_matriculas DESC;
+LEFT JOIN grupo g ON g.id_curso = cu.id_curso
+LEFT JOIN matricula m ON m.id_grupo = g.id_grupo
+GROUP BY cu.id_curso
+ORDER BY total_matriculas DESC, cu.codigo;
 
 
 -- ----------------------------------------------------------------------------
@@ -93,12 +95,16 @@ ORDER BY total_matriculas DESC;
 -- (excluye del cálculo las matrículas con estado 'retirado')
 -- ----------------------------------------------------------------------------
 SELECT
-    COUNT(*) AS total_evaluadas,
-    SUM(CASE WHEN nota >= 70 THEN 1 ELSE 0 END) AS aprobados,
-    ROUND(100.0 * SUM(CASE WHEN nota >= 70 THEN 1 ELSE 0 END) / COUNT(*), 1) AS tasa_aprobacion
+    -- Secciones 4 y 5: pendientes explícitos, cero evaluado, retirados excluidos.
+    COUNT(*) AS total_matriculas,
+    COUNT(nota) AS total_evaluadas,
+    COUNT(*) FILTER (WHERE nota >= 70) AS aprobados,
+    COUNT(*) FILTER (WHERE nota < 70) AS reprobados,
+    COUNT(*) FILTER (WHERE nota IS NULL) AS pendientes,
+    ROUND(100.0 * COUNT(*) FILTER (WHERE nota >= 70)
+          / NULLIF(COUNT(nota), 0), 1) AS tasa_aprobacion
 FROM matricula
-WHERE estado = 'matriculado'
-  AND nota <> 0;
+WHERE estado = 'matriculado';
 
 
 -- ----------------------------------------------------------------------------
@@ -110,7 +116,9 @@ JOIN grupo g ON g.id_grupo = m.id_grupo
 JOIN curso cu ON cu.id_curso = g.id_curso
 JOIN estudiante e ON e.id_estudiante = m.id_estudiante
 WHERE cu.codigo = 'INF-2001'
-  AND m.nota > 70
+  -- Secciones 4 y 5: 70 exacto aprueba; retirado no es aprobado.
+  AND m.nota >= 70
+  AND m.estado = 'matriculado'
 ORDER BY e.nombre;
 
 
@@ -136,16 +144,24 @@ ORDER BY e.nombre;
 -- Consulta 9: Estudiantes habilitados para matricular Redes de Computadoras
 -- (código INF-2003), según los requisitos académicos vigentes.
 -- ----------------------------------------------------------------------------
-SELECT DISTINCT e.carnet, e.nombre
+-- Sección 6: no debe existir ningún requisito sin aprobación válida.
+SELECT e.carnet, e.nombre
 FROM estudiante e
-JOIN matricula m ON m.id_estudiante = e.id_estudiante
-JOIN grupo g ON g.id_grupo = m.id_grupo
-WHERE m.nota >= 70
-  AND g.id_curso IN (
-      SELECT r.id_curso_requisito
+CROSS JOIN curso destino
+WHERE destino.codigo = 'INF-2003'
+  AND NOT EXISTS (
+      SELECT 1
       FROM requisito r
-      JOIN curso cu ON cu.id_curso = r.id_curso
-      WHERE cu.codigo = 'INF-2003'
+      WHERE r.id_curso = destino.id_curso
+        AND NOT EXISTS (
+            SELECT 1
+            FROM matricula m
+            JOIN grupo g ON g.id_grupo = m.id_grupo
+            WHERE m.id_estudiante = e.id_estudiante
+              AND g.id_curso = r.id_curso_requisito
+              AND m.estado = 'matriculado'
+              AND m.nota >= 70
+        )
   )
 ORDER BY e.nombre;
 
@@ -158,30 +174,34 @@ ORDER BY e.nombre;
 
 
 -- ----------------------------------------------------------------------------
--- Consulta 10: Créditos aprobados por estudiante (versión corregida).
--- NOTA DEL EQUIPO ANTERIOR: esta consulta presentaba filas duplicadas por
--- el cruce con REQUISITO; se agregó DISTINCT y el problema quedó resuelto.
--- No requiere más revisión.
+-- Consulta 10: Total de créditos aprobados por estudiante.
+-- Secciones 3, 4 y 5: sumar cada curso aprobado una sola vez por estudiante.
+-- El DISTINCT es sobre la identidad (estudiante, curso), antes de sumar;
+-- no se une REQUISITO porque no aporta información a este cálculo.
 -- ----------------------------------------------------------------------------
-SELECT DISTINCT e.carnet, e.nombre, cu.codigo, cu.creditos
+SELECT e.carnet, e.nombre, COALESCE(SUM(cu.creditos), 0) AS creditos_aprobados
 FROM estudiante e
-JOIN matricula m ON m.id_estudiante = e.id_estudiante
-JOIN grupo g ON g.id_grupo = m.id_grupo
-JOIN curso cu ON cu.id_curso = g.id_curso
-LEFT JOIN requisito r ON r.id_curso = cu.id_curso
-WHERE m.nota >= 70
-ORDER BY e.nombre, cu.codigo;
+LEFT JOIN (
+    SELECT DISTINCT m.id_estudiante, g.id_curso
+    FROM matricula m
+    JOIN grupo g ON g.id_grupo = m.id_grupo
+    WHERE m.estado = 'matriculado' AND m.nota >= 70
+) aprobados ON aprobados.id_estudiante = e.id_estudiante
+LEFT JOIN curso cu ON cu.id_curso = aprobados.id_curso
+GROUP BY e.id_estudiante
+ORDER BY e.nombre, e.carnet;
 
 
 -- ----------------------------------------------------------------------------
 -- Consulta 11: Profesores y la cantidad de grupos que imparten en el
 -- ciclo 2026-1
 -- ----------------------------------------------------------------------------
-SELECT p.nombre AS profesor, COUNT(g.id_grupo) AS cantidad_grupos
+-- Sección 2: identidad del profesor por id/cédula; el nombre puede repetirse.
+SELECT p.cedula, p.nombre AS profesor, COUNT(g.id_grupo) AS cantidad_grupos
 FROM profesor p
 LEFT JOIN grupo g ON g.id_profesor = p.id_profesor AND g.ciclo = '2026-1'
-GROUP BY p.nombre
-ORDER BY p.nombre;
+GROUP BY p.id_profesor
+ORDER BY p.nombre, p.cedula;
 
 
 -- ----------------------------------------------------------------------------
