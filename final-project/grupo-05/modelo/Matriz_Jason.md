@@ -31,10 +31,10 @@ PERSONA y ANIMAL son raíces del bloque y no requieren una referencia saliente. 
 |---|---|---|
 | RN-02 | Vínculo de reportes con varios animales. | Paula |
 | RN-10–11 | Evaluación inicial por etapa, registro veterinario vigente, revisiones y observaciones diagnósticas. | Paula |
-| RN-12–13 | Origen y sustitución de indicaciones, diagnóstico en la revisión de origen y datos de aplicación realizada. | Giancarlo y Paula para la referencia |
+| RN-12–13 | Origen y sustitución de indicaciones, diagnóstico en la revisión de origen y datos de aplicación realizada. | Jean Carlos y Paula para la referencia |
 | RN-14–15 | Documentar la valoración de habilitación y el cambio de disponibilidad con actor, fecha y observación. La valoración de traslados ya está incluida. | Paula |
 | RN-16–19 | Interés, actividades, historial de decisiones y valoración de compatibilidad entre animal y hogar concreto. | Paula |
-| RN-20–22 | Reserva exclusiva, formalización individual con responsables y seguimiento. | Giancarlo |
-| RN-23 | FK de adopción origen, contexto y cronología del regreso. | Giancarlo con Jason |
-| RN-24 | Restricción con decisión registrada. | Giancarlo |
-| RN-25 | Adoptar el contrato de cierre y comprobar exclusión de resultados, organización de destino y condiciones de traslado. | Giancarlo con Jason |
+| RN-20–22 | Reserva exclusiva, formalización individual con responsables y seguimiento. | Jean Carlos |
+| RN-23 | FK de adopción origen, contexto y cronología del regreso. | Jean Carlos con Jason |
+| RN-24 | Restricción con decisión registrada. | Jean Carlos |
+| RN-25 | Adoptar el contrato de cierre y comprobar exclusión de resultados, organización de destino y condiciones de traslado. | Jean Carlos con Jason |

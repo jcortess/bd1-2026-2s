@@ -41,7 +41,7 @@ En total el guion secuencial comprobó **85 rechazos previstos**, 18 de movimien
 | I11 · RN-05/25, contrato P03 | En una transacción reversible cerrar la estancia 7 y el ingreso 1 en el mismo instante del 20-10. Rechazar el alojamiento en esa etapa cerrada y admitir otra etapa de cuidado a la hora exacta del fin. | Cierre y actor 7 comprobados dentro de la transacción. La etapa anterior devolvió `P1004` al intentar alojar. El nuevo ingreso y su estancia quedaron vinculados al mismo HS-01. Después de revertir, volvieron la etapa 1 abierta y la estancia 7 vigente. |
 | I12 · AC-04 y rutas de escritura | Operador intenta INSERT/UPDATE/DELETE/TRUNCATE de ESTANCIA, editar otros datos y ejecutar el cierre privado. Intenta operar con un aislamiento distinto. | `42501` por las escrituras o acceso a la primitiva, `P1001` por el aislamiento. Las verificaciones de estado posteriores pasaron. |
 
-Se comprobó por separado la protección del script de integración con ADOPCION ausente. Su intento terminó con `42P01` y código de cliente 3. En una conexión posterior seguía validado `zz_ingreso_adopcion_pendiente`. La ruta de regreso válida y su FK contextual se comprobarán con el bloque real de Giancarlo.
+Se comprobó por separado la protección del script de integración con ADOPCION ausente. Su intento terminó con `42P01` y código de cliente 3. En una conexión posterior seguía validado `zz_ingreso_adopcion_pendiente`. La ruta de regreso válida y su FK contextual se comprobarán con el bloque real de Jean Carlos.
 
 ## C1 y C2 · Dos sesiones reales por carrera
 

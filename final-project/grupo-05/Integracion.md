@@ -20,21 +20,21 @@ La distribución de responsabilidades proviene del Word del equipo. El alcance a
 | 12 | EVALUACION_SALUD | Paula | Pendiente de adaptar y revalidar desde Lab03 con el nuevo contexto de ingreso y participación. |
 | 13 | DIAGNOSTICO | Paula | Pendiente de integrar desde Lab03. |
 | 14 | DIAGNOSTICO_REVISION | Paula | Pendiente de integrar desde Lab03 y verificar su uso en el vínculo contextual. |
-| 15 | INDICACION | Giancarlo | Pendiente de adaptar y revalidar desde Lab03. |
-| 16 | INDICACION_DIAGNOSTICO | Giancarlo y Paula para la referencia | Pendiente de corregir e integrar. |
-| 17 | APLICACION_INDICACION | Giancarlo | Pendiente de adaptar y revalidar desde Lab03. |
+| 15 | INDICACION | Jean Carlos | Pendiente de adaptar y revalidar desde Lab03. |
+| 16 | INDICACION_DIAGNOSTICO | Jean Carlos y Paula para la referencia | Pendiente de corregir e integrar. |
+| 17 | APLICACION_INDICACION | Jean Carlos | Pendiente de adaptar y revalidar desde Lab03. |
 | 18 | CAMBIO_DISPONIBILIDAD | Paula | Pendiente. Disponibilidad atribuible, incluida la valoración sanitaria. |
 | 19 | SOLICITUD_ADOPCION | Paula | Pendiente. |
 | 20 | SOLICITUD_ANIMAL | Paula | Pendiente. Conserva interés por un animal. |
 | 21 | EVENTO_SOLICITUD | Paula | Pendiente. Diferenciar resultado de actividad, decisión y estado de solicitud. |
-| 22 | RESERVA | Giancarlo | Pendiente. Depende de compatibilidad y disponibilidad demostrables. |
-| 23 | ADOPCION | Giancarlo | Pendiente. Requiere claves contextuales y cierre en una transacción. |
-| 24 | ADOPCION_RESPONSABLE | Giancarlo | Pendiente. |
-| 25 | SEGUIMIENTO_ADOPCION | Giancarlo | Pendiente. Validar adopción de origen en la reprogramación y evitar ciclos. |
-| 26 | RESTRICCION_PERSONA | Giancarlo | Pendiente. La decisión registrada sustenta cada restricción. |
-| 27 | RESULTADO_ETAPA | Giancarlo | Pendiente. Coordinar el cierre con ADOPCION y el alojamiento. |
+| 22 | RESERVA | Jean Carlos | Pendiente. Depende de compatibilidad y disponibilidad demostrables. |
+| 23 | ADOPCION | Jean Carlos | Pendiente. Requiere claves contextuales y cierre en una transacción. |
+| 24 | ADOPCION_RESPONSABLE | Jean Carlos | Pendiente. |
+| 25 | SEGUIMIENTO_ADOPCION | Jean Carlos | Pendiente. Validar adopción de origen en la reprogramación y evitar ciclos. |
+| 26 | RESTRICCION_PERSONA | Jean Carlos | Pendiente. La decisión registrada sustenta cada restricción. |
+| 27 | RESULTADO_ETAPA | Jean Carlos | Pendiente. Coordinar el cierre con ADOPCION y el alojamiento. |
 
-Las ampliaciones de Jason son atributos y claves en las tablas originales. Incluyen etapa y actores de ESTANCIA, constancia sanitaria, aprobación utilizada, identificación de la oferta física, instante de aprobación del oferente, cierre de INGRESO y receptor del regreso. Las vistas son consultas. Paula y Giancarlo deben acordar la representación de compatibilidad animal–hogar y las claves para consumirla. [Matriz de integridad del bloque](modelo/Matriz_Jason.md)
+Las ampliaciones de Jason son atributos y claves en las tablas originales. Incluyen etapa y actores de ESTANCIA, constancia sanitaria, aprobación utilizada, identificación de la oferta física, instante de aprobación del oferente, cierre de INGRESO y receptor del regreso. Las vistas son consultas. Paula y Jean Carlos deben acordar la representación de compatibilidad animal–hogar y las claves para consumirla. [Matriz de integridad del bloque](modelo/Matriz_Jason.md)
 
 ## Paula · G05-P02 y referencia clínica
 
@@ -43,7 +43,7 @@ Las ampliaciones de Jason son atributos y claves en las tablas originales. Inclu
 - Conservar la FK discriminada a `(id_evaluacion, tipo_evaluacion)` con el tipo fijo `REVISION_VETERINARIA` en DIAGNOSTICO_REVISION e INDICACION. Explicar que una observación diagnóstica tiene identidad por la pareja `(evaluacion_id, diagnostico_id)`, de la que depende el estado. La clave compuesta reemplaza el identificador artificial que figuraba en el inventario conceptual.
 - Representar una valoración atribuible y un resultado de compatibilidad para el animal y hogar de la solicitud, con una clave que RESERVA y ADOPCION puedan verificar. Conservar SOLICITUD_ANIMAL como interés. Separar el resultado de entrevista o visita del estado global y su historial de decisiones. Definir la disponibilidad como una decisión atribuible, con fecha, actor y observación.
 
-## Giancarlo · G05-P03, cierre y origen del regreso
+## Jean Carlos · G05-P03, cierre y origen del regreso
 
 1. Crear `huellas.adopcion` con `id_adopcion bigint`, `animal_codigo` y `ingreso_id bigint`. Exigir `UNIQUE (ingreso_id)` y `FOREIGN KEY (ingreso_id, animal_codigo) REFERENCES huellas.ingreso (id_ingreso, animal_codigo)`. Agregar `UNIQUE (id_adopcion, animal_codigo)` como destino de la referencia inversa.
 2. Activar [01_adopcion_origen.sql](sql/integracion/01_adopcion_origen.sql) después. En la misma transacción instala la FK `(adopcion_origen_id, animal_codigo)` y retira el bloqueo inicial. Permanecen obligatorios el receptor, la adopción origen y el motivo para devolución o recuperación. Mantener controles sobre la adopción ya formalizada, tipo de finalización, cronología de retorno y un solo regreso por adopción. Probar una adopción ajena válida, un receptor inexistente y un regreso válido con su nuevo ingreso e historial anterior.
@@ -53,4 +53,4 @@ Las ampliaciones de Jason son atributos y claves en las tablas originales. Inclu
 
 Para INDICACION_DIAGNOSTICO, conservar `evaluacion_id` y exigir las dos FK contextuales: `(indicacion_id, evaluacion_id)` a INDICACION y `(evaluacion_id, diagnostico_id)` a DIAGNOSTICO_REVISION. La asociación solo puede usar diagnósticos que constan en la revisión de origen. Prueben dos revisiones válidas con un diagnóstico registrado únicamente en la segunda y una indicación nacida en la primera. Mantener el discriminador de revisión, los campos de aplicación realizada y el bloqueo de `registrar_aplicacion`. Adaptar consultas Q01–Q04 y el reporte Q02/R05/R06 tomando los tipos y referencias del modelo completo. [Retroalimentación de Lab03](../../lab03/grupo-05/Lab03_Retroalimentacion_Grupo_05.md) · [Evidencia original de Lab03](../../lab03/grupo-05/evidencias/resultados.md)
 
-La consolidación de modelo, matriz y Uso de IA corresponde a Paula. Giancarlo consolida Control de Cambios y Defensa con la grabación e índice del equipo. Jason integra el arranque y los datos cuando estén listos los demás bloques.
+La consolidación de modelo, matriz y Uso de IA corresponde a Paula. Jean Carlos consolida Control de Cambios y Defensa con la grabación e índice del equipo. Jason integra el arranque y los datos cuando estén listos los demás bloques.

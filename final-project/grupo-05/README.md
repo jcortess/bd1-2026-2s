@@ -6,7 +6,7 @@ IC-4301 Bases de Datos I · Segunda entrega · Bloque de Jason, versión 0.1.
 |---|---|
 | Jason Madrigal Pineda | G05-P01, personas, animales, etapas, alojamiento e instalación |
 | María Paula Romero Garro | G05-P02, reportes, evaluaciones y diagnósticos, solicitudes y compatibilidad |
-| Jean Carlos Segura Vargas (Giancarlo) | G05-P03, indicaciones y aplicaciones, reserva, adopción y cierre |
+| Jean Carlos Segura Vargas | G05-P03, indicaciones y aplicaciones, reserva, adopción y cierre |
 
 El bloque instalable contiene las nueve relaciones de Jason, asignación y traslado, historial, ocupación, pruebas y el contrato para integrar la adopción. El inventario general tiene 27 relaciones de partida. El registro de un regreso posterior a una adopción queda bloqueado hasta contar con la tabla y la referencia compuesta que valida su origen. El estado del resto del modelo y de los procesos se detalla en [Integración](Integracion.md).
 

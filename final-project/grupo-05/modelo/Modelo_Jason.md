@@ -21,7 +21,7 @@ erDiagram
     PARTICIPACION o|--o{ ESTANCIA : acredita_aprobacion
 ```
 
-`ingreso_animal_uq` hace referenciable `(id_ingreso, animal_codigo)`. Su unicidad ya se deduce de la PK de INGRESO. Su propósito es la validación de contexto por FK. `numero_microchip` y `adopcion_origen_id` conservan unicidad cuando tienen valor. Pueden coexistir muchos nulos. La FK futura desde INGRESO hacia ADOPCION se instala después del bloque de Giancarlo. [Contrato de integración](../Integracion.md)
+`ingreso_animal_uq` hace referenciable `(id_ingreso, animal_codigo)`. Su unicidad ya se deduce de la PK de INGRESO. Su propósito es la validación de contexto por FK. `numero_microchip` y `adopcion_origen_id` conservan unicidad cuando tienen valor. Pueden coexistir muchos nulos. La FK futura desde INGRESO hacia ADOPCION se instala después del bloque de Jean Carlos. [Contrato de integración](../Integracion.md)
 
 ## Diccionario
 

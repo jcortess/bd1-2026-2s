@@ -17,12 +17,12 @@ Grupo 05, Huellas Seguras. Jason Madrigal Pineda, María Paula Romero Garro y Je
 
 | Fuente | Corrección o continuidad | Responsable y prueba requerida |
 |---|---|---|
-| Calificación F9/F10/F11/F14, RN-19 | Representar la compatibilidad de animal y hogar concreto, con resultado atribuible, separada de SOLICITUD_ANIMAL. | Paula. Giancarlo verifica la evidencia favorable, la solicitud/hogar y el animal al adjudicar. |
+| Calificación F9/F10/F11/F14, RN-19 | Representar la compatibilidad de animal y hogar concreto, con resultado atribuible, separada de SOLICITUD_ANIMAL. | Paula. Jean Carlos verifica la evidencia favorable, la solicitud/hogar y el animal al adjudicar. |
 | Calificación F10 | Justificar la transformación del identificador conceptual de DIAGNOSTICO_REVISION a PK compuesta. | Paula. Probar duplicado de la pareja y uso del mismo diagnóstico en revisiones distintas. |
 | Calificación F11/F12 y RN-10, observaciones formativas de Lab03 | RN-10 y Lab03 requieren los datos de la revisión efectuada. El recorte aceptaba una PERSONA mínima y dejaba fuera acreditación profesional e inicial por etapa. | Paula. Mantener validaciones de revisión, agregar profesional vigente y probar evaluación inicial por etapa. Acotar la descripción de la historia clínica a lo efectivamente probado. |
 | Calificación F12/F14, RN-17 y RN-18 | Separar el resultado de la actividad del estado global de la solicitud. Relacionar los supuestos pertinentes con las reglas documentadas. | Paula. Verificar actividad con resultado propio y cambio de estado fundado en su historial. |
-| Calificación F11 y P1 §5.8.6, RN-21 | Asegurar ADOPCION e INGRESO del mismo animal y evitar doble cierre incompatible. | Giancarlo con Jason. Probar cruce de dos contextos válidos, atomicidad y persistencia. |
-| Lab03, defecto A2 | La pareja indicación/diagnóstico aceptó diagnóstico ajeno a la revisión. Se conserva origen discriminado y se agrega contexto de la evaluación en ambas FK. | Giancarlo con Paula. Repetir el caso de dos revisiones que produjo `diagnostico_en_origen=false`. |
+| Calificación F11 y P1 §5.8.6, RN-21 | Asegurar ADOPCION e INGRESO del mismo animal y evitar doble cierre incompatible. | Jean Carlos con Jason. Probar cruce de dos contextos válidos, atomicidad y persistencia. |
+| Lab03, defecto A2 | La pareja indicación/diagnóstico aceptó diagnóstico ajeno a la revisión. Se conserva origen discriminado y se agrega contexto de la evaluación en ambas FK. | Jean Carlos con Paula. Repetir el caso de dos revisiones que produjo `diagnostico_en_origen=false`. |
 | Calificación F15 | Afirmaciones de validación y atribución de errores de IA limitadas a evidencias reales. | Cada integrante aporta su validación. Paula consolida. |
 
 ## Reutilización
