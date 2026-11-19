@@ -127,5 +127,8 @@ Los valores temporales definidos expresamente en el caso, las aclaraciones o los
 
 Si el caso admite varias interpretaciones, documenten fragmento, pregunta, supuesto e impacto. Una decisión que contradiga una condición explícita o reduzca un proceso asignado requiere aclaración docente; no puede quedar escondida entre supuestos.
 
-## 12. Fecha de entrega
+## 12. Entrega
+La entrega deberá realizarse mediante un Pull Request (PR) hacia la rama correspondiente del repositorio. No se aceptarán entregas enviadas por otros medios. Asegúrense de que el PR incluya todos los archivos solicitados y que el historial de cambios refleje adecuadamente el trabajo realizado por el equipo.
+
+## 13. Fecha de entrega
 La entrega se tiene que realizar el Jueves 3 de diciembre del 2026 antes de las 12 medio día, al igual que en entregas pasadas se debe de realiza un PR a main, todo lo que entregue después de esa hora no se calificará, al igual que el video de presentación.
