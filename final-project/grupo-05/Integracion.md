@@ -4,6 +4,8 @@ La distribución de responsabilidades proviene del Word del equipo. El alcance a
 
 ## Cobertura del inventario original
 
+El cuadro siguiente conserva el estado histórico de Jason en versión 0.1. El estado vigente después del aporte de Paula se encuentra en [Modelo consolidado](modelo/Modelo_Relacional.md) y en el contrato añadido al final de este documento: hay 19 tablas disponibles; siguen pendientes las nueve de Jean Carlos.
+
 | N.º | Relación | Responsable | Estado en versión 0.1 |
 |---:|---|---|---|
 | 1 | PERSONA | Jason | Implementada y probada. |
@@ -54,3 +56,28 @@ Las ampliaciones de Jason son atributos y claves en las tablas originales. Inclu
 Para INDICACION_DIAGNOSTICO, conservar `evaluacion_id` y exigir las dos FK contextuales: `(indicacion_id, evaluacion_id)` a INDICACION y `(evaluacion_id, diagnostico_id)` a DIAGNOSTICO_REVISION. La asociación solo puede usar diagnósticos que constan en la revisión de origen. Prueben dos revisiones válidas con un diagnóstico registrado únicamente en la segunda y una indicación nacida en la primera. Mantener el discriminador de revisión, los campos de aplicación realizada y el bloqueo de `registrar_aplicacion`. Adaptar consultas Q01–Q04 y el reporte Q02/R05/R06 tomando los tipos y referencias del modelo completo. [Retroalimentación de Lab03](../../lab03/grupo-05/Lab03_Retroalimentacion_Grupo_05.md) · [Evidencia original de Lab03](../../lab03/grupo-05/evidencias/resultados.md)
 
 La consolidación de modelo, matriz y Uso de IA corresponde a Paula. Jean Carlos consolida Control de Cambios y Defensa con la grabación e índice del equipo. Jason integra el arranque y los datos cuando estén listos los demás bloques.
+
+## Contrato de Paula para Jean Carlos
+
+Actualización 24-11-2026, Paula 1.0. Es una propuesta implementada y probada del bloque de Paula; no consta aún revisión o aprobación humana de Jean Carlos. No se crearon tablas sustitutas de sus nueve relaciones. [Firmas y errores](Procesos_Negocio.md#g05-p02--evaluar-solicitudes-y-compatibilidad--paula) · [Modelo actual](modelo/Modelo_Relacional.md) · [Pruebas y límites](evidencias/Resultados_Paula.md).
+
+| Interfaz disponible | Uso y condición de integración |
+|---|---|
+| `solicitud_animal(solicitud_id,animal_codigo)` | Sigue siendo interés. Mantener las FK de RESERVA/ADOPCION a la pareja; no tratar su existencia como una aprobación. |
+| `estado_actual_solicitud` | Expone estado general, `decision_id`, actor, fecha, razón y solicitante/hogar. No tiene una columna de estado independiente para actualizar desde otro proceso. |
+| `compatibilidad_vigente` | Última evaluación por solicitud/animal/ingreso; la pendiente o no favorable posterior prevalece sobre un favorable histórico. La aprobación general no genera evaluaciones ni reservas. |
+| `_exigir_compatibilidad(bigint,text,bigint,timestamptz) → bigint` | Privada para el propietario/futura rutina SECURITY DEFINER. Toma bloqueo compartido, bloquea/relee solicitud y exige aprobación general válida + etapa abierta del animal + última evaluación FAVORABLE. Devuelve ID de evidencia, sin adjudicar ni modificar otros hechos. |
+| `compatibilidad_animal_hogar` y UQ `(id_compatibilidad,solicitud_id,animal_codigo,ingreso_id)` | Destino de FK contextual propuesto para conservar la valoración consumida por reserva/adopción. Su contenido es inmutable y el hogar es la instantánea de la solicitud. La FK sola no comprueba que siga siendo la última ni su resultado: usar la primitiva dentro de la transacción. |
+| `disponibilidad_actual(animal_codigo,ingreso_id,...)` | Comprobar decisión HABILITADO de la etapa que se entrega, fecha aplicable y atribución. Una habilitación anterior al reingreso no habilita automáticamente la nueva etapa. No se automatiza a partir de diagnósticos. |
+| `evaluacion_salud(id_evaluacion,tipo_evaluacion)` | Destino conservado para INDICACION con tipo fijo REVISION_VETERINARIA. `veterinario_id` se acompaña del registro vigente real en PARTICIPACION. |
+| `diagnostico_revision(evaluacion_id,diagnostico_id)` | PK de la aparición y destino clínico para INDICACION_DIAGNOSTICO. No existe `id_diagnostico_revision` artificial. Conservar también FK `(indicacion_id,evaluacion_id)` al origen de indicación. Sigue pendiente instalar esas dos FK en el bloque de Jean Carlos. |
+
+Orden de bloqueo: conservar primero `_bloquear_alojamiento()` y READ COMMITTED; después usar el contexto de solicitud/compatibilidad y los recursos de adjudicación de P03. La primitiva de Paula usa el mismo bloqueo de Jason, reentrante dentro de la transacción. No confirmar entre validación de compatibilidad, reserva/adopción y cierre. La disponibilidad, las restricciones de persona y la exclusividad de animal siguen siendo verificaciones necesarias de P03, no efectos de la aprobación general.
+
+## Impacto de la inicial por etapa sobre la instalación y los cierres
+
+Paula añade triggers a INGRESO/PARTICIPACION sin cambiar sus columnas ni las rutinas de Jason. Un ingreso nuevo debe tener una evaluación INICIAL antes de COMMIT; se permite insertar ambos en cualquier orden compatible con la FK dentro de una transacción y la revisión requiere inicial no posterior. No se exige un plazo en días. Los hechos clínicos pertenecen a `[fecha_ingreso,fecha_cierre)`; un cierre debe ser posterior a las evaluaciones/disponibilidades/compatibilidades registradas de esa etapa. No acortar el registro profesional/participación de manera que invalide un hecho histórico.
+
+Los scripts 01–04 pueden continuar reproduciendo el bloque aislado de Jason. Para la instalación conjunta disponible usar [09_instalar_bloque_paula.sql](sql/09_instalar_bloque_paula.sql): instala 01–08 en orden; 07 prepara iniciales ficticias de los 17 ingresos existentes y 08 valida su cobertura. Esos son antecedentes para pruebas, no datos generados automáticamente por un proceso real. El guion original de Jason pasó sin modificaciones sobre una base nueva con este contrato clínico.
+
+La FK contextual del regreso sigue bloqueada por `zz_ingreso_adopcion_pendiente` hasta que Jean Carlos cree ADOPCION y active el script de integración ya preparado por Jason. Su receptor está modelado; el regreso válido y el cierre exclusivo completo siguen pendientes. La documentación consolidada conserva esa diferencia.
