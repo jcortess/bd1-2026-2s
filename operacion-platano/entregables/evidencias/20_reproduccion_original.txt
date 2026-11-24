@@ -1,0 +1,90 @@
+Fecha local: 2026-11-04T00:33:45.935185-06:00
+Comando: docker exec -i platano_db psql -X -v ON_ERROR_STOP=1 -U platano -d platano -f -
+Entrada: doce SELECT reales de entregables/evidencias/original/03_queries.sql + tests/casos_limite_original.sql
+
+Pager usage is off.
+BEGIN
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+ORIGINAL: EL ESQUEMA ACEPTA NOTA -1 Y 101 (DEBERIA RECHAZARLAS)
+INSERT 0 2
+ id_matricula | nota  
+--------------+-------
+         -102 | 101.0
+         -101 |  -1.0
+(2 rows)
+
+DELETE 2
+ORIGINAL: RETIRADO CON 100 NO DEBE APROBAR, DAR CREDITOS NI HABILITAR
+INSERT 0 2
+ carnet  |       nombre       | nota  
+---------+--------------------+-------
+ 2021006 | Fabián Rojas Araya | 100.0
+(1 row)
+
+ carnet  |       nombre       
+---------+--------------------
+ 2021006 | Fabián Rojas Araya
+(1 row)
+
+ carnet  |       nombre       |  codigo  | creditos 
+---------+--------------------+----------+----------
+ 2021006 | Fabián Rojas Araya | INF-2001 |        4
+ 2021006 | Fabián Rojas Araya | INF-2002 |        3
+(2 rows)
+
+DELETE 2
+ORIGINAL: CERO ES NOTA EVALUADA REPROBADA; DEBE AUMENTAR TOTAL_EVALUADAS
+ total_evaluadas | aprobados | tasa_aprobacion 
+-----------------+-----------+-----------------
+              16 |        11 |            68.8
+(1 row)
+
+INSERT 0 1
+ total_evaluadas | aprobados | tasa_aprobacion 
+-----------------+-----------+-----------------
+              16 |        11 |            68.8
+(1 row)
+
+DELETE 1
+ORIGINAL: MATRICULA HISTORICA NO DEBE AUMENTAR CARGA DE 2026-1
+  codigo  |      nombre      | matriculas 
+----------+------------------+------------
+ INF-2001 | Bases de Datos I |          3
+(1 row)
+
+INSERT 0 1
+  codigo  |      nombre      | matriculas 
+----------+------------------+------------
+ INF-2001 | Bases de Datos I |          4
+(1 row)
+
+DELETE 1
+ORIGINAL: DOS PROFESORES HOMONIMOS NO DEBEN FUSIONARSE
+INSERT 0 2
+     profesor     | cantidad_grupos 
+------------------+-----------------
+ Docente homonimo |               0
+(1 row)
+
+ORIGINAL: CREDITOS NO PRODUCE TOTAL POR ESTUDIANTE NI ESTUDIANTES CON CERO
+ carnet  |        nombre        |  codigo  | creditos 
+---------+----------------------+----------+----------
+ 2021002 | Carlos Jiménez Rojas | INF-1001 |        4
+ 2021002 | Carlos Jiménez Rojas | INF-2002 |        3
+ 2021002 | Carlos Jiménez Rojas | INF-2003 |        3
+(3 rows)
+
+ROLLBACK
+
+EXIT_CODE=0

@@ -1,0 +1,50 @@
+Fecha local: 2026-11-04T00:23:34.157669-06:00
+Comando: docker compose -p platano_mariapaula -f docker-compose.yml -f entregables/compose.validacion.yml config
+
+name: platano_mariapaula
+services:
+  db:
+    container_name: platano_validacion_db
+    environment:
+      POSTGRES_DB: platano
+      POSTGRES_PASSWORD: platano
+      POSTGRES_USER: platano
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U platano -d platano
+      timeout: 5s
+      interval: 5s
+      retries: 10
+    image: postgres:16
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 5432
+        published: "5433"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: platano_data
+        target: /var/lib/postgresql/data
+        volume: {}
+      - type: bind
+        source: C:\Users\rmari\Desktop\TEC\IVSemestre\Bases\Bonificación\ejercicio-adicional-BD1\operacion-platano\database\01_schema.sql
+        target: /docker-entrypoint-initdb.d/01_schema.sql
+        read_only: true
+        bind: {}
+      - type: bind
+        source: C:\Users\rmari\Desktop\TEC\IVSemestre\Bases\Bonificación\ejercicio-adicional-BD1\operacion-platano\database\02_seed.sql
+        target: /docker-entrypoint-initdb.d/02_seed.sql
+        read_only: true
+        bind: {}
+networks:
+  default:
+    name: platano_mariapaula_default
+volumes:
+  platano_data:
+    name: platano_mariapaula_platano_data
+
+EXIT_CODE=0

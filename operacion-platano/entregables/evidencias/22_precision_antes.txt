@@ -1,0 +1,16 @@
+Fecha local: 2026-11-04T00:37:19.845358-06:00
+Comando: docker exec -i platano_validacion_db psql -X -v ON_ERROR_STOP=1 -U platano -d platano -f -
+Entrada SQL: tests/precision_nota_original.sql
+
+BEGIN
+INSERT 0 3
+ id_matricula | valor_almacenado | clasifica_aprobado 
+--------------+------------------+--------------------
+         -801 |              0.0 | f
+         -802 |            100.0 | t
+         -803 |             70.0 | t
+(3 rows)
+
+ROLLBACK
+
+EXIT_CODE=0

@@ -1,10 +1,13 @@
 -- ============================================================================
 -- OPERACIÓN P.L.A.T.A.N.O. — Datos de prueba
 --
--- Estos datos representan el estado de la base tal como quedó tras la
--- migración. Incluyen escenarios normales y casos límite reales (cursos sin
+-- Carga reparada según las reglas oficiales y los supuestos didácticos
+-- autorizados por Maria Paula el 2026-11-04 (entregables/CAMBIOS.md).
+-- El original íntegro está en entregables/evidencias/original/02_seed.sql.
+-- Conserva escenarios normales y casos límite reales (cursos sin
 -- matrícula, estudiantes sin matrícula, notas en el umbral, notas
--- pendientes, registros duplicados). No elimines filas para "arreglar" un
+-- pendientes). La reparación de duplicados está documentada; no elimines
+-- filas arbitrariamente para "arreglar" un
 -- reporte: investiga primero si el dato es un caso límite legítimo o un
 -- defecto del esquema/consulta.
 -- ============================================================================
@@ -33,27 +36,24 @@ INSERT INTO curso (codigo, nombre, creditos, id_carrera) VALUES
 ('INF-2003', 'Redes de Computadoras',     3, 1),
 ('ADM-2001', 'Bases de Datos I',          3, 2),  -- id 6, homónimo de INF-2001
 ('IND-1001', 'Estadística I',             3, 3),  -- nunca tendrá grupos
-('INF-4001', 'Seminario de Graduación',   0, 1);  -- créditos 0: dato heredado inválido, sin CHECK que lo impida
+('INF-4001', 'Seminario de Graduación',   1, 1);  -- sección 3; mínimo válido, supuesto autorizado
 
 -- ----------------------------------------------------------------------------
 -- REQUISITO
 -- REDES exige dos cursos previos: Sistemas Operativos Y Programación I.
--- La fila "Sistemas Operativos requiere Sistemas Operativos" es un defecto
--- heredado de la migración (auto-requisito), posible porque el esquema no
--- impide id_curso = id_curso_requisito.
+-- Se excluye el auto-requisito (4,4) prohibido por la sección 6.
+-- La evidencia original conserva esa fila inválida.
 -- ----------------------------------------------------------------------------
 INSERT INTO requisito (id_curso, id_curso_requisito) VALUES
 (2, 1),  -- Programación II requiere Programación I
 (3, 1),  -- Bases de Datos I (INF) requiere Programación I
 (5, 4),  -- Redes requiere Sistemas Operativos
-(5, 1),  -- Redes requiere Programación I
-(4, 4);  -- BUG heredado: Sistemas Operativos se exige a sí mismo
+(5, 1);  -- Redes requiere Programación I
 
 -- ----------------------------------------------------------------------------
 -- ESTUDIANTE
--- Incluye: estudiantes sin matrícula, un estudiante con id_carrera NULL
--- (dato huérfano permitido por el esquema actual) y un carnet duplicado
--- (dos filas, mismo carnet "2021010", distinto id_estudiante).
+-- Conserva estudiantes sin matrícula. Se reparan carrera ausente y carnet
+-- repetido sin eliminar estudiantes (sección 1; supuestos autorizados).
 -- ----------------------------------------------------------------------------
 INSERT INTO estudiante (carnet, nombre, id_carrera, fecha_ingreso, activo) VALUES
 ('2021001', 'Ana Morales Jiménez',       1, '2021-01-15', TRUE),   -- 1
@@ -66,24 +66,23 @@ INSERT INTO estudiante (carnet, nombre, id_carrera, fecha_ingreso, activo) VALUE
 ('2021008', 'Hugo Araya Núñez',          3, '2022-01-20', TRUE),   -- 8
 ('2021009', 'Irene Lobo Salas',          1, '2022-01-20', TRUE),   -- 9
 ('2021010', 'Javier Núñez Brenes',       1, '2022-07-05', TRUE),   -- 10
-('2021010', 'Javier Núñez Salas',        1, '2022-07-05', TRUE),   -- 11, carnet duplicado de (10)
-('2021011', 'Karla Méndez Soto',         NULL, '2023-01-18', TRUE); -- 12, sin carrera asignada (hueco de integridad)
+('2021012', 'Javier Núñez Salas',        1, '2022-07-05', TRUE),   -- 11, carnet de ejemplo autorizado
+('2021011', 'Karla Méndez Soto',         1, '2023-01-18', TRUE);   -- 12, carrera de ejemplo autorizada
 
 -- ----------------------------------------------------------------------------
 -- PROFESOR
--- Incluye una cédula duplicada (dos filas, mismo número, distinto id),
--- también heredada de la migración.
+-- Cédula duplicada consolidada en id 1 (sección 2). Ningún grupo usaba id 4.
+-- El alias "Rodrigo A. Salas Umaña" queda conservado en la evidencia original.
 -- ----------------------------------------------------------------------------
 INSERT INTO profesor (cedula, nombre, id_carrera) VALUES
 ('1-1111-1111', 'Rodrigo Salas Umaña',     1),  -- 1
 ('2-2222-2222', 'Mónica Vega Chaves',      2),  -- 2
-('3-3333-3333', 'Esteban Brenes Quirós',   3),  -- 3
-('1-1111-1111', 'Rodrigo A. Salas Umaña',  1);  -- 4, cédula duplicada de (1)
+('3-3333-3333', 'Esteban Brenes Quirós',   3);  -- 3
 
 -- ----------------------------------------------------------------------------
 -- GRUPO
 -- Incluye un grupo sin profesor asignado, un grupo de un ciclo histórico
--- (2025-2) y un grupo del curso con 0 créditos que nunca recibe matrícula.
+-- (2025-2) y un grupo de Seminario que nunca recibe matrícula.
 -- ----------------------------------------------------------------------------
 INSERT INTO grupo (id_curso, id_profesor, ciclo, cupo) VALUES
 (1, 1, '2026-1', 30),  -- 1 Programación I
@@ -100,8 +99,8 @@ INSERT INTO grupo (id_curso, id_profesor, ciclo, cupo) VALUES
 -- Casos relevantes marcados en comentario. Observa especialmente:
 --  - nota = 70 exacto (umbral de aprobación oficial, ver reglas_negocio.md)
 --  - nota = NULL (curso en curso, aún sin calificar)
---  - matrícula duplicada de Irene Lobo en el grupo 1 (mismo estudiante,
---    mismo grupo, dos filas con notas distintas: 70 y 68)
+--  - matrícula de Irene consolidada en 70 por supuesto didáctico autorizado;
+--    la fila conflictiva con 68 permanece en la evidencia original (sección 4).
 -- ----------------------------------------------------------------------------
 INSERT INTO matricula (id_estudiante, id_grupo, nota, estado) VALUES
 (1, 1, 85.0, 'matriculado'),   -- Ana  - Programación I - aprobado
@@ -128,13 +127,12 @@ INSERT INTO matricula (id_estudiante, id_grupo, nota, estado) VALUES
 (8, 1, 82.0, 'matriculado'),   -- Hugo - Programación I - aprobado
 
 (9, 1, 70.0, 'matriculado'),   -- Irene - Programación I - en el umbral
-(9, 1, 68.0, 'matriculado'),   -- Irene - MISMO grupo, fila duplicada (bug heredado)
 
 (10, 2, 80.0, 'matriculado'),  -- Javier (carnet 2021010, id 10) - Programación II
                                 -- aprobado SIN haber cursado nunca Programación I
-(11, 3, 90.0, 'matriculado'),  -- Javier Núñez Salas (carnet duplicado 2021010, id 11) - BD I (INF)
+(11, 3, 90.0, 'matriculado'),  -- Javier Núñez Salas (carnet reparado 2021012, id 11) - BD I (INF)
 
-(12, 1, 40.0, 'matriculado');  -- Karla (id_carrera NULL) - Programación I - reprobado
+(12, 1, 40.0, 'matriculado');  -- Karla (carrera reparada) - Programación I - reprobado
 
 -- ----------------------------------------------------------------------------
 -- AUDITORIA

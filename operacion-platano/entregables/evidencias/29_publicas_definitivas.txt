@@ -1,0 +1,60 @@
+Fecha local: 2026-11-04T00:39:58.989135-06:00
+Comando: docker exec -i platano_validacion_db psql -X -v ON_ERROR_STOP=1 -U platano -d platano_final -f -
+Entrada SQL: tests/pruebas_publicas.sql
+
+--- PRUEBA 1: carnets duplicados en ESTUDIANTE (debe ser VACÍO) ---
+ carnet | repeticiones 
+--------+--------------
+(0 rows)
+
+--- PRUEBA 2: cédulas duplicadas en PROFESOR (debe ser VACÍO) ---
+ cedula | repeticiones 
+--------+--------------
+(0 rows)
+
+--- PRUEBA 3: matrículas duplicadas, mismo estudiante y grupo (debe ser VACÍO) ---
+ id_estudiante | id_grupo | repeticiones 
+---------------+----------+--------------
+(0 rows)
+
+--- PRUEBA 4: cursos con menos de 1 crédito (debe ser VACÍO) ---
+ id_curso | codigo | nombre | creditos 
+----------+--------+--------+----------
+(0 rows)
+
+--- PRUEBA 5: notas fuera del rango 0-100 (debe ser VACÍO) ---
+ id_matricula | id_estudiante | id_grupo | nota 
+--------------+---------------+----------+------
+(0 rows)
+
+--- PRUEBA 6: cursos que son requisito de sí mismos (debe ser VACÍO) ---
+ id_requisito | id_curso | id_curso_requisito 
+--------------+----------+--------------------
+(0 rows)
+
+--- PRUEBA 7: estudiantes sin carrera asignada (debe ser VACÍO) ---
+ id_estudiante | carnet | nombre 
+---------------+--------+--------
+(0 rows)
+
+--- PRUEBA 8: existencia de las 8 tablas del modelo (valor esperado: 8) ---
+ cantidad_tablas 
+-----------------
+               8
+(1 row)
+
+--- PRUEBA 9: aprobación en el umbral exacto (valor esperado: carnet 2021001 presente) ---
+ carnet  |       nombre        | nota 
+---------+---------------------+------
+ 2021001 | Ana Morales Jiménez | 70.0
+ 2021012 | Javier Núñez Salas  | 90.0
+(2 rows)
+
+--- PRUEBA 10: cursos sin ningún grupo registrado (informativo, no es un error) ---
+  codigo  |    nombre     
+----------+---------------
+ IND-1001 | Estadística I
+(1 row)
+
+
+EXIT_CODE=0

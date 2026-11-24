@@ -1,0 +1,7 @@
+# Complementa el Compose original; conserva intacta la base inicial de 5432.
+# Requiere Compose >= 2.24.4 para !override.
+services:
+  db:
+    container_name: platano_validacion_db
+    ports: !override
+      - "5433:5432"

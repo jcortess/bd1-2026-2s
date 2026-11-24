@@ -1,0 +1,204 @@
+Fecha local: 2026-11-04T00:38:57.787665-06:00
+Comando: docker exec -i platano_validacion_db psql -X -v ON_ERROR_STOP=1 -U platano -d platano -f -
+Entrada: doce SELECT reales de database/03_queries.sql + tests/pruebas_adicionales.sql
+
+Pager usage is off.
+BEGIN
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE SEQUENCE
+CREATE FUNCTION
+CREATE FUNCTION
+A. EXPECTATIVAS CONCRETAS SOBRE LA CARGA REPARADA
+psql:<stdin>:180: NOTICE:  OK: A01 conserva los doce estudiantes
+psql:<stdin>:180: NOTICE:  OK: A02 conserva los ocho cursos
+psql:<stdin>:180: NOTICE:  OK: A03 conserva los ocho grupos
+psql:<stdin>:180: NOTICE:  OK: A04 matrícula consolidada: 17 filas
+psql:<stdin>:180: NOTICE:  OK: A05 conserva los cuatro registros históricos
+psql:<stdin>:180: NOTICE:  OK: Q01 activos incluye a Karla con carrera
+psql:<stdin>:180: NOTICE:  OK: Q02 catálogo completo
+psql:<stdin>:180: NOTICE:  OK: Q02 curso sin grupos
+psql:<stdin>:180: NOTICE:  OK: Q02 grupo sin matrícula
+psql:<stdin>:180: NOTICE:  OK: Q02 no multiplica el conteo de grupos
+psql:<stdin>:180: NOTICE:  OK: Q02 totales históricos completos
+psql:<stdin>:180: NOTICE:  OK: Q03 solo siete grupos del ciclo actual
+psql:<stdin>:180: NOTICE:  OK: Q03 grupo vacío cuenta cero
+psql:<stdin>:180: NOTICE:  OK: Q03 retiro no ocupa cupo
+psql:<stdin>:180: NOTICE:  OK: Q04 carga actual inicial de BD I
+psql:<stdin>:180: NOTICE:  OK: Q05 una fila por identidad de curso
+psql:<stdin>:180: NOTICE:  OK: Q05 BD Informática separado
+psql:<stdin>:180: NOTICE:  OK: Q05 BD Administración separado
+psql:<stdin>:180: NOTICE:  OK: Q06 clasificación y tasa 11 de 15
+psql:<stdin>:180: NOTICE:  OK: Q07 dos aprobados de BD I
+psql:<stdin>:180: NOTICE:  OK: Q07 Ana aprueba con setenta
+psql:<stdin>:180: NOTICE:  OK: Q08 Fabián sin ninguna matrícula
+psql:<stdin>:180: NOTICE:  OK: Q09 solo Carlos satisface todos
+psql:<stdin>:180: NOTICE:  OK: Q10 doce estudiantes y cuarenta créditos totales
+psql:<stdin>:180: NOTICE:  OK: Q10 dos cursos de cuatro aportan ocho
+psql:<stdin>:180: NOTICE:  OK: Q10 Carlos obtiene diez sin multiplicación por requisitos
+psql:<stdin>:180: NOTICE:  OK: Q10 estudiante sin matrícula conserva cero
+psql:<stdin>:180: NOTICE:  OK: Q11 tres profesores y seis grupos asignados actuales
+psql:<stdin>:180: NOTICE:  OK: Q11 ciclo anterior excluido
+psql:<stdin>:180: NOTICE:  OK: Q12 cuatro requisitos vigentes
+psql:<stdin>:180: NOTICE:  OK: Q12 Redes conserva dos requisitos
+DO
+B. RECHAZO ESTRUCTURAL DE DATOS INVALIDOS
+psql:<stdin>:214: NOTICE:  OK: B01 carnet duplicado activo
+psql:<stdin>:214: NOTICE:  OK: B02 carnet duplicado inactivo
+psql:<stdin>:214: NOTICE:  OK: B03 carrera obligatoria
+psql:<stdin>:214: NOTICE:  OK: B04 cédula duplicada
+psql:<stdin>:214: NOTICE:  OK: B05 créditos cero
+psql:<stdin>:214: NOTICE:  OK: B06 créditos negativos
+psql:<stdin>:214: NOTICE:  OK: B07 créditos ausentes
+psql:<stdin>:214: NOTICE:  OK: B08 matrícula duplicada activa
+psql:<stdin>:214: NOTICE:  OK: B09 par único incluso retirado
+psql:<stdin>:214: NOTICE:  OK: B10 nota negativa
+psql:<stdin>:214: NOTICE:  OK: B11 nota superior a cien
+psql:<stdin>:214: NOTICE:  OK: B12 nota NaN rechazada
+psql:<stdin>:214: NOTICE:  OK: B13 autorrequisito
+psql:<stdin>:214: NOTICE:  OK: B14 requisito repetido
+psql:<stdin>:214: NOTICE:  OK: B15 estado inválido
+psql:<stdin>:214: NOTICE:  OK: B16 FK estudiante carrera
+psql:<stdin>:214: NOTICE:  OK: B17 FK profesor carrera
+psql:<stdin>:214: NOTICE:  OK: B18 FK curso carrera
+psql:<stdin>:214: NOTICE:  OK: B19 FK grupo curso
+psql:<stdin>:214: NOTICE:  OK: B20 FK grupo profesor
+psql:<stdin>:214: NOTICE:  OK: B21 FK matrícula estudiante
+psql:<stdin>:214: NOTICE:  OK: B22 FK matrícula grupo
+psql:<stdin>:214: NOTICE:  OK: B23 FK requisito destino
+psql:<stdin>:214: NOTICE:  OK: B24 FK requisito previo
+psql:<stdin>:214: NOTICE:  OK: B25 rango también protegido en UPDATE
+psql:<stdin>:214: NOTICE:  OK: B26 unicidad también protegida en UPDATE
+psql:<stdin>:214: NOTICE:  OK: B27 negativo de dos decimales no se redondea a cero
+psql:<stdin>:214: NOTICE:  OK: B28 exceso de dos decimales no se redondea a cien
+psql:<stdin>:214: NOTICE:  OK: B29 infinito positivo rechazado
+psql:<stdin>:214: NOTICE:  OK: B30 infinito negativo rechazado
+DO
+C. IDENTIDADES DISTINTAS CON NOMBRES IGUALES Y AUSENCIAS VALIDAS
+INSERT 0 2
+INSERT 0 3
+INSERT 0 3
+INSERT 0 7
+INSERT 0 3
+psql:<stdin>:244: NOTICE:  OK: C01 estudiantes homónimos separados
+psql:<stdin>:244: NOTICE:  OK: C02 reporte de activos excluye inactivo
+psql:<stdin>:244: NOTICE:  OK: C03 carreras y cursos homónimos separados
+psql:<stdin>:244: NOTICE:  OK: C04 nuevo curso sin grupos visible
+psql:<stdin>:244: NOTICE:  OK: C05 grupos vacíos actuales y sin profesor válidos
+psql:<stdin>:244: NOTICE:  OK: C06 profesores homónimos separados
+psql:<stdin>:244: NOTICE:  OK: C07 grupos actuales por profesor sin el histórico
+psql:<stdin>:244: NOTICE:  OK: C08 profesor sin grupos conservado
+psql:<stdin>:244: NOTICE:  OK: C09 sin matrícula incluye activos e inactivos
+psql:<stdin>:244: NOTICE:  OK: C10 créditos cero conserva todos los estudiantes
+DO
+SAVEPOINT
+D. EXTREMOS VALIDOS Y FRONTERA DE APROBACION
+INSERT 0 5
+psql:<stdin>:259: NOTICE:  OK: D01 cero y cien válidos, 69.9 reprueba, setenta aprueba, NULL pendiente
+psql:<stdin>:259: NOTICE:  OK: D02 69.9 no aprueba BD I
+psql:<stdin>:259: NOTICE:  OK: D03 setenta exacto aprueba BD I
+psql:<stdin>:259: NOTICE:  OK: D04 cero y 69.9 no otorgan créditos
+psql:<stdin>:259: NOTICE:  OK: D05 pendiente no otorga créditos
+psql:<stdin>:259: NOTICE:  OK: D06 matrícula reprobada sigue siendo matrícula registrada
+DO
+ROLLBACK
+SAVEPOINT
+E. RETIRADOS CON NOTA ALTA Y PENDIENTE
+INSERT 0 4
+psql:<stdin>:274: NOTICE:  OK: E01 retiros excluidos de todos los conteos de rendimiento
+psql:<stdin>:274: NOTICE:  OK: E02 retirado con cien no aprueba
+psql:<stdin>:274: NOTICE:  OK: E03 requisitos retirados no habilitan
+psql:<stdin>:274: NOTICE:  OK: E04 retiros no otorgan créditos
+psql:<stdin>:274: NOTICE:  OK: E05 grupo con solo retirados sigue vacío para cupo
+DO
+psql:<stdin>:274: NOTICE:  OK: E06 retirado sí tiene matrícula histórica registrada
+ROLLBACK
+SAVEPOINT
+F. REPETICION DEL MISMO CURSO Y CURSOS DISTINTOS DE IGUAL CREDITAJE
+INSERT 0 3
+INSERT 0 2
+psql:<stdin>:288: NOTICE:  OK: F01 dos aprobaciones del mismo curso cuentan una vez; otro curso de cuatro suma cuatro
+psql:<stdin>:288: NOTICE:  OK: F02 una fila de créditos por estudiante
+psql:<stdin>:288: NOTICE:  OK: F03 catálogo conserva intentos legítimos en grupos distintos
+DO
+psql:<stdin>:288: NOTICE:  OK: F04 cursos homónimos no se fusionan al tener matrícula
+ROLLBACK
+SAVEPOINT
+G. TODOS LOS REQUISITOS, NO ALGUNO; PENDIENTES Y RETIRADOS
+INSERT 0 3
+psql:<stdin>:298: NOTICE:  OK: G01 un solo requisito válido no basta
+DO
+INSERT 0 1
+psql:<stdin>:302: NOTICE:  OK: G02 requisito pendiente no basta
+DO
+UPDATE 1
+INSERT 0 1
+psql:<stdin>:308: NOTICE:  OK: G03 ambos con setenta habilitan una vez aunque se repita un requisito aprobado
+psql:<stdin>:308: NOTICE:  OK: G04 aprobación retirada no satisface el segundo requisito
+DO
+SAVEPOINT
+UPDATE 2
+DO
+psql:<stdin>:314: NOTICE:  OK: G05 cero requisitos: todos satisfacen la condición
+ROLLBACK
+SAVEPOINT
+UPDATE 1
+psql:<stdin>:320: NOTICE:  OK: G06 curso destino inexistente no habilita a nadie
+DO
+ROLLBACK
+ROLLBACK
+SAVEPOINT
+H. DIFERENCIA ENTRE HISTORICO Y CICLO SOLICITADO
+INSERT 0 1
+psql:<stdin>:331: NOTICE:  OK: H01 matrícula de 2025-2 no altera carga 2026-1
+psql:<stdin>:331: NOTICE:  OK: H02 catálogo histórico sí incluye matrícula anterior
+psql:<stdin>:331: NOTICE:  OK: H03 popularidad histórica sí incluye matrícula anterior
+DO
+INSERT 0 1
+psql:<stdin>:335: NOTICE:  OK: H04 matrícula de 2026-1 sí altera carga actual
+DO
+ROLLBACK
+SAVEPOINT
+UPDATE 3
+DO
+psql:<stdin>:344: NOTICE:  OK: H05 ciclo sin matrícula devuelve una fila con cero
+UPDATE 4
+psql:<stdin>:348: NOTICE:  OK: H06 curso sin grupos actuales devuelve una fila con cero
+DO
+ROLLBACK
+SAVEPOINT
+I. SIN EVALUACIONES Y SIN MATRICULAS INCLUIDAS
+UPDATE 17
+psql:<stdin>:357: NOTICE:  OK: I01 sin filas incluidas no hay división por cero
+DO
+psql:<stdin>:357: NOTICE:  OK: I02 todos retirados producen cero créditos
+INSERT 0 1
+psql:<stdin>:361: NOTICE:  OK: I03 solo pendiente tiene tasa desconocida y conteo explícito
+DO
+ROLLBACK
+SAVEPOINT
+J. DECIMALES RECIBIDOS SIN REDONDEO IMPLICITO DEL UMBRAL
+INSERT 0 1
+psql:<stdin>:370: NOTICE:  OK: J01 conserva exactamente 69.99
+psql:<stdin>:370: NOTICE:  OK: J02 69.99 no se convierte en aprobación
+DO
+ROLLBACK
+RESUMEN DE ASERCIONES APROBADAS
+ aserciones_aprobadas 
+----------------------
+                  104
+(1 row)
+
+ROLLBACK
+
+EXIT_CODE=0

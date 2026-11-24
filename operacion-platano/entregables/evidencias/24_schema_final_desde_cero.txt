@@ -1,0 +1,16 @@
+Fecha local: 2026-11-04T00:38:26.582691-06:00
+Comando: docker exec -i platano_validacion_db psql -X -v ON_ERROR_STOP=1 -U platano -d platano_final -f -
+Entrada SQL: database/01_schema.sql
+
+DROP SCHEMA
+CREATE SCHEMA
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+
+EXIT_CODE=0

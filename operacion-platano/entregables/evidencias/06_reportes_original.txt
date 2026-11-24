@@ -1,0 +1,112 @@
+Fecha local: 2026-11-04T00:20:07.760060-06:00
+Comando: docker exec -i platano_db psql -X -v ON_ERROR_STOP=1 -U platano -d platano -f -
+Entrada SQL: database/03_queries.sql
+
+          carrera           | carnet  |      estudiante       
+----------------------------+---------+-----------------------
+ Administración de Empresas | 2021003 | Beatriz Solano Vargas
+ Administración de Empresas | 2021007 | Gabriela Mora Lobo
+ Ingeniería en Informática  | 2021001 | Ana Morales Jiménez
+ Ingeniería en Informática  | 2021002 | Carlos Jiménez Rojas
+ Ingeniería en Informática  | 2021005 | Elena Castro Mora
+ Ingeniería en Informática  | 2021006 | Fabián Rojas Araya
+ Ingeniería en Informática  | 2021009 | Irene Lobo Salas
+ Ingeniería en Informática  | 2021010 | Javier Núñez Brenes
+ Ingeniería en Informática  | 2021010 | Javier Núñez Salas
+ Ingeniería Industrial      | 2021004 | Diego Vargas Castro
+ Ingeniería Industrial      | 2021008 | Hugo Araya Núñez
+(11 rows)
+
+          carrera           |  codigo  |         curso         | total_matriculas 
+----------------------------+----------+-----------------------+------------------
+ Administración de Empresas | ADM-2001 | Bases de Datos I      |                2
+ Ingeniería en Informática  | INF-1001 | Programación I        |                7
+ Ingeniería en Informática  | INF-1002 | Programación II       |                2
+ Ingeniería en Informática  | INF-2001 | Bases de Datos I      |                3
+ Ingeniería en Informática  | INF-2002 | Sistemas Operativos   |                2
+ Ingeniería en Informática  | INF-2003 | Redes de Computadoras |                2
+(6 rows)
+
+ id_grupo |  codigo  |          curso          | cupo | matriculados 
+----------+----------+-------------------------+------+--------------
+        1 | INF-1001 | Programación I          |   30 |            7
+        2 | INF-1002 | Programación II         |   25 |            2
+        3 | INF-2001 | Bases de Datos I        |   30 |            3
+        4 | INF-2002 | Sistemas Operativos     |   20 |            2
+        5 | INF-2003 | Redes de Computadoras   |   20 |            2
+        7 | ADM-2001 | Bases de Datos I        |   25 |            2
+        8 | INF-4001 | Seminario de Graduación |   15 |            1
+(7 rows)
+
+  codigo  |      nombre      | matriculas 
+----------+------------------+------------
+ INF-2001 | Bases de Datos I |          3
+(1 row)
+
+         curso         | total_matriculas 
+-----------------------+------------------
+ Programación I        |                7
+ Bases de Datos I      |                5
+ Redes de Computadoras |                2
+ Programación II       |                2
+ Sistemas Operativos   |                2
+(5 rows)
+
+ total_evaluadas | aprobados | tasa_aprobacion 
+-----------------+-----------+-----------------
+              16 |        11 |            68.8
+(1 row)
+
+ carnet  |       nombre       | nota 
+---------+--------------------+------
+ 2021010 | Javier Núñez Salas | 90.0
+(1 row)
+
+ carnet  |       nombre       
+---------+--------------------
+ 2021006 | Fabián Rojas Araya
+(1 row)
+
+ carnet  |        nombre        
+---------+----------------------
+ 2021001 | Ana Morales Jiménez
+ 2021002 | Carlos Jiménez Rojas
+ 2021005 | Elena Castro Mora
+ 2021008 | Hugo Araya Núñez
+ 2021009 | Irene Lobo Salas
+(5 rows)
+
+ carnet  |        nombre         |  codigo  | creditos 
+---------+-----------------------+----------+----------
+ 2021001 | Ana Morales Jiménez   | INF-1001 |        4
+ 2021001 | Ana Morales Jiménez   | INF-2001 |        4
+ 2021003 | Beatriz Solano Vargas | ADM-2001 |        3
+ 2021002 | Carlos Jiménez Rojas  | INF-1001 |        4
+ 2021002 | Carlos Jiménez Rojas  | INF-2002 |        3
+ 2021002 | Carlos Jiménez Rojas  | INF-2003 |        3
+ 2021005 | Elena Castro Mora     | INF-2002 |        3
+ 2021008 | Hugo Araya Núñez      | INF-1001 |        4
+ 2021009 | Irene Lobo Salas      | INF-1001 |        4
+ 2021010 | Javier Núñez Brenes   | INF-1002 |        4
+ 2021010 | Javier Núñez Salas    | INF-2001 |        4
+(11 rows)
+
+        profesor        | cantidad_grupos 
+------------------------+-----------------
+ Esteban Brenes Quirós  |               2
+ Mónica Vega Chaves     |               1
+ Rodrigo A. Salas Umaña |               0
+ Rodrigo Salas Umaña    |               3
+(4 rows)
+
+  curso   |     curso_nombre      | requisito |  requisito_nombre   
+----------+-----------------------+-----------+---------------------
+ INF-1002 | Programación II       | INF-1001  | Programación I
+ INF-2001 | Bases de Datos I      | INF-1001  | Programación I
+ INF-2002 | Sistemas Operativos   | INF-2002  | Sistemas Operativos
+ INF-2003 | Redes de Computadoras | INF-2002  | Sistemas Operativos
+ INF-2003 | Redes de Computadoras | INF-1001  | Programación I
+(5 rows)
+
+
+EXIT_CODE=0

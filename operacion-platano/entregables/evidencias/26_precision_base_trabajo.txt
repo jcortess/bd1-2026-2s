@@ -1,0 +1,14 @@
+Fecha local: 2026-11-04T00:38:30.252848-06:00
+Comando: docker exec -i platano_validacion_db psql -X -v ON_ERROR_STOP=1 -U platano -d platano -f -
+Entrada SQL: entregables/ajuste_precision.sql
+
+BEGIN
+ALTER TABLE
+ tipo_nota 
+-----------
+ numeric
+(1 row)
+
+COMMIT
+
+EXIT_CODE=0
