@@ -1,0 +1,640 @@
+Comando: docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U platano -d platano -f /tmp/platano-pruebas.sql
+Pager usage is off.
+BEGIN
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE VIEW
+CREATE TABLE
+CREATE FUNCTION
+CREATE FUNCTION
+A. Reglas estructurales y conservación del seed
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+B. Rechazos de INSERT y UPDATE: se valida SQLSTATE, no solo un error cualquiera
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+ rechazar 
+----------
+ 
+(1 row)
+
+C. Los doce reportes sobre datos saneados
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+D. Casos nuevos, sin datos permanentes
+UPDATE 1
+ comprobar 
+-----------
+ 
+(1 row)
+
+UPDATE 1
+INSERT 0 1
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+INSERT 0 1
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+INSERT 0 1
+ comprobar 
+-----------
+ 
+(1 row)
+
+UPDATE 1
+ comprobar 
+-----------
+ 
+(1 row)
+
+UPDATE 1
+ comprobar 
+-----------
+ 
+(1 row)
+
+UPDATE 1
+ comprobar 
+-----------
+ 
+(1 row)
+
+UPDATE 1
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+UPDATE 1
+UPDATE 1
+ comprobar 
+-----------
+ 
+(1 row)
+
+UPDATE 1
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+INSERT 0 1
+INSERT 0 1
+INSERT 0 2
+INSERT 0 1
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+INSERT 0 1
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+DELETE 3
+ comprobar 
+-----------
+ 
+(1 row)
+
+UPDATE 1
+ comprobar 
+-----------
+ 
+(1 row)
+
+E. Universos vacíos: cero conteos, tasa indefinida y conservación del catálogo
+DELETE 21
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+INSERT 0 2
+ comprobar 
+-----------
+ 
+(1 row)
+
+DELETE 2
+DELETE 10
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+ comprobar 
+-----------
+ 
+(1 row)
+
+RESULTADOS: cualquier aserción fallida aborta con exit code distinto de cero
+                       prueba_aprobada                       
+-------------------------------------------------------------
+ A01 ocho tablas públicas
+ A02 carnet único
+ A03 cédula única
+ A04 matrícula única
+ A05 créditos válidos
+ A06 notas válidas
+ A07 sin auto-requisitos
+ A08 carrera obligatoria
+ A09 se conservan doce estudiantes
+ A10 diecisiete matrículas tras consolidar un duplicado
+ A11 cuatro eventos históricos y seis saneamientos
+ A12 conflicto de Irene pendiente
+ A13 IDs posteriores al duplicado conservados
+ A14 secuencia sincronizada
+ A15 auditoría histórica conservada
+ B01 carnet repetido incluso inactivo (SQLSTATE 23505)
+ B02 carnet duplicado por UPDATE (SQLSTATE 23505)
+ B03 carrera NULL (SQLSTATE 23502)
+ B04 carrera inexistente (SQLSTATE 23503)
+ B05 profesor duplicado (SQLSTATE 23505)
+ B06 cédula duplicada por UPDATE (SQLSTATE 23505)
+ B07 matrícula duplicada activa (SQLSTATE 23505)
+ B08 duplicado retirado también prohibido (SQLSTATE 23505)
+ B09 cero créditos (SQLSTATE 23514)
+ B10 créditos negativos (SQLSTATE 23514)
+ B11 créditos NULL (SQLSTATE 23502)
+ B12 nota negativa (SQLSTATE 23514)
+ B13 nota mayor de cien (SQLSTATE 23514)
+ B14 negativo pequeño no se redondea a cero (SQLSTATE 23514)
+ B15 exceso pequeño no se redondea a cien (SQLSTATE 23514)
+ B16 NaN inválido (SQLSTATE 23514)
+ B17 infinito inválido (SQLSTATE 23514)
+ B18 infinito negativo inválido (SQLSTATE 23514)
+ B19 auto-requisito por INSERT (SQLSTATE 23514)
+ B20 auto-requisito por UPDATE (SQLSTATE 23514)
+ B21 requisito duplicado (SQLSTATE 23505)
+ B22 FK curso requerido (SQLSTATE 23503)
+ B23 FK requisito (SQLSTATE 23503)
+ B24 FK estudiante (SQLSTATE 23503)
+ B25 FK grupo (SQLSTATE 23503)
+ B26 FK profesor opcional pero existente (SQLSTATE 23503)
+ C01 activos con carrera visibles
+ C02 catálogo de ocho cursos
+ C03 curso sin grupos visible con ceros
+ C04 curso con grupo vacío
+ C05 grupos no multiplicados por matrículas
+ C06 grupo vacío con cero matrículas
+ C07 retiro excluido del cupo
+ C08 control de cupo solo ciclo 2026-1
+ C09 resumen histórico inicial
+ C10 homónimos separados
+ C11 conteos de cursos homónimos
+ C12 rendimiento 10 de 14 y dos pendientes
+ C13 nota 70 aprueba
+ C14 nota 69.9 reprueba
+ C15 solo Fabián carece de matrícula
+ C16 solo Carlos cumple todos los requisitos
+ C17 dos cursos de cuatro créditos suman ocho
+ C18 Redes no se multiplica por dos requisitos
+ C19 estudiantes sin aprobaciones tienen cero
+ C20 grupos de Rodrigo consolidados
+ C21 listado de cuatro requisitos legítimos
+ D01 inactivo excluido del reporte de activos
+ D02 histórico incluye otro ciclo
+ D03 repetir curso no duplica créditos
+ D04 matrícula histórica no afecta cupo actual
+ D05 retiro con cien no aprueba
+ D06 retiro no da créditos
+ D07 retiro es historial de matrícula
+ D08 retiro no satisface requisito
+ D09 pendiente no satisface requisito
+ D10 69.99 no satisface requisito
+ D11 requisito con setenta sí habilita
+ D12 precisión original preservada
+ D13 69.99 no se convierte en aprobado
+ D14 cero es reprobación evaluada
+ D15 extremo cien es válido
+ D16 conciliación de todas las categorías
+ D17 profesores homónimos separados
+ D18 grupos propios del profesor homónimo
+ D19 profesor temporal NULL permitido
+ D20 curso homónimo no fusionado
+ D21 créditos de curso distinto aunque nombre coincida
+ D22 grupo adicional sin matrículas contado
+ D23 pendiente de Irene no otorga créditos
+ D24 dos de tres requisitos no bastan
+ D25 todos los tres requisitos sí habilitan
+ D26 cero requisitos habilita incluso sin aprobaciones
+ D27 curso inexistente no habilita a nadie
+ E01 base sin matrículas no falla ni inventa tasa
+ E02 catálogo sin matrículas permanece completo
+ E03 resumen histórico devuelve cero
+ E04 solo pendientes y retirados no inventan tasa
+ E05 catálogo sin grupos permanece completo
+ E06 sin grupos no hay cupos ficticios
+ E07 sin matrículas aparecen todos los estudiantes
+ E08 sin aprobaciones todos tienen cero créditos
+(97 rows)
+
+ pruebas_aprobadas 
+-------------------
+                97
+(1 row)
+
+ROLLBACK
+Exit code: 0

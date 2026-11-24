@@ -1,0 +1,25 @@
+﻿Comando: docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U platano -d platano -f /tmp/revision_academica.sql
+Pager usage is off.
+Matrículas no retiradas sin constancia actual de TODOS sus requisitos
+ id_matricula | carnet  |       nombre        |  curso   | requisito_sin_aprobacion_registrada 
+--------------+---------+---------------------+----------+-------------------------------------
+            3 | 2021001 | Ana Morales Jiménez | INF-2003 | INF-2002
+           10 | 2021005 | Elena Castro Mora   | INF-2001 | INF-1001
+           16 | 2021010 | Javier Núñez Brenes | INF-1002 | INF-1001
+           17 | 2021012 | Javier Núñez Salas  | INF-2001 | INF-1001
+(4 rows)
+
+Grupos sin docente: temporalmente permitidos por reglas §2
+ id_grupo |  codigo  | ciclo  
+----------+----------+--------
+        8 | INF-4001 | 2026-1
+(1 row)
+
+Notas pendientes: incluye conflicto heredado de Irene
+ id_matricula | carnet  |  codigo  
+--------------+---------+----------
+            3 | 2021001 | INF-2003
+           14 | 2021009 | INF-1001
+(2 rows)
+
+Exit code: 0

@@ -1,0 +1,31 @@
+﻿Comando: docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U platano -d platano -f /tmp/sondeos_original.sql
+REDONDEO HEREDADO: puede convertir reprobacion en aprobacion y ocultar fuera de rango
+ entrada | almacenada 
+---------+------------
+   69.99 |       70.0
+  100.04 |      100.0
+   -0.04 |        0.0
+(3 rows)
+
+DEFECTOS DE ESQUEMA: inserciones que actualmente acepta (solo prueba, ROLLBACK)
+BEGIN
+INSERT 0 1
+INSERT 0 3
+ id_matricula | nota  
+--------------+-------
+        -9103 |  70.0
+        -9102 |  -1.0
+        -9101 | 101.0
+(3 rows)
+
+ROLLBACK
+MATRICULAS CON REQUISITOS ACTUALMENTE INCOMPLETOS (no hay fechas para reconstruir admision)
+ carnet  |  codigo  | id_matricula | nota 
+---------+----------+--------------+------
+ 2021001 | INF-2003 |            3 |     
+ 2021005 | INF-2001 |           10 | 69.9
+ 2021010 | INF-1002 |           16 | 80.0
+ 2021010 | INF-2001 |           17 | 90.0
+(4 rows)
+
+Exit code: 0

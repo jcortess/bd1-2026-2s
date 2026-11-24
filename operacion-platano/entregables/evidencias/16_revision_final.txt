@@ -1,0 +1,72 @@
+Verificación final mediante Git, Node.js y PostgreSQL
+Fecha local de trabajo: 2026-10-30 (America/Costa_Rica)
+OK: Rama JasonMadrigalPineda
+OK: Original 01_schema.sql coincide con HEAD (normalizando CRLF/LF)
+SHA256 original 01_schema.sql: 13c27b59bc472a2a5d28b5a15fa374ce8d36d14c576063e9c96ae9a37b380cca
+SHA256 corregido 01_schema.sql: 5fe078eec371662ea3990c7a8c5fcddf468d805c34faf5ad2df22670bec8d690
+OK: Original 02_seed.sql coincide con HEAD (normalizando CRLF/LF)
+SHA256 original 02_seed.sql: 263987b9cbb7e8228b7b81200c4422ed10a15099f2cb3a9d262934c948fc5157
+SHA256 corregido 02_seed.sql: 06c65b6580faec4432f650f28fef20c274600f542c65e531947970af83ca4029
+OK: Original 03_queries.sql coincide con HEAD (normalizando CRLF/LF)
+SHA256 original 03_queries.sql: 5778dfa3316cfa09426f06d84127a440d3b06c262e6c743b6ac623eb36a402fa
+SHA256 corregido 03_queries.sql: f5a88f4905e6483fa8e2819dc6961551948d6608e659235e509647b1410ab0f1
+OK: Archivo original intacto: tests/pruebas_publicas.sql
+OK: Archivo original intacto: docs/reglas_negocio.md
+OK: Archivo original intacto: docs/notas_migracion.md
+OK: Archivo original intacto: docs/historial_cambios.md
+OK: Archivo original intacto: AGENTS.md
+OK: Archivo original intacto: README.md
+OK: Archivo original intacto: docker-compose.yml
+OK: Archivo original intacto: entregables/INSTRUCCIONES.md
+OK: Prompt completo preservado carácter por carácter
+OK: Respuesta final registrada coincide exactamente con el texto preparado
+OK: Aclaración del usuario registrada
+SHA256 prompt UTF8: 42e274622211e3199ed53222f389756050bb199060d5f1611c483fbd0e1408b0
+SHA256 respuesta final UTF8: fc4678acae59ee8795bcd6cc910da13fd77731f20507f8541192a724a6ce3cd9
+Configuración Git core.autocrlf: true
+OK: git diff --check sin errores, respetando configuración del repositorio
+OK: Todos los archivos cambiados están dentro de operacion-platano/
+OK: Solo se modificaron tres archivos previamente versionados
+OK: 97 aserciones aprobadas, exit 0 y rollback real
+Comando: docker compose -f operacion-platano/docker-compose.yml exec -T db psql -X -U platano -d platano -At -c select json_build_object('version',version(),'estudiantes',(select count(*) from estudiante),'profesores',(select count(*) from profesor),'cursos',(select count(*) from curso),'grupos',(select count(*) from grupo),'matriculas',(select count(*) from matricula),'requisitos',(select count(*) from requisito),'auditorias',(select count(*) from auditoria),'ids_sinteticos',(select count(*) from estudiante where id_estudiante < 0)+(select count(*) from profesor where id_profesor < 0)+(select count(*) from curso where id_curso < 0)+(select count(*) from grupo where id_grupo < 0)+(select count(*) from matricula where id_matricula < 0)+(select count(*) from requisito where id_requisito < 0));
+Salida PostgreSQL: {"version" : "PostgreSQL 16.15 (Debian 16.15-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit", "estudiantes" : 12, "profesores" : 3, "cursos" : 8, "grupos" : 8, "matriculas" : 17, "requisitos" : 4, "auditorias" : 10, "ids_sinteticos" : 0}
+OK: Conteos persistentes esperados después de pruebas
+OK: No persistieron casos sintéticos
+Comando: docker compose ps
+NAME         IMAGE         COMMAND                  SERVICE   CREATED         STATUS                   PORTS
+platano_db   postgres:16   "docker-entrypoint.s…"   db        4 minutes ago   Up 4 minutes (healthy)   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp
+OK: Contenedor PostgreSQL saludable
+Comando: git status --porcelain=v1 --untracked-files=all
+ M operacion-platano/database/01_schema.sql
+ M operacion-platano/database/02_seed.sql
+ M operacion-platano/database/03_queries.sql
+?? operacion-platano/entregables/CAMBIOS.md
+?? operacion-platano/entregables/evidencias/00_entorno.txt
+?? operacion-platano/entregables/evidencias/01_docker_original.txt
+?? operacion-platano/entregables/evidencias/02_inicializacion_original.txt
+?? operacion-platano/entregables/evidencias/03_publicas_original.txt
+?? operacion-platano/entregables/evidencias/04_consultas_original.txt
+?? operacion-platano/entregables/evidencias/05_auditoria_original.txt
+?? operacion-platano/entregables/evidencias/06_sondeos_original.sql
+?? operacion-platano/entregables/evidencias/06_sondeos_original.txt
+?? operacion-platano/entregables/evidencias/07_mensajes_decodificados.txt
+?? operacion-platano/entregables/evidencias/08_reinicio_limpio.txt
+?? operacion-platano/entregables/evidencias/09_docker_corregido.txt
+?? operacion-platano/entregables/evidencias/10_inicializacion_corregida.txt
+?? operacion-platano/entregables/evidencias/11_publicas_corregidas.txt
+?? operacion-platano/entregables/evidencias/12_consultas_corregidas.txt
+?? operacion-platano/entregables/evidencias/13_auditoria_corregida.txt
+?? operacion-platano/entregables/evidencias/14-final-pruebas_adicionales.txt
+?? operacion-platano/entregables/evidencias/14-final-pruebas_ejecutadas.sql
+?? operacion-platano/entregables/evidencias/15_revision_academica.txt
+?? operacion-platano/entregables/evidencias/16_revision_final.txt
+?? operacion-platano/entregables/evidencias/README.md
+?? operacion-platano/entregables/evidencias/originales/01_schema.sql
+?? operacion-platano/entregables/evidencias/originales/02_seed.sql
+?? operacion-platano/entregables/evidencias/originales/03_queries.sql
+?? operacion-platano/entregables/revision_academica.sql
+?? operacion-platano/interaccion_ia.md
+?? operacion-platano/tests/auditoria_datos.sql
+?? operacion-platano/tests/ejecutar_pruebas.ps1
+?? operacion-platano/tests/pruebas_adicionales.sql
+RESULTADO: revisión completa sin errores.

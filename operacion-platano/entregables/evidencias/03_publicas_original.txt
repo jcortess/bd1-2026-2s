@@ -1,0 +1,62 @@
+﻿Comando: docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U platano -d platano -f /tmp/pruebas_publicas.sql
+--- PRUEBA 1: carnets duplicados en ESTUDIANTE (debe ser VACÍO) ---
+ carnet  | repeticiones 
+---------+--------------
+ 2021010 |            2
+(1 row)
+
+--- PRUEBA 2: cédulas duplicadas en PROFESOR (debe ser VACÍO) ---
+   cedula    | repeticiones 
+-------------+--------------
+ 1-1111-1111 |            2
+(1 row)
+
+--- PRUEBA 3: matrículas duplicadas, mismo estudiante y grupo (debe ser VACÍO) ---
+ id_estudiante | id_grupo | repeticiones 
+---------------+----------+--------------
+             9 |        1 |            2
+(1 row)
+
+--- PRUEBA 4: cursos con menos de 1 crédito (debe ser VACÍO) ---
+ id_curso |  codigo  |         nombre          | creditos 
+----------+----------+-------------------------+----------
+        8 | INF-4001 | Seminario de Graduación |        0
+(1 row)
+
+--- PRUEBA 5: notas fuera del rango 0-100 (debe ser VACÍO) ---
+ id_matricula | id_estudiante | id_grupo | nota 
+--------------+---------------+----------+------
+(0 rows)
+
+--- PRUEBA 6: cursos que son requisito de sí mismos (debe ser VACÍO) ---
+ id_requisito | id_curso | id_curso_requisito 
+--------------+----------+--------------------
+            5 |        4 |                  4
+(1 row)
+
+--- PRUEBA 7: estudiantes sin carrera asignada (debe ser VACÍO) ---
+ id_estudiante | carnet  |      nombre       
+---------------+---------+-------------------
+            12 | 2021011 | Karla Méndez Soto
+(1 row)
+
+--- PRUEBA 8: existencia de las 8 tablas del modelo (valor esperado: 8) ---
+ cantidad_tablas 
+-----------------
+               8
+(1 row)
+
+--- PRUEBA 9: aprobación en el umbral exacto (valor esperado: carnet 2021001 presente) ---
+ carnet  |       nombre        | nota 
+---------+---------------------+------
+ 2021001 | Ana Morales Jiménez | 70.0
+ 2021010 | Javier Núñez Salas  | 90.0
+(2 rows)
+
+--- PRUEBA 10: cursos sin ningún grupo registrado (informativo, no es un error) ---
+  codigo  |    nombre     
+----------+---------------
+ IND-1001 | Estadística I
+(1 row)
+
+Exit code: 0
