@@ -162,3 +162,63 @@ Las comprobaciones locales realizadas produjeron los siguientes resultados:
 Las pruebas confirman el funcionamiento de la configuración en el entorno local utilizado. La reproducción independiente en otro equipo y la ejecución del modelo físico completo quedan fuera de estas comprobaciones.
 
 **Resultado incorporado:** `compose.yaml` y la sección de entorno de `README.md`, con decisiones de configuración revisadas y verificaciones locales satisfactorias.
+
+
+## Interacción 02 — Especificación física del modelo relacional
+
+### Prompt
+
+Para el Proyecto Final del curso IC-4301 Bases de Datos I, Grupo 03 — Universidad Horizonte, desarrolla la especificación física completa del modelo relacional consolidado, como primera intervención.
+
+**Fuentes obligatorias:** la consigna general del proyecto, el anexo del Grupo 03, los seis documentos corregidos del Proyecto 1, `Control_de_Cambios.md`, los componentes pertinentes de Lab03 y el estado actual de la rama `grupo-03-proyecto-final` del repositorio `jcortess/bd1-2026-2s`.
+
+Realiza el trabajo bajo estas condiciones:
+
+1. Examina íntegramente las 26 relaciones y los 135 atributos del modelo corregido. Para cada atributo, determina el tipo PostgreSQL apropiado, su obligatoriedad, participación en claves y restricciones aplicables. Conserva los identificadores, nombres y decisiones ya consolidados, salvo que detectes y justifiques una incompatibilidad real.
+2. Especifica las claves primarias, foráneas, candidatas, restricciones UNIQUE, CHECK y demás mecanismos declarativos necesarios. No introduzcas longitudes, límites, catálogos cerrados, relaciones ni reglas de negocio sin fundamento.
+3. Examina las 20 reglas RN-01–RN-20 y las condiciones adicionales exigidas por el anexo G03. Clasifica cada garantía según pueda resolverse declarativamente, requiera un mecanismo de integridad adicional o dependa de una operación transaccional posterior. Identifica sus dependencias y el momento en que podrá comprobarse.
+4. Considera explícitamente la integridad contextual, temporal, histórica y entre relaciones, incluidos cambios mediante INSERT, UPDATE y DELETE cuando correspondan. No confundas la existencia de una tabla o referencia con la garantía completa de una regla.
+5. Determina las adaptaciones necesarias para conservar la compatibilidad pertinente con las seis relaciones de Lab03 y sus componentes reutilizables. Distingue conservación, modificación necesaria e incompatibilidad comprobada.
+6. Define el orden lógico de construcción de las relaciones y las condiciones de verificación que deberá satisfacer la implementación posterior.
+
+**Formato de respuesta requerido:**
+
+- **Especificación de relaciones y atributos:** cobertura completa, organizada por relación, en tablas compactas y sin omitir atributos.
+- **Integridad adicional:** correspondencia regla–condición–mecanismo propuesto–etapa de verificación.
+- **Continuidad de Lab03:** componentes compatibles y adaptaciones justificadas.
+- **Condiciones de aceptación:** comprobaciones concretas para verificar posteriormente el esquema físico.
+- **Observaciones justificadas:** contradicciones comprobadas o decisiones genuinamente no determinadas por las fuentes, si existen.
+
+Prioriza la precisión y la cobertura sobre la extensión. No repitas explicaciones equivalentes ni reproduzcas íntegramente los documentos fuente.
+
+Verifica la consistencia interna de la especificación antes de presentarla. Distingue hechos documentados, decisiones técnicas propuestas y garantías que todavía no pueden declararse implementadas.
+
+**Restricciones de alcance:** no generes scripts SQL, no implementes los procesos G03-P01, G03-P02 ni G03-P03, no modifiques archivos del repositorio, no alteres decisiones aprobadas sin identificarlo y no afirmes haber ejecutado pruebas que no se realizaron.
+
+La respuesta debe quedar técnicamente preparada sin depender de supuestos implícitos ni de correcciones posteriores que puedan prevenirse mediante el contraste de las fuentes.
+
+**Solicitud de revisión:**
+
+Muy bien, según leo, no me parece que haya alguna omisión o error evidente. Sin embargo, para asegurarnos, revisa que no faltase nada más que haya pasado por alto.
+
+**Solicitud de consolidación:**
+
+Entendido, vas a llevar a cabo las correcciones y consolidación final necesaria para cerrar este apartado.
+
+### Respuesta
+
+Se elaboró una propuesta de especificación física para PostgreSQL 17.11 a partir del modelo relacional corregido de Universidad Horizonte.
+
+El aporte de GPT-6 consistió en definir tipos de datos, nulabilidad, claves y restricciones para las 26 relaciones y 135 atributos; analizar los mecanismos necesarios para mantener RN-01 a RN-20; identificar comprobaciones entre relaciones y operaciones transaccionales; determinar la continuidad de los componentes compatibles de Lab03; y establecer el orden de construcción y los criterios de verificación del esquema.
+
+Se conservaron las relaciones y atributos del modelo corregido. No se generaron archivos SQL ni se implementaron operaciones del negocio.
+
+### Verificación posterior
+
+El estudiante examinó la propuesta y solicitó una segunda revisión para comprobar omisiones o errores. La revisión identificó problemas de precisión relacionados con el estado histórico de las admisiones, los antecedentes de cambios de grupo, los conflictos horarios estudiantiles, las condiciones de los historiales, las modificaciones indirectas, una limitación de `fn_creditos_obligatorios_plan` y las convenciones temporales.
+
+Por indicación posterior del estudiante, esos problemas se corrigieron y la propuesta quedó consolidada sin añadir relaciones ni atributos. La iniciativa de revisar nuevamente la propuesta correspondió al estudiante.
+
+Se contrastó el diccionario corregido con su documentación consolidada: 135 atributos y 1350 campos comparados sin diferencias. La matriz de trazabilidad también coincidió para las 20 reglas, con 100 campos comparados sin diferencias.
+
+**Resultado de la validación:** especificación consolidada documentalmente. No se ejecutaron scripts ni pruebas PostgreSQL, por lo que la eficacia de los mecanismos propuestos todavía no está verificada. No se modificaron archivos del modelo ni scripts del repositorio.
