@@ -33,6 +33,7 @@ El grupo **sí utilizó** herramientas de inteligencia artificial en la segunda 
 | IA-16 | Esquema físico completo en cuatro bloques, con sus restricciones, triggers y restricciones de exclusión | Sí, revisado y ejecutado por el grupo | `sql/01_esquema.sql` |
 | IA-17 | Diccionario de datos, matriz de integridad, dominios cerrados, actualización de las relaciones y justificación de la excepción de BCNF | Sí | `modelo/Modelo_Relacional.md`, secciones 2, 3, 5, 6 y 7 |
 | IA-18 | Revisión de las validaciones automáticas del repositorio (`.github/workflows`) para identificar condiciones del Pull Request | Como apoyo | — |
+| IA-19 | Datos de preparación de las 32 relaciones, a partir del plan del grupo: precargar hechos previos en todas las tablas y que los procesos creen datos nuevos en la demostración | Sí, revisado y ejecutado por el grupo | `sql/02_datos.sql` |
 
 ## 4. Prompts utilizados para el material incorporado
 
@@ -44,7 +45,7 @@ Se resumen los pedidos que dieron origen al material incorporado (no se transcri
 | IA-02 | Se entregaron el modelo relacional del Proyecto 1 (PDF exportado del `.drawio`) y los cinco scripts de Lab03 para su revisión |
 | IA-03 | «vamos con las reglas»; se entregaron las reglas RN-01 a RN-25 y luego los supuestos S-01 a S-19 del Proyecto 1 |
 | IA-04 a IA-06 | Tras decidir el grupo cómo resolver S-01, S-09, S-11 y S-16, se pidió a la herramienta completar los detalles: «eso lo puedes decidir ya que no tiene tanta relevancia» |
-| IA-07, IA-08 | «haz el control de cambios entero con lo que tenemos ahora, si puedes también el de uso de ia» |
+| IA-07, IA-08 | «haz el md de control de cambios a partir de lo que tenemos ahora, si se puede también el de uso de ia» |
 | IA-11 | Se entregó el diccionario de datos del Proyecto 1 y se pidió quitar el pendiente de comparación: «te doy el diccionario y me quitas eso» |
 | IA-12 | «como verifico» (versión de PostgreSQL); «hagamos el 1» (ejecutar Lab03 en PostgreSQL 19) |
 | IA-13 | Decisiones del grupo sobre cada pendiente, por ejemplo «es opcional», «un atributo», «metros cúbicos» |
@@ -52,6 +53,7 @@ Se resumen los pedidos que dieron origen al material incorporado (no se transcri
 | IA-15 | Decisiones del grupo sobre cada pendiente, una por una («mejor vamos 1x1») |
 | IA-16, IA-17 | «vamos a terminar el paso 2»; entrega del contenido por bloques para copiar y pegar |
 | IA-18 | «hay alguna condicion cuando hagamos el pull request? en el lab 03 lo había» |
+| IA-19 | Se pidió generar los datos de preparación por partes, siguiendo la decisión del grupo de cargar todas las tablas como hechos previos |
 
 ## 5. Decisiones propias del grupo
 
@@ -84,6 +86,7 @@ Estas decisiones las tomó el grupo; la herramienta solo las registró o detall�
 | Mantener solo las entregas rechazadas como causa de devolución, por la cantidad de cambios que exigía la alternativa | CAM-020 |
 | Resultado de incidencia por paquete obligatorio | CAM-021 |
 | Listas de valores de los dominios cerrados | `modelo/Modelo_Relacional.md`, sección 3 |
+| Precargar datos en las 32 tablas como hechos previos, y que los procesos creen datos nuevos en la demostración | `sql/02_datos.sql` |
 
 ## 6. Validación del material incorporado
 
@@ -96,6 +99,7 @@ Estas decisiones las tomó el grupo; la herramienta solo las registró o detall�
 | IA-12 | Ejecución real en PostgreSQL 19.0: P01 a P08 aprobadas, F02 y F03 coinciden con lo esperado; P09 falla por el tipo de error capturado | Registrado en `evidencias/` |
 | IA-14 | Revisión del modelo frente al `.drawio` del Proyecto 1 y los CAM registrados | _Pendiente_ |
 | IA-16 | Ejecución de `sql/01_esquema.sql` en una base nueva de PostgreSQL 19.0, después de cada bloque y de cada corrección | Sin errores |
+| IA-19 | Ejecución de `01_esquema.sql` y `02_datos.sql` en una base nueva de PostgreSQL 19.0 después de cada parte | Sin errores |
 
 **Errores de la herramienta detectados por el grupo:**
 - Presentó como plan del grupo una lista de cambios inicial que el grupo no había aprobado (IA-09). Se descartó.
