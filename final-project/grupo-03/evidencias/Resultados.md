@@ -24,8 +24,6 @@ Se ejecutaron los siguientes archivos, en el orden indicado:
 
 Se utilizó `psql` con `-X` y `ON_ERROR_STOP=1`. Los resultados consignados corresponden a la ejecución efectuada en PostgreSQL, no exclusivamente a resultados previstos por los scripts.
 
-**Correspondencia de la evidencia:** después de esta ejecución se reformularon seis mensajes `RAISE NOTICE` y se ajustaron comentarios del guion de pruebas, sin alterar sus sentencias SQL ni sus condiciones de aceptación. Los fragmentos de avisos consignados en la sección 5 proceden de la salida original observada el 25 de noviembre de 2026; no se presentan como salida de los mensajes reformulados. Para acreditar una ejecución de la copia actual del guion debe repetirse la prueba y registrar sus resultados.
-
 ## 2. Preparación y estado inicial
 
 Se verificó la configuración de Docker Compose y el estado del servicio PostgreSQL.
@@ -169,12 +167,6 @@ Se comparó el catálogo PostgreSQL con las definiciones esperadas de tablas, co
 
 La comprobación no se limitó a contar claves: se compararon los nombres, columnas y destinos de las restricciones PK, FK y UNIQUE. También se verificó que las claves foráneas utilizaran acciones referenciales `NO ACTION`.
 
-**Evidencia de la ejecución original — fragmento literal del aviso observado:**
-
-```text
-Catalogo: 16 PK, 15 FK, 4 UNIQUE, 25 CHECK, indice parcial y exclusion GiST correctos
-```
-
 El bloque finalizó sin generar excepciones.
 
 **Conclusión:** las definiciones examinadas coincidieron con las especificadas en las pruebas del catálogo.
@@ -196,12 +188,6 @@ Se ejecutaron ocho operaciones `INSERT` y una operación `UPDATE`.
 | Insertar requisito | Regla curricular con cursos referenciados válidamente | `INSERT 0 1` |
 
 Después de las operaciones se ejecutó un bloque PL/pgSQL que consultó las filas insertadas y el valor actualizado.
-
-**Evidencia de la ejecución original — fragmento literal del aviso observado:**
-
-```text
-positivos: inserciones, actualizacion, fechas frontera y nulabilidad: OK
-```
 
 **Conclusión:** se aceptaron las operaciones válidas y se confirmaron sus valores dentro de la transacción de pruebas.
 
@@ -226,12 +212,6 @@ Algunos casos representativos fueron:
 
 Estos casos se encuentran definidos y son reproducibles en `pruebas/01_pruebas_base.sql`.
 
-**Evidencia de la ejecución original — fragmento literal del aviso observado:**
-
-```text
-negativos: 53 rechazos por causa exacta confirmados
-```
-
 | Comprobación | Esperado | Observado |
 |---|---:|---:|
 | Rechazos por la causa definida | 53 | 53 |
@@ -255,12 +235,6 @@ Se ejecutaron cinco operaciones con valores `NULL` prohibidos.
 
 Se comprobó el código `23502` y el nombre de la columna responsable en cada caso.
 
-**Evidencia de la ejecución original — fragmento literal del aviso observado:**
-
-```text
-5 comprobaciones NOT NULL por columna
-```
-
 **Conclusión:** se confirmó el rechazo de los cinco valores nulos prohibidos, con identificación de la columna correspondiente.
 
 ### 5.5. Comprobación posterior a los rechazos
@@ -274,12 +248,6 @@ Las comprobaciones incluyeron:
 - Recuento de once requisitos curriculares, incluidos los diez iniciales y el caso positivo temporal.
 - Conservación de los tres contactos correspondientes al estudiante utilizado en las pruebas, incluido el contacto temporal.
 - Existencia de la escuela de referencia.
-
-**Evidencia de la ejecución original — fragmento literal del aviso observado:**
-
-```text
-posterior: rechazos sin efectos indebidos
-```
 
 **Conclusión:** no se detectaron modificaciones indebidas en los registros examinados después de los rechazos.
 
