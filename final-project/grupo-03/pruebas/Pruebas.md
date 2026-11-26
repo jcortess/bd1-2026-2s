@@ -2,15 +2,17 @@
 
 ## 1. Objeto y fuentes de verificación
 
-Este documento identifica las comprobaciones reproducibles ejecutadas sobre las **16 relaciones base y sus 57 atributos** del modelo físico consolidado. La cobertura procede del modelo relacional y el diccionario corregidos, y de las restricciones físicas definidas en [`01_esquema_base.sql`](../sql/01_esquema_base.sql). La batería ejecutable es [`01_pruebas_base.sql`](01_pruebas_base.sql); los datos de preparación proceden de [`02_datos_base.sql`](../sql/02_datos_base.sql).
+Este documento registra las pruebas de estructura e integridad del modelo físico de Universidad Horizonte, compuesto por 26 relaciones y 135 atributos. Las verificaciones se realizaron mediante dos baterías sucesivas: [`01_pruebas_base.sql`](01_pruebas_base.sql), correspondiente a las 16 relaciones base y sus 57 atributos, y [`02_pruebas_relaciones.sql`](02_pruebas_relaciones.sql), correspondiente a las diez relaciones adicionales y sus 78 atributos.
 
-El script de pruebas examina la estructura, los datos iniciales, operaciones aceptadas, condiciones de frontera, rechazos por restricciones concretas y el estado posterior. Los resultados observados se consignan a partir de las salidas registradas durante la ejecución en PostgreSQL. Las verificaciones de este documento corresponden a las estructuras efectivamente instaladas; una validación de datos de ejemplo no se interpreta como garantía general de reglas contextuales entre relaciones.
+Los esquemas examinados se definen en [`01_esquema_base.sql`](../sql/01_esquema_base.sql) y [`03_esquema_relaciones.sql`](../sql/03_esquema_relaciones.sql). Los datos iniciales proceden de [`02_datos_base.sql`](../sql/02_datos_base.sql) y [`04_datos_relaciones.sql`](../sql/04_datos_relaciones.sql). La cobertura se fundamenta en el modelo relacional y el diccionario corregidos.
 
-**Entorno observado:** PostgreSQL 17.11 (`postgres:17.11-bookworm`), cliente `psql` ejecutado mediante el servicio `db` de Docker Compose, base `universidad_horizonte_prueba_01`. Se ejecutó la batería después de instalar el esquema y cargar la semilla; los resultados observados corresponden a esa ejecución.
+Las pruebas comprueban estructuras, referencias, dominios, obligatoriedad, operaciones válidas, casos de frontera, rechazos por restricciones específicas y efectos posteriores. Los resultados se limitan a las condiciones efectivamente examinadas por cada batería.
 
-## 2. Precondiciones, ejecución y criterio de aceptación
+**Entorno de ejecución:** PostgreSQL 17.11 (`postgres:17.11-bookworm`), servicio `db` de Docker Compose, usuario `bd1` y base `universidad_horizonte_prueba_01`.
 
-**Preparación:** utilizar una base destinada a pruebas del proyecto, con `sql/01_esquema_base.sql` ejecutado y confirmado una sola vez, seguido de `sql/02_datos_base.sql`, también confirmado. Antes de ejecutar la batería, la base debe contener exactamente las 16 tablas y los 64 registros de la semilla, sin registros temporales de ejecuciones anteriores. La instalación inicial y el orden de los archivos se documentan en [`README.md`](../README.md).
+## 2. Pruebas de las estructuras base: preparación y criterio de aceptación
+
+**Preparación:** la batería `01_pruebas_base.sql` se ejecutó después de instalar `01_esquema_base.sql` y cargar `02_datos_base.sql`, cuando la base contenía 16 tablas, 57 atributos y 64 registros iniciales. Esta es la precondición de las pruebas documentadas en las secciones 2 a 8. Para reproducirlas desde cero debe utilizarse una base nueva y ejecutar la batería antes de instalar `03_esquema_relaciones.sql`; su inventario estructural no corresponde al esquema completo de 26 tablas.
 
 Desde `final-project/grupo-03/`, con el servicio `db` en ejecución:
 
@@ -23,7 +25,7 @@ Un caso negativo se considera aprobado **solo si** el motor rechaza la sentencia
 
 Las operaciones válidas y las comprobaciones de estado se ejecutan dentro de la transacción abierta por el guion; terminan con un `ROLLBACK` intencional. Las consultas de lectura desde una conexión nueva comprueban el estado persistido. La identidad `id_requisito` se genera automáticamente en la semilla; en las inserciones temporales de prueba se utilizan identificadores explícitos porque los avances de secuencias no se revierten con `ROLLBACK`.
 
-## 3. Inventario de comprobaciones ejecutadas
+## 3. Inventario de comprobaciones de las estructuras base
 
 | ID documental | Elemento o condición comprobada | Preparación y acción | Resultado esperado | Resultado observado |
 | --- | --- | --- | --- | --- |
@@ -169,11 +171,11 @@ El control de la ejecución comprobó **53 de 53** rechazos con el diagnóstico 
 
 Los cinco casos terminaron con el rechazo por la columna prevista; ninguna de estas filas inválidas quedó incorporada.
 
-## 7. Comprobaciones de estado y repetición
+## 7. Comprobaciones de estado y repetición de las estructuras base
 
 ### Estado interno de la transacción
 
-El bloque `DO $posterior$` comprueba que siguen existiendo el periodo `id_periodo = 1` con código `2026-2` y la escuela `id_escuela = 1`, que existen cuatro ventanas vinculadas al periodo 1, que `requisito_curso` contiene 11 registros (incluida la inserción válida temporal) y que `UH-ALU1` mantiene tres contactos (incluido el contacto válido temporal). Todas las comprobaciones finalizaron sin excepción.
+Tras el `ROLLBACK` de la batería base, se abrió una nueva conexión PostgreSQL y se consultaron las cardinalidades de las 16 relaciones existentes en esa etapa. La siguiente consulta reproduce dicha comprobación antes de incorporar los datos complementarios.
 
 ### Estado persistido después de la reversión
 
@@ -204,12 +206,119 @@ SELECT 'TOTAL', SUM(filas) FROM conteos
 ORDER BY relacion;
 ```
 
-**Esperado:** los 16 recuentos iniciales de la sección 3 y `TOTAL = 64`. **Observado:** 16 relaciones con esos recuentos y `TOTAL = 64`, en 17 filas de resultado. La consulta posterior confirma la restitución de los recuentos iniciales. El `ROLLBACK` revierte por definición las inserciones y la actualización temporal; no se realizó una lectura independiente posterior del valor de capacidad del espacio. Los bloques internos ya habían comprobado los valores y referencias antes de revertir la transacción.
+**Resultado esperado:** conservación de las 16 cardinalidades originales, con `TOTAL = 64`. **Resultado observado:** los 16 recuentos coincidieron con la semilla base; la consulta devolvió 17 filas, incluida la fila total. La comprobación posterior acreditó la conservación de las cantidades. Los valores modificados temporalmente se comprobaron dentro de la transacción; no se efectuó una lectura independiente posterior de la capacidad del espacio.
 
-Para repetir la batería se requiere mantener intactas las 16 tablas y la semilla original, y volver a ejecutar el archivo de pruebas; no deben repetirse los archivos de esquema o datos sobre una base ya instalada. Si un caso falla inesperadamente, debe examinarse el error antes de reintentar y verificarse el estado de la conexión y de la base. El cierre de `psql` ante error detiene la sesión y revierte su transacción no confirmada, pero no reemplaza la comprobación del estado posterior.
+Para repetir esta batería debe reproducirse primero la instalación base en una base nueva y ejecutarse `01_pruebas_base.sql` antes de incorporar las relaciones adicionales. No debe repetirse el esquema ni la carga inicial sobre una base ya instalada. La validación complementaria y su repetición se documentan en la sección 9.
 
-## 8. Resultado y alcance de la evidencia
+## 8. Resultado de la validación de las estructuras base
 
 La ejecución observada finalizó con `ROLLBACK` y sin errores inesperados. El conjunto de pruebas de las estructuras base superó la comparación del catálogo, la revisión de los 64 registros iniciales, las nueve operaciones válidas, los 53 casos negativos y los cinco rechazos por nulabilidad. La consulta posterior confirmó los recuentos persistidos de los datos iniciales.
 
 Los resultados acreditan el comportamiento **de las restricciones y los datos concretos incluidos en `01_pruebas_base.sql`**. No demuestran por sí solos todas las combinaciones posibles ni sustituyen las verificaciones de integridad contextual o de operaciones transaccionales que exijan otras relaciones del modelo.
+
+## 9. Pruebas de las relaciones adicionales
+
+### 9.1. Preparación y ejecución
+
+La batería [`02_pruebas_relaciones.sql`](02_pruebas_relaciones.sql) verifica las diez relaciones adicionales y sus restricciones declarativas sobre el esquema completo.
+
+**Precondiciones:** instalación confirmada de las 26 relaciones y 135 atributos, con ambas cargas de datos iniciales realizadas. La semilla complementaria contiene cuatro grupos, cinco bloques horarios, cinco asignaciones docentes, un traslado de plan y un reconocimiento académico. No contiene solicitudes de matrícula ni registros en los cuatro historiales o excepciones operativas restantes.
+
+Desde `final-project/grupo-03/`, con el servicio PostgreSQL disponible:
+
+```powershell
+docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d universidad_horizonte_prueba_01 -f /workspace/pruebas/02_pruebas_relaciones.sql
+```
+
+El guion ejecuta los casos dentro de una transacción que finaliza con `ROLLBACK`. Las operaciones positivas y sus efectos se comprueban antes de la reversión.
+
+### 9.2. Estructura y datos iniciales
+
+| Comprobación | Resultado esperado | Resultado observado |
+|---|---|---|
+| Inventario físico | 26 tablas y 135 atributos. | Coincidencia comprobada mediante consultas al catálogo. |
+| Definición de las diez relaciones adicionales | Correspondencia exacta de 78 columnas en nombre, tipo y nulabilidad. | Sin diferencias detectadas por el bloque de validación. |
+| Unicidad parcial del docente responsable | Existencia del índice único parcial `uq_grupo_docente_responsable`. | Índice identificado en `pg_index`. |
+| Datos iniciales | Cardinalidades de la semilla complementaria y existencia de las admisiones de referencia. | Bloque de comprobación finalizado satisfactoriamente. |
+
+### 9.3. Casos positivos y de frontera
+
+Los escenarios se preparan mediante registros temporales válidos. Cada acción se encuentra en el bloque de operaciones positivas de `02_pruebas_relaciones.sql`; las verificaciones posteriores consultan los datos antes del `ROLLBACK`.
+
+| Relación y aspecto examinado | Preparación y acción | Resultado esperado y comprobación observada |
+|---|---|---|
+| `GRUPO` — capacidad y estado de oferta | Insertar grupos con capacidades cero y positiva; modificar capacidad y estado; eliminar un grupo sin dependencias. | Operaciones aceptadas. Se comprobaron los valores finales temporales de los grupos 20 y 13 y la ausencia del grupo eliminado. |
+| `BLOQUE_HORARIO` — RN-07, restricciones locales | Insertar bloques con día y horas válidos, incluidos día 7 y actividad no presencial; modificar un intervalo horario válido. | Operaciones aceptadas. Se comprobó la referencia del bloque presencial utilizado como dato de control. |
+| `GRUPO_DOCENTE` — roles | Incorporar docentes responsables a grupos temporales. | Inserciones aceptadas. La prohibición de un segundo responsable se comprobó mediante casos negativos específicos. |
+| `TRASLADO_PLAN` — RN-03, datos y referencias | Insertar dos traslados con versiones diferentes, fecha, motivo y autorizador válidos. | Inserciones aceptadas; los dominios y referencias se contrastaron con los rechazos correspondientes. |
+| `RECONOCIMIENTO_ACADEMICO` — RN-04, origen y participación | Insertar reconocimientos de origen institucional y externo; actualizar válidamente la representación del origen. | Operaciones aceptadas. Se comprobó el origen final del reconocimiento utilizado como control. |
+| `HISTORIAL_OFERTA` — RN-19, representación de eventos | Registrar apertura, cambio de cupo, cierre y cancelación con estados, capacidades y referencias válidas. | Ocho eventos temporales comprobados; se verificaron estados y capacidades seleccionados. |
+| `SOLICITUD_MATRICULA` — RN-11 y RN-12, representación declarativa | Insertar solicitudes en estados matriculada, rechazada, en espera, retirada y anulada; registrar una transición y valores académicos. | Se comprobaron seis solicitudes, estados seleccionados, orden de espera, momento de transición y valores académicos. |
+| `HISTORIAL_SOLICITUD` — tipos de evento | Insertar transiciones y evaluaciones sin cambio de estado, incluidos estados iguales o ambos nulos. | Inserciones aceptadas; las formas inválidas se examinaron mediante casos negativos. |
+| `EXCEPCION_REQUISITO` — RN-15, autorización y referencias | Insertar dos excepciones vinculadas a solicitudes, requisitos y autorizadores existentes. | Se comprobaron dos excepciones temporales. |
+| `HISTORIAL_CORRECCION_CALIFICACION` — RN-17 y RN-20, conservación de cambios | Registrar dos correcciones sucesivas con calificaciones `80 → 85 → 90`, resultado académico, fecha, motivo y autorizador. | Se comprobaron los dos eventos y la calificación final temporal `90`, con resultado `aprobado`. |
+
+Estas operaciones examinan la integridad declarativa y la representación de los datos. No constituyen la ejecución funcional de los procesos de oferta, resolución de matrícula o gestión de espera.
+
+### 9.4. Casos negativos
+
+Cada caso negativo está identificado en `02_pruebas_relaciones.sql` mediante una etiqueta única, una sentencia SQL, un `SQLSTATE` esperado y la restricción o columna responsable del rechazo.
+
+El bloque PL/pgSQL ejecuta individualmente cada sentencia y contrasta su diagnóstico. Los rechazos esperados se gestionan mediante subtransacciones, permitiendo continuar la batería. Una aceptación inesperada o una discrepancia de diagnóstico provoca una excepción y detiene la ejecución.
+
+| Grupo de comprobaciones | Casos | Condiciones examinadas |
+|---|---:|---|
+| `GRUPO` | 9 | Identidad, unicidad contextual, capacidad, modalidad, estado, referencias y obligatoriedad. |
+| `BLOQUE_HORARIO` | 9 | Identidad, dominio del día, límites horarios, espacio presencial, referencias y obligatoriedad. |
+| `TRASLADO_PLAN` | 7 | Identidad, versiones diferentes, motivo y referencias. |
+| `RECONOCIMIENTO_ACADEMICO` | 8 | Identidad, exclusividad del origen, textos obligatorios y referencias, incluida la curricular compuesta. |
+| `GRUPO_DOCENTE` | 6 | Identidad compuesta, unicidad del responsable, rol, referencias y obligatoriedad. |
+| `HISTORIAL_OFERTA` | 12 | Identidad, tipos de cambio, estados, cupos, forma del evento, motivo y referencias. |
+| `SOLICITUD_MATRICULA` | 14 | Identidad, estado, razones, orden de espera, autorreferencia, datos académicos y referencias. |
+| `HISTORIAL_SOLICITUD` | 12 | Identidad, tipos de evento, estados, forma de transiciones y evaluaciones, motivo y referencias. |
+| `EXCEPCION_REQUISITO` | 5 | Identidad, referencias y motivo. |
+| `HISTORIAL_CORRECCION_CALIFICACION` | 7 | Identidad, cambio efectivo, valores académicos, motivo y referencias. |
+| Modificaciones y eliminaciones | 13 | Restricciones aplicadas durante `UPDATE` y protección referencial durante `UPDATE` y `DELETE`. |
+| **Total** | **102** | **Rechazos por la causa especificada.** |
+
+La distribución por diagnóstico esperado fue de 13 violaciones de unicidad (`23505`), 32 violaciones referenciales (`23503`), 53 violaciones de restricciones `CHECK` (`23514`) y cuatro violaciones de obligatoriedad (`23502`).
+
+**Resultado observado:** el bloque completó la comparación individual de los 102 casos y finalizó satisfactoriamente, sin errores no controlados.
+
+### 9.5. Estado posterior y repetibilidad
+
+Después de los casos negativos, el guion comparó los recuentos de las diez relaciones antes y después de los rechazos. También verificó valores de control en `GRUPO`, `BLOQUE_HORARIO`, `RECONOCIMIENTO_ACADEMICO`, `SOLICITUD_MATRICULA`, `HISTORIAL_OFERTA` e `HISTORIAL_CORRECCION_CALIFICACION`.
+
+**Resultado esperado:** los rechazos no deben modificar las cantidades ni los valores examinados.
+
+**Resultado observado:** las comprobaciones finalizaron sin excepción.
+
+La ejecución terminó con `ROLLBACK`. Mediante una conexión independiente se consultaron posteriormente las cardinalidades de las diez relaciones.
+
+```sql
+SELECT
+    (SELECT COUNT(*) FROM grupo) AS grupos,
+    (SELECT COUNT(*) FROM bloque_horario) AS bloques,
+    (SELECT COUNT(*) FROM grupo_docente) AS docentes,
+    (SELECT COUNT(*) FROM traslado_plan) AS traslados,
+    (SELECT COUNT(*) FROM reconocimiento_academico) AS reconocimientos,
+    (SELECT COUNT(*) FROM solicitud_matricula) AS solicitudes,
+    (SELECT COUNT(*) FROM historial_oferta) AS historial_oferta,
+    (SELECT COUNT(*) FROM historial_solicitud) AS historial_solicitud,
+    (SELECT COUNT(*) FROM excepcion_requisito) AS excepciones,
+    (SELECT COUNT(*) FROM historial_correccion_calificacion) AS correcciones;
+```
+
+| Grupos | Bloques | Docentes | Traslados | Reconocimientos | Solicitudes | Hist. oferta | Hist. solicitud | Excepciones | Correcciones |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 4 | 5 | 5 | 1 | 1 | 0 | 0 | 0 | 0 | 0 |
+
+Los resultados coincidieron con la semilla complementaria. La comprobación independiente confirma las cardinalidades persistidas; los valores de los escenarios temporales fueron contrastados dentro de la transacción.
+
+La batería puede repetirse sobre la base correctamente instalada y con la semilla conservada, ejecutando únicamente `02_pruebas_relaciones.sql`.
+
+### 9.6. Conclusión
+
+Las pruebas de las diez relaciones adicionales finalizaron satisfactoriamente para las restricciones declarativas, casos positivos, negativos, de frontera y modificaciones o eliminaciones examinadas.
+
+Los resultados no acreditan por sí solos las garantías contextuales entre relaciones ni la aceptación funcional, transaccional y concurrente de G03-P01, G03-P02 y G03-P03, que requieren mecanismos y pruebas específicos.

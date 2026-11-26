@@ -7,24 +7,27 @@
 | Curso | IC-4301 Bases de Datos I |
 | Proyecto | Universidad Horizonte |
 | Grupo | 03 |
-| Fecha de ejecución | 25 de noviembre de 2026 |
+| Fecha de ejecución | 25 y 26 de noviembre de 2026 |
 | Motor | PostgreSQL 17.11 |
 | Imagen | `postgres:17.11-bookworm` |
 | Entorno | Docker Compose |
 | Servicio | `db` |
 | Base de trabajo | `universidad_horizonte_prueba_01` |
 | Usuario PostgreSQL | `bd1` |
-| Alcance verificado | 16 relaciones base, 57 atributos, carga inicial y restricciones declarativas |
+| Alcance verificado | Estructura del modelo físico de 26 relaciones y 135 atributos; datos iniciales y restricciones declarativas examinadas mediante las dos baterías de pruebas |
 
 Se ejecutaron los siguientes archivos, en el orden indicado:
 
 1. [`sql/01_esquema_base.sql`](../sql/01_esquema_base.sql): creación de relaciones y restricciones.
 2. [`sql/02_datos_base.sql`](../sql/02_datos_base.sql): carga de datos ficticios.
 3. [`pruebas/01_pruebas_base.sql`](../pruebas/01_pruebas_base.sql): comprobaciones de estructura, integridad y comportamiento.
+4. [`sql/03_esquema_relaciones.sql`](../sql/03_esquema_relaciones.sql): creación de las diez relaciones adicionales y sus restricciones.
+5. [`sql/04_datos_relaciones.sql`](../sql/04_datos_relaciones.sql): carga complementaria de datos ficticios.
+6. [`pruebas/02_pruebas_relaciones.sql`](../pruebas/02_pruebas_relaciones.sql): comprobaciones de estructura e integridad declarativa de las relaciones adicionales.
 
 Se utilizó `psql` con `-X` y `ON_ERROR_STOP=1`. Los resultados consignados corresponden a la ejecución efectuada en PostgreSQL, no exclusivamente a resultados previstos por los scripts.
 
-## 2. Preparación y estado inicial
+## 2. Preparación inicial de las estructuras base
 
 Se verificó la configuración de Docker Compose y el estado del servicio PostgreSQL.
 
@@ -64,7 +67,7 @@ WHERE schemaname = 'public';
 
 **Conclusión:** se verificó que la base destinada a la instalación no contenía tablas de usuario. No fue necesario eliminar objetos ni crear una base adicional.
 
-## 3. Instalación del esquema
+## 3. Instalación del esquema base
 
 Se ejecutó:
 
@@ -99,7 +102,7 @@ WHERE schemaname = 'public';
 
 **Conclusión:** se instalaron las 16 tablas previstas. La correspondencia de columnas, tipos, claves y restricciones se examinó mediante las comprobaciones posteriores.
 
-## 4. Carga de datos ficticios
+## 4. Carga inicial de datos ficticios
 
 Se ejecutó:
 
@@ -134,7 +137,7 @@ La semilla contiene dos ventanas consecutivas de matrícula, con el fin de la pr
 
 **Conclusión:** la semilla fue cargada y sus cardinalidades y condiciones examinadas coincidieron con las expectativas. Las fechas empleadas para adaptar las vigencias de Lab03 son datos ficticios, no fechas institucionales históricas verificadas.
 
-## 5. Ejecución de pruebas de integridad
+## 5. Pruebas de integridad de las estructuras base
 
 Se ejecutó:
 
@@ -263,9 +266,9 @@ La reversión retiró las inserciones y la actualización temporales realizadas 
 
 **Conclusión:** el guion de pruebas cerró su transacción y no confirmó los cambios temporales.
 
-## 6. Comprobación independiente del estado persistido
+## 6. Comprobación posterior de las estructuras base
 
-Después de ejecutar el archivo de pruebas, se abrió una nueva conexión PostgreSQL y se consultaron las cardinalidades persistidas.
+Después de ejecutar `01_pruebas_base.sql`, y antes de incorporar las diez relaciones adicionales, se abrió una nueva conexión PostgreSQL y se consultaron las cardinalidades persistidas de las 16 relaciones base.
 
 Se ejecutó la siguiente consulta:
 
@@ -324,7 +327,7 @@ La consulta devolvió 17 filas —16 relaciones y una fila total— y finalizó 
 
 **Conclusión:** las cardinalidades persistidas coincidieron con las de la semilla anterior a las pruebas. Esta comprobación acredita la conservación de los recuentos desde una conexión independiente; las comprobaciones de contenido y ausencia de modificaciones indebidas se realizaron dentro de la transacción mediante los bloques del archivo de pruebas.
 
-## 7. Conclusión general
+## 7. Resultado de la validación de las estructuras base
 
 Se completó satisfactoriamente la instalación y validación de las 16 relaciones base del modelo físico de Universidad Horizonte en PostgreSQL 17.11.
 
@@ -335,3 +338,70 @@ Los 53 casos negativos y las cinco comprobaciones adicionales de obligatoriedad 
 **Resultado de la validación: satisfactorio para las estructuras, operaciones y restricciones efectivamente comprobadas.**
 
 La evidencia es reproducible mediante los archivos SQL referenciados, ejecutados sobre una base PostgreSQL vacía en el orden documentado. Los resultados aquí consignados proceden de la ejecución observada y de las comprobaciones efectuadas, sin atribuir resultados a pruebas no realizadas.
+
+## 8. Instalación y validación de las relaciones adicionales
+
+**Fecha de ejecución:** 26 de noviembre de 2026.
+
+**Entorno:** PostgreSQL 17.11, Docker Compose, servicio `db`, usuario `bd1` y base `universidad_horizonte_prueba_01`.
+
+**Archivos ejecutados:**
+
+1. [`sql/03_esquema_relaciones.sql`](../sql/03_esquema_relaciones.sql)
+2. [`sql/04_datos_relaciones.sql`](../sql/04_datos_relaciones.sql)
+3. [`pruebas/02_pruebas_relaciones.sql`](../pruebas/02_pruebas_relaciones.sql)
+
+### 8.1. Instalación y carga
+
+| Comprobación | Resultado esperado | Resultado observado |
+|---|---|---|
+| Estado previo | 16 relaciones y 57 atributos. | 16 relaciones y 57 atributos. |
+| Esquema complementario | Crear diez relaciones y un índice único parcial, sin errores. | Diez mensajes `CREATE TABLE`, un `CREATE INDEX` y `COMMIT`. |
+| Estructura completa | 26 relaciones y 135 atributos. | 26 relaciones y 135 atributos, confirmados mediante consulta independiente. |
+| Datos complementarios | Insertar 17 registros ficticios y confirmar la transacción. | Seis operaciones `INSERT`, con cardinalidades 1, 4, 5, 5, 1 y 1; finalización con `COMMIT`. |
+
+Los 17 registros corresponden a una admisión, cuatro grupos, cinco bloques horarios, cinco asignaciones docentes, un traslado de plan y un reconocimiento académico.
+
+Una consulta posterior confirmó cuatro grupos, cinco bloques, cinco asignaciones docentes y ninguna solicitud de matrícula persistida.
+
+### 8.2. Pruebas de integridad
+
+Se ejecutó [`pruebas/02_pruebas_relaciones.sql`](../pruebas/02_pruebas_relaciones.sql) sobre el esquema completo. Los escenarios, precondiciones y criterios de aceptación se documentan en [`Pruebas.md`](../pruebas/Pruebas.md), sección 9.
+
+| Comprobación | Resultado esperado | Resultado observado |
+|---|---|---|
+| Estructura | 26 tablas, 135 atributos y correspondencia de las 78 columnas adicionales. | Comprobación satisfactoria. |
+| Datos iniciales | Cardinalidades y referencias de preparación válidas. | Comprobación satisfactoria. |
+| Casos positivos y de frontera | Aceptación de operaciones válidas y conservación de los valores de control examinados. | Operaciones aceptadas y bloque de comprobación finalizado sin excepción. |
+| Casos negativos | 102 rechazos con diagnóstico específico coincidente. | 102 casos conformes, verificados individualmente dentro del script. |
+| Estado posterior a los rechazos | Sin modificaciones indebidas en las cantidades y valores examinados. | Comprobaciones satisfactorias. |
+| Cierre transaccional | Reversión de las operaciones temporales. | `ROLLBACK`. |
+
+Los 102 casos negativos incluyeron 13 infracciones de unicidad, 32 de referencia, 53 de restricciones `CHECK` y cuatro de obligatoriedad. La comprobación individual de los diagnósticos se realizó en PL/pgSQL; la consola presentó el resultado agregado.
+
+### 8.3. Estado persistido
+
+Después del `ROLLBACK`, una conexión PostgreSQL independiente confirmó los siguientes recuentos:
+
+| Relación | Registros observados |
+|---|---:|
+| `grupo` | 4 |
+| `bloque_horario` | 5 |
+| `grupo_docente` | 5 |
+| `traslado_plan` | 1 |
+| `reconocimiento_academico` | 1 |
+| `solicitud_matricula` | 0 |
+| `historial_oferta` | 0 |
+| `historial_solicitud` | 0 |
+| `excepcion_requisito` | 0 |
+| `historial_correccion_calificacion` | 0 |
+
+Las cardinalidades coincidieron con la semilla complementaria. Los escenarios temporales no dejaron registros persistidos en las relaciones examinadas.
+
+### 8.4. Conclusión
+
+Se completó satisfactoriamente la instalación de las diez relaciones adicionales y su validación mediante pruebas de integridad declarativa.
+
+**Resultado:** el esquema físico contiene 26 relaciones y 135 atributos. Los casos positivos, negativos y de frontera ejecutados cumplieron los criterios comprobados, y la consulta independiente confirmó la conservación de los recuentos iniciales después del `ROLLBACK`.
+
+Las garantías contextuales y las operaciones completas de G03-P01, G03-P02 y G03-P03 no forman parte de los resultados funcionales acreditados por esta ejecución.

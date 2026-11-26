@@ -4,11 +4,11 @@
 
 - **Curso y caso:** IC-4301 Bases de Datos I — Universidad Horizonte, grupo 03.
 - **Integrantes:** Santiago Víquez Zamora y Felipe Salazar González.
-- **Alcance de esta versión:** trazabilidad de las correcciones del modelo lógico (26 relaciones y 135 atributos), de su continuidad con Lab03 y de las adaptaciones incorporadas en el esquema físico actual de 16 relaciones y 57 atributos. La implementación completa se documentará conforme se integren sus componentes.
+- **Alcance de esta versión:** trazabilidad de las correcciones del modelo lógico de 26 relaciones y 135 atributos, de su continuidad con Lab03 y de su implementación física en PostgreSQL 17.11. El esquema se construyó mediante un conjunto base de 16 relaciones y 57 atributos y un conjunto complementario de diez relaciones y 78 atributos.
 - **Modelo inicial:** análisis, modelo relacional, diccionario, normalización y trazabilidad presentados en Proyecto 1; consolidación inicial de 19 relaciones.
 - **Lab03:** recorte curricular de 6 tablas; versión evaluada `c55142cfdfab8caaaa56871d526d21e30e8d0584`, calificación 100/100.
 - **Modelo corregido:** 26 relaciones en el diccionario y normalización, 135 atributos y 20 reglas RN-01 a RN-20, a partir de los documentos corregidos del equipo.
-- **Estado de pruebas SQL actuales:** esquema de 16 relaciones instalado y semilla cargada en PostgreSQL 17.11; verificaciones declarativas, casos positivos, negativos y de frontera ejecutados satisfactoriamente. Las tres consultas, cuatro rutinas y nueve pruebas originales de Lab03 todavía no se han reejecutado sobre la implementación actual.
+- **Estado de pruebas SQL actuales:** esquema completo de 26 relaciones instalado y datos iniciales cargados en PostgreSQL 17.11. Las pruebas del conjunto base verificaron 16 relaciones, 57 atributos, 53 casos negativos y cinco comprobaciones adicionales de obligatoriedad. Las pruebas del conjunto complementario verificaron la estructura completa de 26 relaciones y 135 atributos, casos positivos y de frontera, operaciones permitidas de modificación y eliminación y 102 casos negativos. Ambas baterías finalizaron con `ROLLBACK`, y consultas independientes confirmaron los recuentos iniciales examinados. Las garantías contextuales, transaccionales y concurrentes restantes continúan pendientes. Las tres consultas, cuatro rutinas y nueve pruebas originales de Lab03 todavía no se han reejecutado como batería heredada sobre la implementación actual.
 
 ### Fuentes identificadas (sin enlaces privados)
 
@@ -26,7 +26,7 @@ Consignas aplicables: `final-project/README.md`, `final-project/Control_de_Cambi
 | Proyecto 1: 77 atributos en el diccionario. | 135 atributos. | `modelo/04_Diccionario_Datos.md`. |
 | Proyecto 1: normalización selectiva de cinco relaciones y consolidación provisional. | Análisis de 26 relaciones y modelo lógico consolidado. | `modelo/05_Normalizacion.md`. |
 | Lab03: seis relaciones curriculares implementadas; las otras 13 del modelo inicial no pertenecían al recorte. | Se conserva la cobertura de las seis y se incorporan al diseño las 13 restantes y las siete nuevas. | Sección 3, análisis estático de los cinco SQL de Lab03; sección 4, correspondencia completa. |
-| Lab03: `vigencia TEXT`; `REQUISITO_CURSO` sin identificador alternativo. | Vigencia con inicio y fin; clave alternativa `id_requisito` auto-generada conservando la clave compuesta. | CC-P1-03, CC-P1-07 y revisión de compatibilidad en sección 3. |
+| Lab03: `vigencia TEXT`; `REQUISITO_CURSO` sin identificador alternativo. | Vigencia con inicio y fin; clave alternativa `id_requisito` autogenerada conservando la clave compuesta. | CC-P1-03, CC-P1-07 y revisión de compatibilidad en sección 3. |
 
 ### Retroalimentación docente identificable utilizada
 
@@ -42,7 +42,7 @@ La documentación del modelo incluye ahora, además del registro central de camb
 
 ## 2. Registro de cambios documentales y de modelo
 
-Las modificaciones del modelo fueron efectuadas por el equipo antes de preparar estos archivos Markdown. Los registros `CC-P1-01` a `CC-P1-14` describen sus antecedentes y su correspondencia con Proyecto 1 y Lab03. Las referencias a implementación y pruebas pendientes dentro de esos registros expresan el estado de la consolidación documental original; la ejecución física posterior del conjunto base se identifica en la sección 3, sin alterar retrospectivamente esos antecedentes.
+Los registros `CC-P1-01` a `CC-P1-14` documentan las correcciones realizadas sobre el modelo de Proyecto 1 y su correspondencia con Lab03. Sus situaciones anteriores, modificaciones y archivos afectados se conservan como antecedentes históricos. Las evidencias de validación se actualizaron para incorporar las comprobaciones posteriores ejecutadas sobre el esquema físico, sin atribuir retrospectivamente los archivos SQL a las correcciones documentales originales. La implementación de las diez relaciones complementarias, sus datos y sus pruebas se registra separadamente en `CC-S2-01`, distinguiendo las restricciones declarativas verificadas de las garantías todavía pendientes.
 
 ### CC-P1-01 — Descomposición de datos de estudiante y contactos
 
@@ -55,9 +55,9 @@ Las modificaciones del modelo fueron efectuadas por el equipo antes de preparar 
 | Modificación realizada | ESTUDIANTE ahora identifica nombre y apellidos; CONTACTO_ESTUDIANTE se incorpora con id_contacto, tipo_contacto, valor y es_principal. |
 | Justificación | Permite representar atributos atómicos y contactos múltiples sin eliminar la identidad del estudiante. |
 | Reglas relacionadas | RD-01; RN-01; RN-02. |
-| Impacto en modelo y operaciones | Nueva FK de contacto a estudiante; DDL y pruebas de multiplicidad/dominio pendientes. |
+| Impacto en modelo y operaciones | Se incorporó la FK de CONTACTO_ESTUDIANTE a ESTUDIANTE y se comprobaron las restricciones declarativas correspondientes. Las condiciones contextuales que excedan dichas restricciones deben identificarse en la matriz física de integridad. |
 | Archivos modificados | modelo/01_Analisis_del_Caso.md; modelo/02_Modelo_Conceptual.md; modelo/03_Modelo_Relacional.md; modelo/04_Diccionario_Datos.md; modelo/05_Normalizacion.md; modelo/06_Matriz_Trazabilidad.md. |
-| Evidencia de validación | Documental: comparar ESTUDIANTE y CONTACTO_ESTUDIANTE entre diccionario original y corregido. PostgreSQL: pendiente. |
+| Evidencia de validación | Comparación documental de ESTUDIANTE y CONTACTO_ESTUDIANTE entre los diccionarios original y corregido. PostgreSQL 17.11: estructura, referencias, dominios y casos de integridad del conjunto base comprobados mediante `pruebas/01_pruebas_base.sql`. |
 
 ### CC-P1-02 — Admisión y contexto de versión de plan
 
@@ -70,9 +70,9 @@ Las modificaciones del modelo fueron efectuadas por el equipo antes de preparar 
 | Modificación realizada | ADMISION prescinde de id_carrera redundante y añade activa; se determina la carrera mediante la versión del plan, conservando id_sede y el vínculo CARRERA_SEDE. |
 | Justificación | Resuelve la redundancia señalada y permite evaluar la condición de admisión activa. |
 | Reglas relacionadas | RN-02; RN-03; RN-09; G03-P02. |
-| Impacto en modelo y operaciones | Cambian referencias y consultas sobre admisión; verificar compatibilidad carrera–sede–versión y efectos históricos en PostgreSQL. |
+| Impacto en modelo y operaciones | Se implementaron las referencias y restricciones declarativas de ADMISION. Permanece pendiente garantizar conjuntamente que la carrera derivada de la versión del plan sea compatible con la sede de la admisión y comprobar dicha condición durante las operaciones correspondientes. |
 | Archivos modificados | modelo/01_Analisis_del_Caso.md; modelo/02_Modelo_Conceptual.md; modelo/03_Modelo_Relacional.md; modelo/04_Diccionario_Datos.md; modelo/05_Normalizacion.md; modelo/06_Matriz_Trazabilidad.md. |
-| Evidencia de validación | Documental: atributos ADMISION antes/después. Pruebas de integridad contextual en DDL: pendientes. |
+| Evidencia de validación | Comparación documental de los atributos de ADMISION antes y después de la corrección. La batería base verificó la estructura y las restricciones declarativas de ADMISION. No se atribuye a las FK individuales la garantía contextual conjunta entre carrera, versión y sede. |
 
 ### CC-P1-03 — Vigencias, periodos académicos y ventanas
 
@@ -85,9 +85,9 @@ Las modificaciones del modelo fueron efectuadas por el equipo antes de preparar 
 | Modificación realizada | VERSION_PLAN_ESTUDIOS incorpora inicio_vigencia y fin_vigencia; PERIODO_ACADEMICO conserva sus fechas y añade codigo_periodo; VENTANA_PERIODO identifica tipo, inicio y fin. |
 | Justificación | Permite expresar intervalos atómicos y múltiples ventanas autorizadas. |
 | Reglas relacionadas | RN-03; RN-09; RN-13. |
-| Impacto en modelo y operaciones | El SQL del Lab03 que usa vigencia TEXT deberá adaptarse; se requieren pruebas de fronteras y restricciones temporales. |
+| Impacto en modelo y operaciones | La vigencia textual de Lab03 fue sustituida por fechas explícitas en el esquema base. Se implementaron y probaron restricciones declarativas de intervalos y ventanas. La utilización de esas ventanas para decidir operaciones de matrícula requiere comprobaciones funcionales adicionales. |
 | Archivos modificados | modelo/01_Analisis_del_Caso.md; modelo/02_Modelo_Conceptual.md; modelo/03_Modelo_Relacional.md; modelo/04_Diccionario_Datos.md; modelo/05_Normalizacion.md; modelo/06_Matriz_Trazabilidad.md. |
-| Evidencia de validación | Documental: cambios de atributos y nueva relación. Validación temporal PostgreSQL: pendiente. |
+| Evidencia de validación | Comparación documental de los atributos temporales y de VENTANA_PERIODO. `pruebas/01_pruebas_base.sql` verificó las restricciones de intervalos, fronteras y exclusión declarativa del conjunto base. La ejecución finalizó satisfactoriamente en PostgreSQL 17.11. |
 
 ### CC-P1-04 — Oferta, docentes, espacios y representación de bloques
 
@@ -100,9 +100,9 @@ Las modificaciones del modelo fueron efectuadas por el equipo antes de preparar 
 | Modificación realizada | GRUPO añade estado_oferta y usa codigo_curso; BLOQUE_HORARIO incorpora es_presencial, dia_semana, hora_inicio y hora_fin; ESPACIO añade id_sede; DOCENTE incluye nombre. GRUPO_DOCENTE conserva rol. |
 | Justificación | Distingue estado de oferta, presencialidad y contexto espacial y prepara los mecanismos de integridad exigidos. |
 | Reglas relacionadas | RN-07; RN-08; RN-10; RN-19; G03-P01. |
-| Impacto en modelo y operaciones | En PostgreSQL deberá garantizarse exactamente un responsable, evitar choques de espacios y respetar capacidad y sede; pendiente. |
+| Impacto en modelo y operaciones | Las cinco relaciones están implementadas físicamente. Las restricciones declarativas de oferta, bloques y asignaciones docentes fueron comprobadas. Permanecen pendientes las garantías que requieran evaluar conjuntamente horarios, disponibilidad de espacios, compatibilidad de sede, responsables y efectos de cambios de oferta, incluida su preservación ante concurrencia. |
 | Archivos modificados | modelo/01_Analisis_del_Caso.md; modelo/02_Modelo_Conceptual.md; modelo/03_Modelo_Relacional.md; modelo/04_Diccionario_Datos.md; modelo/05_Normalizacion.md; modelo/06_Matriz_Trazabilidad.md. |
-| Evidencia de validación | Documental: comparación de atributos. Pruebas de oferta y concurrencia: pendientes. |
+| Evidencia de validación | Comparación documental de atributos. `ESPACIO` y `DOCENTE` se comprobaron en `pruebas/01_pruebas_base.sql`; `GRUPO`, `BLOQUE_HORARIO` y `GRUPO_DOCENTE`, en `pruebas/02_pruebas_relaciones.sql`. Las pruebas de procesos de oferta y concurrencia todavía no están concluidas. |
 
 ### CC-P1-05 — Identificación de personas autorizadoras
 
@@ -115,9 +115,9 @@ Las modificaciones del modelo fueron efectuadas por el equipo antes de preparar 
 | Modificación realizada | Se incorpora PERSONA_AUTORIZADORA con identificador propio e identificacion_institucional; TRASLADO_PLAN incluye id_autorizador y otros hechos autorizados refieren ese actor. |
 | Justificación | Permite conservar identidad verificable sin suponer que toda persona autorizadora es un docente. |
 | Reglas relacionadas | RN-03; RN-15; RN-17; RN-19. |
-| Impacto en modelo y operaciones | Nuevas FKs, obligatoriedad de autorizaciones y verificaciones de referencias en los datos de prueba. |
+| Impacto en modelo y operaciones | PERSONA_AUTORIZADORA se implementó en el conjunto base; TRASLADO_PLAN y las relaciones complementarias que registran autorizaciones o responsables se incorporaron posteriormente. Las referencias declarativas no sustituyen la validación funcional de las facultades de cada actor. |
 | Archivos modificados | modelo/01_Analisis_del_Caso.md; modelo/05_Normalizacion.md; modelo/02_Modelo_Conceptual.md; modelo/03_Modelo_Relacional.md; modelo/04_Diccionario_Datos.md; modelo/06_Matriz_Trazabilidad.md. |
-| Evidencia de validación | Documental: presencia de PERSONA_AUTORIZADORA y id_autorizador. PostgreSQL: pendiente. |
+| Evidencia de validación | Comparación documental de PERSONA_AUTORIZADORA e id_autorizador. Las pruebas del conjunto base y del complementario comprobaron las estructuras y referencias declarativas correspondientes. |
 
 ### CC-P1-06 — Contexto de reconocimientos académicos
 
@@ -130,9 +130,9 @@ Las modificaciones del modelo fueron efectuadas por el equipo antes de preparar 
 | Modificación realizada | RECONOCIMIENTO_ACADEMICO incluye id_admision, fecha_resolucion y referencia_curso_reconocido opcional; mantiene contexto de versión/curso satisfecho. |
 | Justificación | Permite documentar el reconocimiento en el contexto de la trayectoria académica aplicable. |
 | Reglas relacionadas | RN-04; RN-18; G03-P02. |
-| Impacto en modelo y operaciones | El diseño físico deberá verificar correspondencia reconocimiento–admisión–versión–curso satisfecho; pendiente de pruebas. |
+| Impacto en modelo y operaciones | RECONOCIMIENTO_ACADEMICO se incorporó al esquema complementario y se comprobaron sus restricciones declarativas. Permanece pendiente la comprobación contextual completa entre reconocimiento, admisión, versión y curso satisfecho cuando no quede garantizada por las referencias declaradas. |
 | Archivos modificados | modelo/01_Analisis_del_Caso.md; modelo/02_Modelo_Conceptual.md; modelo/03_Modelo_Relacional.md; modelo/04_Diccionario_Datos.md; modelo/05_Normalizacion.md; modelo/06_Matriz_Trazabilidad.md. |
-| Evidencia de validación | Documental: atributos antes/después. Comprobación de FK compuesta/contextual: pendiente. |
+| Evidencia de validación | Comparación documental de los atributos anteriores y actuales. Instalación, carga inicial y comprobaciones declarativas de RECONOCIMIENTO_ACADEMICO ejecutadas mediante `sql/03_esquema_relaciones.sql`, `sql/04_datos_relaciones.sql` y `pruebas/02_pruebas_relaciones.sql`. |
 
 ### CC-P1-07 — Identificador individual de requisito
 
@@ -145,9 +145,9 @@ Las modificaciones del modelo fueron efectuadas por el equipo antes de preparar 
 | Modificación realizada | Se conserva la identidad compuesta y se agrega id_requisito único, referenciado por EXCEPCION_REQUISITO. |
 | Justificación | Permite identificar qué exigencia específica queda exceptuada, sin ampliar indiscriminadamente el alcance de la dispensa. |
 | Reglas relacionadas | RN-05; RN-06; RN-15; G03-P02. |
-| Impacto en modelo y operaciones | La tabla del Lab03 requiere una columna adicional y una restricción de unicidad; las rutinas heredadas deben volver a probarse. |
+| Impacto en modelo y operaciones | REQUISITO_CURSO incorpora la columna adicional y su restricción de unicidad, conservando la clave primaria de Lab03. EXCEPCION_REQUISITO se incorporó en el esquema complementario. Las rutinas heredadas deben volver a probarse antes de atribuirles funcionamiento actual. |
 | Archivos modificados | modelo/02_Modelo_Conceptual.md; modelo/03_Modelo_Relacional.md; modelo/04_Diccionario_Datos.md; modelo/05_Normalizacion.md; modelo/06_Matriz_Trazabilidad.md. |
-| Evidencia de validación | Documental: cambio en diccionario. Integración de rutinas y pruebas del Lab03: pendiente. |
+| Evidencia de validación | Comparación documental del diccionario. La batería base comprobó las identidades compuesta y alternativa de REQUISITO_CURSO; la batería complementaria verificó las restricciones declarativas de EXCEPCION_REQUISITO. Las rutinas y pruebas originales de Lab03 no se han reejecutado. |
 
 ### CC-P1-08 — Historial de cambios de oferta
 
@@ -160,9 +160,9 @@ Las modificaciones del modelo fueron efectuadas por el equipo antes de preparar 
 | Modificación realizada | HISTORIAL_OFERTA registra grupo, tipo de cambio, estados/cupos anteriores y nuevos, fecha, motivo y responsable. |
 | Justificación | Conserva cambios relevantes sin sobrescribir exclusivamente el estado vigente. |
 | Reglas relacionadas | RN-08; RN-19; G03-P01. |
-| Impacto en modelo y operaciones | Se necesitarán operaciones atómicas para cambiar oferta e insertar historia y pruebas de no desaparición de matrículas. |
+| Impacto en modelo y operaciones | GRUPO e HISTORIAL_OFERTA están implementadas y se comprobaron sus restricciones declarativas. Continúa pendiente garantizar que las operaciones de modificación de oferta actualicen atómicamente el estado vigente y el historial, sin producir resultados incompatibles con matrículas existentes. |
 | Archivos modificados | modelo/01_Analisis_del_Caso.md; modelo/02_Modelo_Conceptual.md; modelo/03_Modelo_Relacional.md; modelo/04_Diccionario_Datos.md; modelo/05_Normalizacion.md; modelo/06_Matriz_Trazabilidad.md. |
-| Evidencia de validación | Documental: nueva relación. Ejecución de cancelación/modificación y consulta histórica: pendientes. |
+| Evidencia de validación | Comparación documental de la relación histórica. `pruebas/02_pruebas_relaciones.sql` comprobó su estructura, dominios, referencias y operaciones declarativamente permitidas o rechazadas. La validación del proceso de cambio de oferta y de su persistencia histórica permanece pendiente. |
 
 ### CC-P1-09 — Historial de transiciones de solicitudes
 
@@ -175,9 +175,9 @@ Las modificaciones del modelo fueron efectuadas por el equipo antes de preparar 
 | Modificación realizada | SOLICITUD_MATRICULA incorpora fecha_solicitud e id_version_plan_evaluada; HISTORIAL_SOLICITUD registra evento, estado anterior/nuevo, fecha, motivo y actor opcional. |
 | Justificación | Permite rastrear resultado, plan evaluado, orden y transiciones sin perder antecedentes. |
 | Reglas relacionadas | RN-09–RN-14; RN-16; G03-P02; G03-P03. |
-| Impacto en modelo y operaciones | Se requerirán garantías transaccionales para aceptar, rechazar, retirar, cambiar y promover; pruebas aún pendientes. |
+| Impacto en modelo y operaciones | Las relaciones se implementaron físicamente y se comprobaron sus restricciones declarativas. Permanecen pendientes las operaciones y garantías transaccionales para aceptar, rechazar, retirar, cambiar y promover solicitudes, así como las pruebas de concurrencia correspondientes. |
 | Archivos modificados | modelo/01_Analisis_del_Caso.md; modelo/02_Modelo_Conceptual.md; modelo/03_Modelo_Relacional.md; modelo/04_Diccionario_Datos.md; modelo/05_Normalizacion.md; modelo/06_Matriz_Trazabilidad.md. |
-| Evidencia de validación | Documental: nueva relación y dos atributos de solicitud. Pruebas operativas/concurrentes: pendientes. |
+| Evidencia de validación | Comparación documental de las relaciones y atributos incorporados. La batería complementaria verificó la estructura e integridad declarativa de ambas relaciones. Las pruebas de los procesos de matrícula y lista de espera siguen pendientes. |
 
 ### CC-P1-10 — Excepciones identificadas por solicitud y requisito
 
@@ -190,9 +190,9 @@ Las modificaciones del modelo fueron efectuadas por el equipo antes de preparar 
 | Modificación realizada | EXCEPCION_REQUISITO incorpora solicitud, requisito específico, autorizante, fecha de autorización y motivo. |
 | Justificación | Evita que una excepción se aplique automáticamente a solicitudes o requisitos no autorizados. |
 | Reglas relacionadas | RN-15; G03-P02. |
-| Impacto en modelo y operaciones | Se deben verificar la vigencia y el alcance efectivo de una excepción en decisiones de matrícula, con pruebas negativas. |
+| Impacto en modelo y operaciones | EXCEPCION_REQUISITO se incorporó físicamente y se comprobaron sus referencias y dominios declarativos. Continúa pendiente validar el alcance efectivo, la vigencia y la autorización de las excepciones durante las decisiones de matrícula. |
 | Archivos modificados | modelo/01_Analisis_del_Caso.md; modelo/02_Modelo_Conceptual.md; modelo/03_Modelo_Relacional.md; modelo/04_Diccionario_Datos.md; modelo/05_Normalizacion.md; modelo/06_Matriz_Trazabilidad.md. |
-| Evidencia de validación | Documental: nueva relación. Validación funcional y persistencia: pendientes. |
+| Evidencia de validación | Comparación documental de la relación incorporada. `pruebas/02_pruebas_relaciones.sql` comprobó las restricciones declarativas y casos negativos de EXCEPCION_REQUISITO. No constituye todavía una prueba de aplicación funcional de excepciones a solicitudes de matrícula. |
 
 ### CC-P1-11 — Historial de correcciones de calificación
 
@@ -205,9 +205,9 @@ Las modificaciones del modelo fueron efectuadas por el equipo antes de preparar 
 | Modificación realizada | HISTORIAL_CORRECCION_CALIFICACION guarda solicitud, calificación/resultado anterior y nuevo, fecha, motivo y autorizante. |
 | Justificación | Preserva antecedentes obligatorios sin incorporar el proceso completo de actas como un cuarto proceso asignado. |
 | Reglas relacionadas | RN-17; RN-20. |
-| Impacto en modelo y operaciones | Pruebas de integridad e historia de correcciones; el flujo operativo de notas no está asignado. |
+| Impacto en modelo y operaciones | La estructura histórica está implementada y sus restricciones declarativas fueron comprobadas. La consistencia entre los valores anteriores y nuevos y el estado académico vigente requiere las garantías adicionales que correspondan; el flujo operativo completo de actas no forma parte de los tres procesos asignados. |
 | Archivos modificados | modelo/01_Analisis_del_Caso.md; modelo/02_Modelo_Conceptual.md; modelo/03_Modelo_Relacional.md; modelo/04_Diccionario_Datos.md; modelo/05_Normalizacion.md; modelo/06_Matriz_Trazabilidad.md. |
-| Evidencia de validación | Documental: nueva relación. Pruebas PostgreSQL: pendientes. |
+| Evidencia de validación | Comparación documental de la relación histórica. La instalación y las pruebas estructurales, de dominio y de integridad declarativa se comprobaron en el conjunto complementario mediante `pruebas/02_pruebas_relaciones.sql`. |
 
 ### CC-P1-12 — Consolidación de normalización, diccionario y trazabilidad
 
@@ -220,9 +220,9 @@ Las modificaciones del modelo fueron efectuadas por el equipo antes de preparar 
 | Modificación realizada | Normalización corregida analiza las 26 relaciones; diccionario contiene 135 atributos y matriz documenta RN-01 a RN-20. |
 | Justificación | Cierra la representación lógica declarada por el equipo antes de implementar las restricciones físicas. |
 | Reglas relacionadas | RN-01–RN-20. |
-| Impacto en modelo y operaciones | La matriz de esta segunda entrega deberá añadir mecanismo físico y prueba por regla; DDL del conjunto todavía pendiente. |
+| Impacto en modelo y operaciones | El modelo físico completo se instaló mediante dos conjuntos de SQL y se comprobó su correspondencia estructural con las 26 relaciones y 135 atributos. La matriz física integral debe identificar para cada regla sus mecanismos, pruebas y garantías todavía pendientes, sin equiparar la instalación del DDL con la validación completa de los procesos. |
 | Archivos modificados | modelo/01_Analisis_del_Caso.md; modelo/03_Modelo_Relacional.md; modelo/04_Diccionario_Datos.md; modelo/05_Normalizacion.md; modelo/06_Matriz_Trazabilidad.md. |
-| Evidencia de validación | Comprobación documental de exportación: 26 relaciones en diccionario, 135 atributos, 20 reglas. Integración con DDL y pruebas: pendiente. |
+| Evidencia de validación | Comprobación documental: 26 relaciones, 135 atributos y 20 reglas. PostgreSQL 17.11: instalación de 26 tablas y 135 atributos, comprobación estructural satisfactoria y ejecución de las dos baterías de integridad declarativa. La cobertura operativa integral todavía no está completada. |
 
 ### CC-P1-13 — Revisión de representación conceptual
 
@@ -254,9 +254,24 @@ Las modificaciones del modelo fueron efectuadas por el equipo antes de preparar 
 | Archivos modificados | `modelo/05_Normalizacion.md` y `Control_de_Cambios.md`. |
 | Evidencia de validación | Comparación estática directa: en `02_datos.sql`, versión 201 incluye `('UH-EST1',201,'Optativo','3')`; P07 inserta `(201,'UH-EST1','UH-MAT1','Requisito previo')`. |
 
+### CC-S2-01 — Implementación de las relaciones complementarias del modelo físico
+
+| Campo | Registro |
+| --- | --- |
+| Identificador del cambio | CC-S2-01 |
+| Fuente u origen | Modelo relacional y diccionario corregidos de Universidad Horizonte; RN-01 a RN-20 y condiciones de integridad aplicables del anexo G03. Requisito de la segunda entrega: implementar el 100 % de las relaciones del modelo final, incluidas las que no participan directamente en los procesos operativos asignados. |
+| Elemento afectado | GRUPO; BLOQUE_HORARIO; SOLICITUD_MATRICULA; TRASLADO_PLAN; RECONOCIMIENTO_ACADEMICO; GRUPO_DOCENTE; HISTORIAL_OFERTA; HISTORIAL_SOLICITUD; EXCEPCION_REQUISITO; HISTORIAL_CORRECCION_CALIFICACION; scripts de instalación, datos y pruebas. |
+| Situación anterior | Proyecto 1 consolidaba inicialmente 19 relaciones; su corrección amplió el modelo a 26. Lab03 implementó seis relaciones del recorte curricular. En la segunda entrega ya se habían instalado 16 relaciones base y 57 atributos, pero faltaba implementar físicamente las diez relaciones restantes y sus 78 atributos. |
+| Modificación realizada | Se incorporaron las diez relaciones complementarias mediante `sql/03_esquema_relaciones.sql`, conservando los identificadores y la estructura del modelo corregido. `sql/04_datos_relaciones.sql` añadió datos ficticios de oferta y antecedentes académicos. `pruebas/02_pruebas_relaciones.sql` incorporó comprobaciones estructurales, operaciones positivas y de frontera, rechazos por restricciones declarativas y operaciones referenciales de modificación y eliminación. |
+| Justificación | Completar el esquema físico sin excluir hechos de oferta, matrícula, autorizaciones, reconocimientos e historia. La implementación declarativa establece identidades, dominios y referencias, mientras que las garantías que requieren evaluar varias filas, estados, operaciones o concurrencia se reservan para mecanismos adicionales. |
+| Reglas relacionadas | RN-03, RN-04 y RN-06 a RN-20, según su correspondencia con las relaciones complementarias en `modelo/06_Matriz_Trazabilidad.md`. RN-05 interviene como dependencia curricular de EXCEPCION_REQUISITO, mientras que RN-01 y RN-02 corresponden principalmente al conjunto base. Las restricciones declarativas implementadas constituyen una cobertura parcial de estas reglas; las garantías contextuales, transaccionales y concurrentes aplicables permanecen pendientes. |
+| Impacto en modelo y operaciones | El esquema pasó de 16 relaciones y 57 atributos a 26 relaciones y 135 atributos. Se incorporaron estructuras y restricciones declarativas para oferta, horarios, solicitudes, traslados, reconocimientos e históricos. Las operaciones de negocio y las garantías contextuales, temporales entre relaciones, transaccionales y concurrentes continúan requiriendo implementación y verificación específica. |
+| Archivos modificados | `sql/03_esquema_relaciones.sql`; `sql/04_datos_relaciones.sql`; `pruebas/02_pruebas_relaciones.sql`; `pruebas/Pruebas.md`; `evidencias/Resultados.md`; `Control_de_Cambios.md`; `README.md`; `Uso_de_IA.md`. |
+| Evidencia de validación | PostgreSQL 17.11: `sql/03_esquema_relaciones.sql` finalizó con `COMMIT` y una consulta independiente confirmó 26 tablas y 135 atributos. `sql/04_datos_relaciones.sql` cargó los datos complementarios y finalizó con `COMMIT`. `pruebas/02_pruebas_relaciones.sql` verificó la estructura, los datos iniciales, los casos positivos y de frontera, las operaciones permitidas y 102 casos negativos rechazados por las causas previstas. La ejecución finalizó con `ROLLBACK`. Una consulta posterior, desde una conexión independiente, confirmó los recuentos esperados y observados: cuatro grupos, cinco bloques horarios, cinco asociaciones docentes, un traslado, un reconocimiento y cero registros en las cinco relaciones complementarias restantes. La descripción reproducible de las pruebas y sus resultados se referencia en `pruebas/Pruebas.md` y `evidencias/Resultados.md`, respectivamente. Esta evidencia no acredita todavía las garantías operativas pendientes. |
+
 ## 3. Lab03 — continuidad, adaptaciones y comprobaciones
 
-**Alcance de la comprobación:** se examinaron los cinco archivos SQL de la versión evaluada de Lab03, junto con su `README.md` y sus evidencias, y se contrastaron sus estructuras, datos, consultas, rutinas y pruebas con el modelo corregido. La implementación posterior de las seis relaciones curriculares adaptadas se realizó en `sql/01_esquema_base.sql`, con datos en `sql/02_datos_base.sql` y pruebas actuales en `pruebas/01_pruebas_base.sql`. Se distinguen la compatibilidad estática de los componentes heredados, los resultados ejecutados en PostgreSQL 17.11 y los antecedentes históricos del laboratorio, cuya evaluación 100/100 no constituye evidencia de ejecución actual.
+**Alcance de la comprobación:** se examinaron los cinco archivos SQL de la versión evaluada de Lab03, junto con su `README.md` y sus evidencias, y se contrastaron sus estructuras, datos, consultas, rutinas y pruebas con el modelo corregido. La implementación posterior de las seis relaciones curriculares adaptadas se realizó en `sql/01_esquema_base.sql`, con datos en `sql/02_datos_base.sql` y pruebas actuales en `pruebas/01_pruebas_base.sql`. Este conjunto constituye una parte del esquema completo, posteriormente ampliado mediante `sql/03_esquema_relaciones.sql`. Se distinguen la compatibilidad estática de los componentes heredados, los resultados ejecutados en PostgreSQL 17.11 y los antecedentes históricos del laboratorio, cuya evaluación 100/100 no constituye evidencia de ejecución actual.
 
 ### 3.1 Las seis relaciones de `01_esquema.sql`
 
@@ -271,7 +286,7 @@ Las modificaciones del modelo fueron efectuadas por el equipo antes de preparar 
 
 ### 3.2 `02_datos.sql` y las tres consultas de `03_consultas.sql`
 
-La semilla histórica de Lab03 contiene **41 registros**: dos escuelas, dos carreras, ocho cursos, tres versiones del plan, 16 participaciones y diez reglas de requisito. Se reutilizaron en `sql/02_datos_base.sql`, adaptando los tres valores textuales de vigencia a fechas explícitas ficticias; dichas fechas no se presentan como datos históricos comprobados. Se añadieron 23 registros ficticios para las demás relaciones del conjunto instalado, con **64 registros en total**, cuya carga y conservación posterior fueron comprobadas en PostgreSQL 17.11. Las tres consultas Q01–Q03 se examinaron estáticamente, pero no se atribuyen resultados nuevos de ejecución a sus archivos originales.
+La semilla histórica de Lab03 contiene **41 registros**: dos escuelas, dos carreras, ocho cursos, tres versiones del plan, 16 participaciones y diez reglas de requisito. Se reutilizaron en `sql/02_datos_base.sql`, adaptando los tres valores textuales de vigencia a fechas explícitas ficticias; dichas fechas no se presentan como datos históricos comprobados. Se añadieron 23 registros ficticios para las demás relaciones del conjunto base, con **64 registros en total**, cuya carga y conservación posterior fueron comprobadas en PostgreSQL 17.11. La semilla complementaria se identifica separadamente en CC-S2-01. Las tres consultas Q01–Q03 se examinaron estáticamente, pero no se atribuyen resultados nuevos de ejecución a sus archivos originales.
 
 | Consulta | Dependencias de origen | Conclusión de compatibilidad estática |
 | --- | --- | --- |
@@ -325,39 +340,39 @@ Las definiciones de `ESCUELA` y `CARRERA` se conservaron sin cambios respecto de
 | `REQUISITO_CURSO` | PK de cuatro componentes y FK conservadas; incorporado `id_requisito` generado, único y obligatorio (CC-P1-07), más prohibición de autorrequisitos. | Identidad compuesta y alternativa, referencias y rechazos comprobados. |
 | Datos de `02_datos.sql` | Conservación de 41 registros curriculares; tres vigencias textuales expresadas mediante fechas ficticias. | Carga mediante `COMMIT` y recuentos posteriores comprobados. |
 
-Los componentes físicos se encuentran en `sql/01_esquema_base.sql` y la semilla adaptada en `sql/02_datos_base.sql`. `pruebas/01_pruebas_base.sql` verificó el conjunto de 16 relaciones y 57 atributos: 16 PK, 15 FK, cuatro UNIQUE, 25 CHECK, índice único parcial y exclusión GiST; además de casos positivos, 53 rechazos negativos por la causa esperada y cinco comprobaciones adicionales de `NOT NULL`. La transacción de prueba terminó con `ROLLBACK`; una conexión independiente confirmó que permanecían los 64 registros de la semilla.
+Los componentes físicos reutilizados y adaptados de Lab03 se encuentran en `sql/01_esquema_base.sql` y la semilla correspondiente en `sql/02_datos_base.sql`. `pruebas/01_pruebas_base.sql` verificó el conjunto base de 16 relaciones y 57 atributos: 16 PK, 15 FK, cuatro UNIQUE, 25 CHECK, índice único parcial y exclusión GiST; además de casos positivos, 53 rechazos negativos por la causa esperada y cinco comprobaciones adicionales de `NOT NULL`. La transacción de prueba terminó con `ROLLBACK`; una conexión independiente confirmó que permanecían los 64 registros de la semilla. La implementación y las comprobaciones del conjunto complementario se registran en CC-S2-01.
 
 Las tres consultas de `03_consultas.sql`, las cuatro rutinas de `04_rutinas.sql` y las nueve pruebas de `05_pruebas.sql` se conservan como referencia sin reescritura. Su compatibilidad estructural se examinó en las secciones anteriores, pero sus resultados históricos no se presentan como ejecuciones actuales; todavía no existe una comprobación funcional nueva de estos archivos. En particular, P07 no demuestra un requisito cuyo curso objetivo esté fuera del plan porque la semilla de Lab03 incluye dicho curso en la versión utilizada.
 
 ## 4. Correspondencia de relaciones de partida y correcciones
 
-| Relación de P1 | Situación en Lab03 | Situación en el modelo corregido |
+| Relación de P1 | Situación en Lab03 | Situación en el modelo corregido e implementación actual |
 | --- | --- | --- |
-| `ESTUDIANTE` | No implementada en el recorte del Lab03 | Conservada con cambios |
-| `ADMISION` | No implementada en el recorte del Lab03 | Conservada con cambios |
-| `CARRERA` | Implementada en el recorte del Lab03 | Conservada en el inventario; validar restricciones físicas |
-| `SEDE` | No implementada en el recorte del Lab03 | Conservada con cambios |
-| `VERSION_PLAN_ESTUDIOS` | Implementada en el recorte del Lab03 | Conservada con cambios |
-| `PERIODO_ACADEMICO` | No implementada en el recorte del Lab03 | Conservada con cambios |
-| `CURSO` | Implementada en el recorte del Lab03 | Conservada en el inventario; validar restricciones físicas |
-| `ESCUELA` | Implementada en el recorte del Lab03 | Conservada en el inventario; validar restricciones físicas |
-| `GRUPO` | No implementada en el recorte del Lab03 | Conservada con cambios |
-| `BLOQUE_HORARIO` | No implementada en el recorte del Lab03 | Conservada con cambios |
-| `ESPACIO` | No implementada en el recorte del Lab03 | Conservada con cambios |
-| `SOLICITUD_MATRICULA` | No implementada en el recorte del Lab03 | Conservada con cambios |
-| `DOCENTE` | No implementada en el recorte del Lab03 | Conservada con cambios |
-| `CARRERA_SEDE` | No implementada en el recorte del Lab03 | Conservada en el inventario; validar restricciones físicas |
-| `PARTICIPACION_PLAN` | Implementada en el recorte del Lab03 | Conservada en el inventario; validar restricciones físicas |
-| `REQUISITO_CURSO` | Implementada en el recorte del Lab03 | Conservada con cambios |
-| `TRASLADO_PLAN` | No implementada en el recorte del Lab03 | Conservada con cambios |
-| `RECONOCIMIENTO_ACADEMICO` | No implementada en el recorte del Lab03 | Conservada con cambios |
-| `GRUPO_DOCENTE` | No implementada en el recorte del Lab03 | Conservada en el inventario; validar restricciones físicas |
+| `ESTUDIANTE` | No implementada en el recorte del Lab03 | Conservada con cambios; implementada y comprobada en el conjunto base. |
+| `ADMISION` | No implementada en el recorte del Lab03 | Conservada con cambios; implementación y restricciones declarativas comprobadas en el conjunto base. Compatibilidad contextual completa pendiente. |
+| `CARRERA` | Implementada en el recorte del Lab03 | Conservada sin modificación respecto del componente reutilizado; comprobada en el conjunto base. |
+| `SEDE` | No implementada en el recorte del Lab03 | Conservada con cambios; implementada y comprobada en el conjunto base. |
+| `VERSION_PLAN_ESTUDIOS` | Implementada en el recorte del Lab03 | Conservada con cambios de representación de vigencia; comprobada en el conjunto base. |
+| `PERIODO_ACADEMICO` | No implementada en el recorte del Lab03 | Conservada con cambios; implementada y comprobada en el conjunto base. |
+| `CURSO` | Implementada en el recorte del Lab03 | Conservada con restricciones adicionales; comprobada en el conjunto base. |
+| `ESCUELA` | Implementada en el recorte del Lab03 | Conservada sin modificación respecto del componente reutilizado; comprobada en el conjunto base. |
+| `GRUPO` | No implementada en el recorte del Lab03 | Conservada con cambios; implementada y comprobada declarativamente en el conjunto complementario. |
+| `BLOQUE_HORARIO` | No implementada en el recorte del Lab03 | Conservada con cambios; implementada y comprobada declarativamente en el conjunto complementario. |
+| `ESPACIO` | No implementada en el recorte del Lab03 | Conservada con cambios; implementada y comprobada en el conjunto base. |
+| `SOLICITUD_MATRICULA` | No implementada en el recorte del Lab03 | Conservada con cambios; implementada y comprobada declarativamente en el conjunto complementario. |
+| `DOCENTE` | No implementada en el recorte del Lab03 | Conservada con cambios; implementada y comprobada en el conjunto base. |
+| `CARRERA_SEDE` | No implementada en el recorte del Lab03 | Conservada; implementada y comprobada en el conjunto base. |
+| `PARTICIPACION_PLAN` | Implementada en el recorte del Lab03 | Conservada con restricciones adicionales; comprobada en el conjunto base. |
+| `REQUISITO_CURSO` | Implementada en el recorte del Lab03 | Conservada con cambios de identidad alternativa y restricciones; comprobada en el conjunto base. |
+| `TRASLADO_PLAN` | No implementada en el recorte del Lab03 | Conservada con cambios; implementada y comprobada declarativamente en el conjunto complementario. |
+| `RECONOCIMIENTO_ACADEMICO` | No implementada en el recorte del Lab03 | Conservada con cambios; implementada y comprobada declarativamente en el conjunto complementario. |
+| `GRUPO_DOCENTE` | No implementada en el recorte del Lab03 | Conservada; implementada y comprobada declarativamente en el conjunto complementario. |
 
 **Relaciones incorporadas al modelo corregido que no estaban entre las 19 de P1:** `CONTACTO_ESTUDIANTE`, `PERSONA_AUTORIZADORA`, `VENTANA_PERIODO`, `HISTORIAL_OFERTA`, `HISTORIAL_SOLICITUD`, `EXCEPCION_REQUISITO`, `HISTORIAL_CORRECCION_CALIFICACION`.
 
-Las 19 relaciones de partida están representadas nominalmente en el diccionario corregido. Una modificación de nombre de atributo no equivale a eliminar su hecho de negocio. Esta correspondencia se actualizará si la transformación física cambia la organización sin perder semántica.
+Las 19 relaciones de partida están representadas nominalmente en el modelo corregido. Las siete relaciones adicionales también se encuentran implementadas en el esquema físico: CONTACTO_ESTUDIANTE, PERSONA_AUTORIZADORA y VENTANA_PERIODO en el conjunto base; HISTORIAL_OFERTA, HISTORIAL_SOLICITUD, EXCEPCION_REQUISITO e HISTORIAL_CORRECCION_CALIFICACION en el complementario.
 
-
+Una modificación de nombre de atributo no equivale a eliminar su hecho de negocio. La instalación de las 26 relaciones y la ejecución de sus pruebas declarativas acreditan su representación física, pero las reglas que requieren mecanismos entre relaciones u operaciones transaccionales permanecen identificadas como pendientes.
 
 ### Anexo A — Cotejo exhaustivo del diccionario original y corregido
 
@@ -417,7 +432,7 @@ Las 19 relaciones de partida están representadas nominalmente en el diccionario
 | `GRUPO.id_curso` | `GRUPO.codigo_curso` → `CURSO.codigo_institucional` | Renominación y referencia por clave del curso. |
 | `RECONOCIMIENTO_ACADEMICO.numero_institucional` | `RECONOCIMIENTO_ACADEMICO.id_admision` → `ADMISION.numero_institucional` | Asociación al contexto de la admisión, sin perder identidad del estudiante. |
 
-Los cambios de cardinalidades y hechos históricos se encuentran identificados en CC-P1-01 a CC-P1-13 y en las secciones 1 y 4. La implementación física de las 16 relaciones base y sus comprobaciones actuales se describen en la sección 3; las demás correspondencias físicas se completarán al integrar el modelo completo.
+Los cambios de cardinalidades y hechos históricos se encuentran identificados en CC-P1-01 a CC-P1-13 y en las secciones 1 y 4. La correspondencia física de las 26 relaciones se completó mediante los conjuntos base y complementario, descritos respectivamente en la sección 3 y en CC-S2-01. Sus comprobaciones declarativas no sustituyen las pruebas de reglas contextuales y operaciones pendientes.
 
 ### Anexo B — Cotejo de las 20 reglas de trazabilidad
 
@@ -445,6 +460,7 @@ Las descripciones de RN-01 a RN-20 se conservan sin renumeración. La siguiente 
 | RN-18 | Elemento conceptual, Elemento relacional, Restricción |
 | RN-19 | Elemento conceptual, Elemento relacional, Restricción |
 | RN-20 | Elemento conceptual, Elemento relacional, Restricción |
+
 ### Anexo C — Cotejo del análisis y la normalización
 
 | Apartado | Proyecto 1 inicial | Versión corregida | Correspondencia y efecto |
@@ -500,17 +516,19 @@ Este inventario complementa los cambios de identidad, atributos, dominios, restr
 
 ## 5. Cobertura de reglas, evidencia y pendientes
 
-- La matriz lógica corregida está en `modelo/06_Matriz_Trazabilidad.md` y documenta RN-01 a RN-20 para las 26 relaciones y 135 atributos del modelo consolidado.
-- La implementación física actual comprende 16 relaciones y 57 atributos. Sus mecanismos declarativos se encuentran en `sql/01_esquema_base.sql`, su semilla en `sql/02_datos_base.sql` y sus comprobaciones reproducibles en `pruebas/01_pruebas_base.sql`.
-- La **matriz física relación/regla–mecanismo–prueba** exigida para el conjunto completo todavía debe consolidar las relaciones, operaciones y garantías restantes. La cobertura parcial comprobada no se presenta como validación integral del modelo.
-- Quedan por verificar las condiciones que dependen de relaciones adicionales o de mecanismos entre relaciones. En particular, las FK individuales de ADMISION no garantizan por sí solas la correspondencia conjunta entre carrera, versión del plan y sede.
-- Los resultados de las consultas, rutinas y pruebas históricas de Lab03 se distinguen de los comprobados en la versión actual. Las comprobaciones reproducibles del conjunto implementado y sus resultados observados se documentan en `pruebas/Pruebas.md` y `evidencias/Resultados.md`, respectivamente.
-- Los supuestos no fijados por la fuente deben documentar fragmento, pregunta, interpretación adoptada e impacto. Las observaciones formativas de Lab03 no generan sanciones retroactivas ni obligan a introducir reglas arbitrarias.
+- La matriz lógica corregida se encuentra en `modelo/06_Matriz_Trazabilidad.md` y documenta RN-01 a RN-20 para las 26 relaciones y 135 atributos del modelo consolidado.
+- La implementación física comprende las 26 relaciones y sus 135 atributos. `sql/01_esquema_base.sql` contiene las 16 relaciones base y `sql/03_esquema_relaciones.sql` incorpora las diez restantes. Sus datos iniciales se cargan mediante `sql/02_datos_base.sql` y `sql/04_datos_relaciones.sql`, respectivamente.
+- `pruebas/01_pruebas_base.sql` verificó el conjunto de 16 relaciones y 57 atributos, incluidos 53 casos negativos y cinco comprobaciones adicionales de obligatoriedad. `pruebas/02_pruebas_relaciones.sql` verificó la estructura completa de 26 relaciones y 135 atributos, los casos positivos y de frontera, las operaciones referenciales permitidas y 102 casos negativos. Ambas baterías finalizaron satisfactoriamente con `ROLLBACK`.
+- Las consultas independientes posteriores confirmaron la conservación de los 64 registros de la semilla base y los recuentos de las diez relaciones complementarias: cuatro grupos, cinco bloques horarios, cinco asociaciones docentes, un traslado, un reconocimiento y cero registros en las cinco relaciones complementarias restantes.
+- La matriz física relación/regla–mecanismo–prueba exigida para el conjunto completo todavía debe consolidar los mecanismos declarativos, contextuales y operativos, sus pruebas y los casos justificados como no aplicables. La existencia de una relación y sus restricciones declarativas no equivale a demostrar la totalidad de las reglas de negocio que dependen de varias relaciones o de operaciones concurrentes.
+- Permanecen pendientes las condiciones que necesitan comprobaciones entre relaciones, estados históricos u operaciones controladas. En particular, las FK individuales de ADMISION no garantizan por sí solas la correspondencia conjunta entre carrera, versión del plan y sede. También requieren mecanismos adicionales las garantías aplicables a horarios, disponibilidad de recursos, cambios de oferta, matrícula, lista de espera y consistencia entre estados e historiales.
+- Los resultados de las consultas, rutinas y pruebas históricas de Lab03 se distinguen de los comprobados en la versión actual. Su compatibilidad estática no se presenta como reejecución funcional. Las comprobaciones reproducibles y los resultados observados corresponden a `pruebas/Pruebas.md` y `evidencias/Resultados.md`, respectivamente.
+- Los supuestos no fijados por las fuentes deben documentar fragmento, pregunta, interpretación adoptada e impacto. Las observaciones formativas de Lab03 no generan sanciones retroactivas ni obligan a introducir reglas arbitrarias.
 
 ## 6. Procedimiento de comprobación al entregar
 
-1. Partir de un `CC-P1-*` y localizar su origen, la sección del modelo actual y la evidencia que se completará al ejecutar SQL.
-2. Verificar que cada tabla física y relación de origen esté cubierta por su clave, referencia, dominio y prueba, o justificar documentalmente «no aplica».
-3. Ejecutar pruebas en una base PostgreSQL nueva y registrar esperado/observado y lectura posterior de estado confirmado.
-4. Reejecutar las consultas y rutinas heredadas de Lab03 en la estructura completa; distinguir sus resultados nuevos de la calificación histórica.
-5. Localizar cada adaptación y reutilización en los archivos SQL de la versión actual y en sus pruebas; documentar en los archivos Markdown de pruebas y evidencias los resultados esperados, observados y el estado posterior. Diferenciar los componentes ya verificados de los pendientes.
+1. Partir de un registro `CC-P1-*` o `CC-S2-*` y localizar su origen, los elementos afectados y su correspondencia en el modelo relacional, el diccionario y la matriz de trazabilidad.
+2. Verificar que las 26 relaciones y sus 135 atributos estén representados en los scripts físicos, conservando las claves, referencias, dominios y hechos originales. Para cada relación y regla aplicable, localizar el mecanismo de integridad y la prueba correspondiente o justificar documentalmente «no aplica».
+3. Reproducir la instalación en una base PostgreSQL nueva. Ejecutar el esquema y los datos base, comprobar su estructura y ejecutar `pruebas/01_pruebas_base.sql` antes de incorporar las relaciones complementarias. Instalar después el esquema y los datos adicionales y ejecutar `pruebas/02_pruebas_relaciones.sql`. Comprobar los resultados esperados y observados, los rechazos por su causa prevista y los recuentos posteriores a cada `ROLLBACK` mediante conexiones independientes.
+4. Distinguir las garantías declarativas verificadas de las condiciones contextuales, transaccionales y concurrentes pendientes de implementación. Una vez incorporados sus mecanismos, repetir las pruebas correspondientes, comprobar efectos persistidos y rechazos sin modificaciones indebidas y actualizar la matriz física y las evidencias.
+5. Si se reutilizan las consultas, rutinas y pruebas originales de Lab03, ejecutarlas sobre la estructura actual y distinguir sus resultados nuevos de la calificación y las evidencias históricas. Localizar cada adaptación en los archivos SQL de la versión entregada y documentar en `pruebas/Pruebas.md` y `evidencias/Resultados.md` las condiciones iniciales, acciones, resultados esperados y observados y estado posterior.

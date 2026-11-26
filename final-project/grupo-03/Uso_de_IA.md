@@ -314,3 +314,328 @@ También se comprobó que las correcciones fueran pertinentes y estuvieran funda
 La ejecución en PostgreSQL 17.11 confirmó la instalación de las 16 relaciones y 57 atributos, con 16 claves primarias, 15 foráneas, cuatro restricciones UNIQUE, 25 CHECK, un índice único parcial y una exclusión GiST. Las pruebas positivas finalizaron correctamente; también se confirmaron 53 rechazos por la causa prevista y cinco comprobaciones adicionales de obligatoriedad. Una consulta posterior verificó que permanecían los 64 registros iniciales después del `ROLLBACK` de las pruebas.
 
 **Resultado de la validación:** implementación corregida por indicación del estudiante, aprobada e incorporada manualmente, con ejecución y comprobaciones satisfactorias en PostgreSQL 17.11.
+
+
+## Interacción 04 — Implementación de relaciones restantes del modelo físico
+
+### Prompt
+
+# Prompt definitivo — Implementación de las relaciones restantes del modelo físico
+
+## 1. Contexto y objetivo
+
+Para el Proyecto Final del curso **IC-4301 Bases de Datos I**, Grupo 03 — Universidad Horizonte, implementa en **PostgreSQL 17.11** las diez relaciones restantes del modelo físico consolidado.
+
+El proyecto se desarrolla en el repositorio `jcortess/bd1-2026-2s`, rama `grupo-03-proyecto-final`, directorio `final-project/grupo-03/`.
+
+La configuración del entorno PostgreSQL, la especificación física y la implementación de estructuras base están cerradas. Esta última implementó y verificó 16 relaciones y 57 atributos.
+
+**Objetivo de esta intervención:** completar la estructura física de las 26 relaciones y 135 atributos aprobados, implementando las restricciones declarativas correspondientes al conjunto pendiente y preparando datos y pruebas reproducibles.
+
+La intervención debe cubrir **únicamente la implementación de las relaciones restantes**, sin anticipar los mecanismos de integridad avanzada ni los procesos funcionales posteriores.
+
+## 2. Fuentes obligatorias
+
+Antes de escribir el SQL, contrasta directamente:
+
+1. La consigna general del Proyecto Final y el anexo del Grupo 03.
+2. La especificación oficial de `Control_de_Cambios.md`.
+3. Los seis documentos originales corregidos del Proyecto 1: análisis del caso, modelo conceptual, modelo relacional, diccionario de datos, normalización y matriz de trazabilidad.
+4. Sus versiones consolidadas en `modelo/` y `diagramas/` del repositorio.
+5. `Control_de_Cambios.md`, especialmente las correcciones del Proyecto 1 y la continuidad de Lab03.
+6. `Uso_de_IA.md`, interacción 02, que registra la especificación física consolidada del modelo.
+7. Los tres scripts SQL implementados y verificados de las estructuras base.
+8. Los componentes de Lab03 pertinentes para las referencias curriculares y la continuidad del modelo.
+
+Los documentos originales corregidos deben consultarse efectivamente; no basta utilizar las conversiones Markdown. Las diferencias documentadas y justificadas en `Control_de_Cambios.md` deben respetarse, incluyendo la corrección posterior de la interpretación de P07 de Lab03.
+
+No reabras las correcciones docentes ya incorporadas ni vuelvas a diseñar el modelo lógico. Si aparece una incompatibilidad técnica comprobable, identifícala y fundaméntala antes de proponer una modificación.
+
+No utilices resúmenes conversacionales como sustitutos de las fuentes.
+
+## 3. Alcance exacto de la implementación de relaciones restantes
+
+Implementa exclusivamente las siguientes relaciones:
+
+| Relación | Atributos |
+|---|---:|
+| `GRUPO` | 8 |
+| `BLOQUE_HORARIO` | 7 |
+| `SOLICITUD_MATRICULA` | 12 |
+| `TRASLADO_PLAN` | 7 |
+| `RECONOCIMIENTO_ACADEMICO` | 8 |
+| `GRUPO_DOCENTE` | 3 |
+| `HISTORIAL_OFERTA` | 10 |
+| `HISTORIAL_SOLICITUD` | 8 |
+| `EXCEPCION_REQUISITO` | 6 |
+| `HISTORIAL_CORRECCION_CALIFICACION` | 9 |
+| **Total** | **78** |
+
+Estas relaciones deben complementar las 16 ya implementadas, alcanzando exactamente **26 relaciones y 135 atributos**.
+
+Conserva sus nombres, identidades, claves, referencias, dominios, nulabilidad y decisiones de diseño consolidadas.
+
+No agregues ni elimines atributos o relaciones sin una incompatibilidad real, identificada y justificada.
+
+## 4. Implementación de estructuras y restricciones
+
+### 4.1. Definición física
+
+Implementa los `CREATE TABLE` en orden válido de dependencias, utilizando los tipos apropiados de PostgreSQL y respetando el diccionario corregido.
+
+Incluye las garantías declarativas aplicables:
+
+- Claves primarias simples y compuestas.
+- Claves foráneas, incluidas referencias compuestas y autorreferencias.
+- Restricciones `UNIQUE` y, cuando corresponda, índices únicos parciales.
+- Restricciones `NOT NULL`.
+- Restricciones `CHECK` sobre dominios, cantidades, intervalos, relaciones entre atributos y condiciones de nulabilidad.
+- Validación de textos obligatorios no vacíos.
+- Acciones referenciales compatibles con la conservación del historial.
+
+No inventes longitudes, escalas de calificación, dominios institucionales cerrados, valores numéricos ni políticas de negocio ausentes de las fuentes.
+
+### 4.2. Tratamiento correcto de `NULL`
+
+Diseña y revisa expresamente las restricciones condicionales considerando la lógica ternaria de SQL.
+
+En PostgreSQL, un `CHECK` acepta una expresión cuyo resultado sea `TRUE` o `NULL`. Por tanto, no basta construir una condición aparentemente correcta: debe rechazarse efectivamente toda combinación inválida que corresponda rechazar.
+
+Utiliza expresiones explícitas, `IS NULL`, `IS NOT NULL`, `IS DISTINCT FROM` u otros mecanismos apropiados cuando sean necesarios para expresar correctamente la regla.
+
+Comprueba especialmente las combinaciones opcionales de solicitudes, reconocimientos y registros históricos.
+
+### 4.3. Condiciones particulares del modelo
+
+Presta especial atención a estas garantías, siempre conforme al diccionario y modelo aprobados:
+
+**GRUPO:** identificación de periodo, sede, curso y número de grupo; capacidad; modalidad; estado de oferta; unicidad contextual de la oferta.
+
+**BLOQUE_HORARIO:** día válido, intervalo horario consistente, presencialidad y espacio obligatorio cuando corresponda. No imponer restricciones adicionales injustificadas a actividades no presenciales.
+
+**SOLICITUD_MATRICULA:** estados permitidos, motivo de rechazo o espera, orden de espera, instante de transición, calificación y resultado académico; impedir autorreferencia directa inválida y conservar información histórica pertinente.
+
+**TRASLADO_PLAN:** referencias a admisión y versiones, origen diferente de destino, fecha, motivo y persona autorizadora.
+
+**RECONOCIMIENTO_ACADEMICO:** origen institucional o externo de manera excluyente, curso satisfecho vinculado a su versión mediante la referencia compuesta correspondiente, resolución y fecha. No inventar unicidad global de resoluciones.
+
+**GRUPO_DOCENTE:** identidad compuesta y rol válido; garantizar declarativamente como máximo un responsable cuando corresponda, sin confundirlo con la garantía de existencia de un responsable para cada oferta publicada.
+
+**HISTORIAL_OFERTA:** tipos de cambio y atributos condicionales, permitiendo representar correctamente una apertura inicial y los demás eventos válidos.
+
+**HISTORIAL_SOLICITUD:** distinguir transiciones de evaluaciones, incluidas evaluaciones que no modifican el estado de una solicitud.
+
+**EXCEPCION_REQUISITO:** referencia a solicitud, requisito identificado mediante `id_requisito`, autorizante, fecha y motivo, conservando la clave curricular compuesta original.
+
+**HISTORIAL_CORRECCION_CALIFICACION:** valores anteriores y nuevos, modificaciones efectivas, motivo, fecha y autorizante, sin imponer una escala universal de calificación.
+
+Ninguna restricción local debe impedir representar situaciones válidas que requieran los procesos posteriores.
+
+## 5. Integridad avanzada y límites de esta intervención
+
+Distingue estrictamente entre:
+
+**A. Garantías implementables en esta intervención:** restricciones declarativas sobre las diez relaciones, incluidas las referencias y unicidades condicionales sustentadas por el modelo.
+
+**B. Garantías reservadas para la integridad avanzada:** reglas que requieren comprobar otras filas, relaciones, estados históricos, compatibilidad contextual o modificaciones indirectas mediante mecanismos adicionales.
+
+**C. Garantías operativas de fases posteriores:** decisiones completas de oferta, matrícula, espera, retiro y cambio de grupo, incluidas atomicidad y concurrencia de G03-P01, G03-P02 y G03-P03.
+
+Entre las garantías que no deben darse por implementadas prematuramente se encuentran:
+
+- Compatibilidad contextual e histórica de admisiones y traslados.
+- Coherencia de los espacios con la sede y los periodos de los grupos.
+- Ausencia de ocupaciones horarias incompatibles entre grupos.
+- Existencia de exactamente un docente responsable y de los bloques requeridos para una oferta publicada.
+- Correspondencia curricular completa de excepciones y solicitudes.
+- Prevención de ciclos de solicitudes anteriores que excedan una autorreferencia directa.
+- Concordancia entre estados vigentes y sus historiales.
+- Ocupación, duplicación de matrículas activas y promociones concurrentes.
+
+No implementes funciones, procedimientos o triggers adelantados para resolver esas garantías.
+
+Sin embargo, **no omitas una restricción declarativa propia de esta intervención simplemente porque esté relacionada con una regla más amplia de integridad avanzada**.
+
+Identifica claramente qué queda garantizado, qué permanece pendiente y por qué.
+
+## 6. Compatibilidad con las estructuras base
+
+Preserva los archivos y la implementación aprobada de las 16 relaciones base.
+
+No modifiques las tablas, sus 57 atributos, las restricciones, los datos iniciales ni los archivos de pruebas por conveniencia.
+
+Las referencias desde las nuevas relaciones deben utilizar las claves realmente existentes, incluidos los nombres y tipos adoptados y la clave alternativa `REQUISITO_CURSO.id_requisito`.
+
+Si alguna incompatibilidad técnicamente demostrada impide incorporar una relación, explícala antes de modificar un componente cerrado. No apliques soluciones provisionales ni cambios silenciosos.
+
+### Datos auxiliares
+
+Se permite insertar registros ficticios adicionales en las relaciones base **desde el script de datos de las relaciones restantes**, cuando sean indispensables para probar las diez relaciones nuevas.
+
+Estas inserciones deben:
+
+- Respetar las restricciones ya verificadas.
+- No alterar ni eliminar los 64 registros originales de las estructuras base.
+- No modificar `02_datos_base.sql`.
+- Mantener referencias coherentes y datos reproducibles.
+- Distinguir preparación de contexto académico de resultados producidos por procesos operativos.
+
+No precargues resultados finales de G03-P01, G03-P02 o G03-P03 para presentarlos después como ejecuciones reales.
+
+## 7. Archivos que deben entregarse
+
+Prepara únicamente los tres archivos SQL necesarios, con contenido completo:
+
+**`sql/03_esquema_relaciones.sql`**
+
+Crea las diez relaciones nuevas, sus claves, referencias, restricciones e índices justificados.
+
+**`sql/04_datos_relaciones.sql`**
+
+Incorpora los datos ficticios necesarios para probar el conjunto, incluidas las referencias adicionales justificadas a relaciones existentes.
+
+**`pruebas/02_pruebas_relaciones.sql`**
+
+Verifica la estructura física, las restricciones declarativas, los datos iniciales y los comportamientos válidos e inválidos correspondientes.
+
+Estos nombres siguen la organización propuesta para el bloque y deben comprobarse contra el árbol real del repositorio antes de incorporarlos.
+
+Los archivos deben ser ejecutables directamente mediante `psql`, sin depender de fragmentos de Markdown ni de preparación manual oculta.
+
+No generes otros scripts, documentos, servicios ni archivos auxiliares.
+
+## 8. Pruebas y verificación
+
+### 8.1. Cobertura
+
+Las pruebas deben comprobar:
+
+- Existencia de las 26 tablas y los 135 atributos.
+- Correspondencia de columnas, tipos, nulabilidad, claves y referencias con el modelo.
+- Restricciones de dominio, unicidad y condiciones entre atributos.
+- Inserciones válidas.
+- Rechazos esperados.
+- Casos límite aplicables.
+- Operaciones `UPDATE` y `DELETE`, tanto permitidas como rechazadas cuando corresponda.
+- Efectos de las referencias sobre actualizaciones y eliminaciones.
+- Ausencia de modificaciones indebidas después de un rechazo.
+- Conservación de datos históricos y referenciales.
+
+Una misma prueba puede cubrir varias reglas cuando su resultado sea inequívoco. No establezcas una cantidad artificial de pruebas por tabla.
+
+### 8.2. Calidad de las pruebas
+
+Cada prueba debe identificar la condición examinada y distinguir resultado esperado de resultado observado.
+
+Los casos negativos deben provocar el rechazo por la restricción correcta, no por otra infracción accidental.
+
+Cuando corresponda, verifica `SQLSTATE`, nombre de restricción, columna afectada y estado posterior de los datos.
+
+Utiliza bloques de excepción, transacciones, puntos de guardado y `ROLLBACK` conforme resulte apropiado para:
+
+- Continuar después de rechazos esperados.
+- Evitar transacciones abiertas.
+- No dejar residuos que comprometan futuras ejecuciones.
+- Permitir repetir las pruebas sobre una instalación válida.
+- Conservar el estado inicial después de las comprobaciones temporales.
+
+No presentes un error genérico de PostgreSQL como prueba exitosa.
+
+### 8.3. Orden obligatorio de ejecución
+
+Para reproducir y comprobar el conjunto completo:
+
+1. Crear una base nueva mediante el entorno Docker Compose existente.
+2. Ejecutar `sql/01_esquema_base.sql`.
+3. Ejecutar `sql/02_datos_base.sql`.
+4. Ejecutar y verificar `pruebas/01_pruebas_base.sql` mientras existen únicamente las 16 relaciones base.
+5. Ejecutar `sql/03_esquema_relaciones.sql`.
+6. Ejecutar `sql/04_datos_relaciones.sql`.
+7. Ejecutar `pruebas/02_pruebas_relaciones.sql`.
+8. Comprobar desde una conexión independiente las 26 relaciones, los 135 atributos y la persistencia de los datos iniciales correspondientes.
+
+**Importante:** `01_pruebas_base.sql` comprueba deliberadamente 16 relaciones y 57 atributos. No debe ejecutarse sin adaptación sobre el esquema ampliado de 26 relaciones.
+
+La comprobación integral posterior de todas las reglas y mecanismos avanzados corresponde a las pruebas integrales del modelo físico.
+
+Proporciona comandos **PowerShell** concretos para ejecutar y verificar los scripts, utilizando el servicio Docker `db`, el usuario `bd1`, `psql -X`, `ON_ERROR_STOP=1` y las rutas montadas en `/workspace`.
+
+No modifiques la configuración Docker ya aprobada.
+
+## 9. Condiciones de aceptación
+
+La implementación de las relaciones restantes podrá considerarse satisfactoria cuando se haya comprobado que:
+
+1. Las diez relaciones adicionales se crean correctamente sobre las 16 existentes.
+2. El esquema resultante tiene exactamente 26 relaciones y 135 atributos.
+3. Los atributos, claves, referencias, dominios y restricciones declarativas corresponden a las fuentes corregidas.
+4. Se preservan las claves compuestas, alternativas y unicidades condicionales justificadas.
+5. Los datos iniciales de las estructuras base permanecen íntegros.
+6. Los nuevos datos ficticios son referencialmente válidos y suficientes para demostrar el alcance.
+7. Las pruebas positivas, negativas, de frontera y de modificación/eliminación producen resultados verificables.
+8. Las operaciones fallidas no dejan efectos indebidos ni invalidan otras pruebas.
+9. El conjunto puede instalarse desde una base nueva siguiendo un orden documentado.
+10. Las garantías reservadas para la integridad avanzada permanecen correctamente identificadas, sin atribuirles una implementación inexistente.
+
+Distingue expresamente las condiciones verificadas mediante ejecución real de aquellas que todavía son resultados esperados.
+
+## 10. Forma de trabajo y control de calidad
+
+Antes de entregar código, realiza una revisión de consistencia entre las diez relaciones, el diccionario, las referencias existentes, los datos de prueba y las restricciones propuestas.
+
+Corrige cualquier error identificable en el alcance de la implementación de las relaciones restantes antes de presentar la versión para aprobación.
+
+Entrega los tres SQL completos, sin pseudocódigo, fragmentos omitidos, marcadores `TODO` ni simplificaciones técnicas injustificadas.
+
+Presenta únicamente las explicaciones necesarias para justificar decisiones relevantes y permitir su incorporación y verificación.
+
+**No modifiques directamente el repositorio.** El estudiante revisará los archivos, los incorporará manualmente y ejecutará las pruebas en su entorno.
+
+Después de la implementación:
+
+1. Examina las salidas reales de PostgreSQL proporcionadas por el estudiante.
+2. Si hay errores, diagnostica su causa y corrige únicamente el alcance afectado.
+3. Una vez verificadas las pruebas, consolida los resultados relevantes y prepara las actualizaciones necesarias de documentación.
+4. Documenta la interacción en `Uso_de_IA.md` conforme a lo exigido por el profesor, con el prompt utilizado, el aporte incorporado, las correcciones y las validaciones efectivamente realizadas.
+5. No declares la implementación de las relaciones restantes cerrada hasta comprobar sus criterios de aceptación.
+
+No agregues registros innecesarios de conversaciones ordinarias ni dupliques documentación entre archivos.
+
+## 11. Restricciones finales
+
+- No reabrir la especificación física ni la implementación de las estructuras base sin una incompatibilidad demostrada.
+- No modificar el modelo conceptual o relacional aprobado por preferencias de implementación.
+- No implementar los mecanismos de integridad avanzada.
+- No implementar G03-P01, G03-P02 ni G03-P03.
+- No crear interfaces, APIs, servicios ni automatizaciones adicionales.
+- No inventar requisitos, reglas, resultados, pruebas o fuentes.
+- No alterar archivos fuera del alcance autorizado.
+- No afirmar que una operación fue verificada sin evidencia de ejecución.
+
+**Prioridad:** corrección técnica, fidelidad al modelo, integridad, reproducibilidad, trazabilidad y simplicidad justificada.
+
+El resultado debe quedar listo para revisión, incorporación y pruebas reales, sin trabajo adicional que no sea exigido por el proyecto.
+
+### Respuesta
+
+GPT-6 preparó la implementación de las diez relaciones restantes del modelo físico de Universidad Horizonte y sus 78 atributos para PostgreSQL 17.11, tomando como referencia el modelo corregido, la especificación física y las estructuras base existentes.
+
+Se entregaron tres archivos SQL: `03_esquema_relaciones.sql`, con la definición de relaciones y restricciones declarativas; `04_datos_relaciones.sql`, con datos ficticios complementarios; y `02_pruebas_relaciones.sql`, con comprobaciones reproducibles de estructura, integridad, inserciones, modificaciones, eliminaciones y rechazos esperados.
+
+Se conservaron las 16 relaciones base y sus 57 atributos, completando las 26 relaciones y 135 atributos del modelo. La implementación incluyó claves primarias, foráneas, restricciones de dominio, unicidades contextuales y un índice único parcial. Las garantías que requieren mecanismos adicionales de integridad contextual, histórica o transaccional no se implementaron en este conjunto.
+
+### Verificación posterior
+
+El estudiante examinó la propuesta y solicitó revisiones adicionales para identificar errores materiales y comprobar su correspondencia con el modelo corregido y la consigna. Las revisiones detectaron problemas en las condiciones de nulabilidad de `HISTORIAL_SOLICITUD`, inconsistencias entre determinados escenarios de prueba y restricciones que podían provocar rechazos por causas distintas de las examinadas. Se corrigieron los casos afectados y se consolidaron 102 pruebas negativas.
+
+Por indicación del estudiante también se corrigieron referencias internas incorporadas indebidamente en los scripts y se ajustó el procedimiento de ejecución al entorno Docker Compose existente, sin modificar las estructuras base.
+
+La ejecución en PostgreSQL 17.11 confirmó la instalación de las diez relaciones adicionales sobre las 16 existentes. Una consulta independiente verificó 26 tablas y 135 atributos. El script de datos incorporó 17 registros complementarios y finalizó con `COMMIT`.
+
+La primera ejecución del script de pruebas se interrumpió por dos referencias incorrectas a `grupo.estado`, cuando el atributo implementado era `estado_oferta`. Se corrigieron ambas referencias y se ajustó una prueba negativa de clave primaria de `GRUPO` para evitar una infracción simultánea de unicidad contextual. Una consulta posterior confirmó que la ejecución interrumpida no dejó registros temporales persistidos.
+
+La segunda ejecución finalizó satisfactoriamente. Se verificaron las 26 tablas, los 135 atributos y las 78 columnas nuevas, junto con los escenarios positivos, de frontera, operaciones `UPDATE` y `DELETE` y 102 casos negativos rechazados por las condiciones previstas. El script terminó mediante `ROLLBACK`, sin errores no controlados.
+
+Una consulta independiente posterior confirmó la conservación de cuatro grupos, cinco bloques horarios, cinco asignaciones docentes, un traslado y un reconocimiento académico, sin registros temporales persistidos en las otras cinco relaciones.
+
+**Resultado de la validación:** implementación estructural y restricciones declarativas verificadas satisfactoriamente en PostgreSQL 17.11, después de las correcciones solicitadas por el estudiante. Las garantías de integridad avanzada y los procesos G03-P01, G03-P02 y G03-P03 permanecen pendientes. No se comprobó la publicación definitiva de los archivos en la rama del repositorio.
