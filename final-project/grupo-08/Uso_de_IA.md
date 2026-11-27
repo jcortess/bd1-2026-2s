@@ -34,6 +34,11 @@ El grupo **sí utilizó** herramientas de inteligencia artificial en la segunda 
 | IA-17 | Diccionario de datos, matriz de integridad, dominios cerrados, actualización de las relaciones y justificación de la excepción de BCNF | Sí | `modelo/Modelo_Relacional.md`, secciones 2, 3, 5, 6 y 7 |
 | IA-18 | Revisión de las validaciones automáticas del repositorio (`.github/workflows`) para identificar condiciones del Pull Request | Como apoyo | — |
 | IA-19 | Datos de preparación de las 32 relaciones, a partir del plan del grupo: precargar hechos previos en todas las tablas y que los procesos creen datos nuevos en la demostración | Sí, revisado y ejecutado por el grupo | `sql/02_datos.sql` |
+| IA-20 | Parte 1 de `03_rutinas.sql`: rutinas de Lab03 copiadas sin cambios en el código, con comentarios actualizados | Sí, ejecutado por el grupo | `sql/03_rutinas.sql`, parte 1 |
+| IA-21 | Rutinas de G08-P01: `sp_crear_envio`, `sp_registrar_revision`, `sp_registrar_medicion` | Sí, revisado y probado por el grupo | `sql/03_rutinas.sql` |
+| IA-22 | Rutinas de G08-P03: registro y corrección de eventos, registro, resolución y cierre de incidencias | Sí, revisado y probado por el grupo | `sql/03_rutinas.sql`; CAM-024 |
+| IA-23 | Opciones para las decisiones de G08-P02 y sus rutinas: salidas, manifiesto, asignación, sustitución, confirmación y partida | Sí, revisado y probado por el grupo | `sql/03_rutinas.sql`; CAM-025 a CAM-027 |
+| IA-24 | Consultas de estado actual, historial, incidencias, manifiesto, carga, asignaciones, envíos, devoluciones y contenido prohibido, más las consultas reutilizadas de Lab03 | Sí, ejecutado por el grupo | `sql/04_consultas.sql` |
 
 ## 4. Prompts utilizados para el material incorporado
 
@@ -54,6 +59,8 @@ Se resumen los pedidos que dieron origen al material incorporado (no se transcri
 | IA-16, IA-17 | «vamos a terminar el paso 2»; entrega del contenido por bloques para copiar y pegar |
 | IA-18 | «hay alguna condicion cuando hagamos el pull request? en el lab 03 lo había» |
 | IA-19 | Se pidió generar los datos de preparación por partes, siguiendo la decisión del grupo de cargar todas las tablas como hechos previos |
+| IA-21 a IA-23 | Se pidió el código completo de cada rutina («pasame todo lo necesario en un solo codigo para poder copiarlo»), después de definir con la herramienta qué operaciones contenía cada proceso |
+| IA-24 | Se aceptó la propuesta de consultas y el grupo agregó dos: solicitudes con devoluciones y paquetes con contenido prohibido con sus remitentes |
 
 ## 5. Decisiones propias del grupo
 
@@ -87,6 +94,13 @@ Estas decisiones las tomó el grupo; la herramienta solo las registró o detall�
 | Resultado de incidencia por paquete obligatorio | CAM-021 |
 | Listas de valores de los dominios cerrados | `modelo/Modelo_Relacional.md`, sección 3 |
 | Precargar datos en las 32 tablas como hechos previos, y que los procesos creen datos nuevos en la demostración | `sql/02_datos.sql` |
+| El revisor de un paquete debe ser operador de sede, y un paquete se revisa una sola vez | `sp_registrar_revision` |
+| Un evento no puede tener momento futuro | CAM-024 |
+| Funciones para las rutinas que devuelven un id y procedimientos para el resto | `sql/03_rutinas.sql` |
+| Capacidad revisada al confirmar la salida, y no al agregar cada paquete (se apartó de la recomendación de la herramienta) | CAM-025 |
+| Manifiesto cerrado al confirmar; un paquete no puede estar en dos salidas activas | CAM-026 |
+| Para confirmar: conductor y un único vehículo; sustitución solo en salidas planificadas | CAM-027 |
+| Consultas C7 (solicitudes con devoluciones) y C8 (contenido prohibido con sus remitentes), tratando lo prohibido como regla de la empresa y no como lista legal | `sql/04_consultas.sql` |
 
 ## 6. Validación del material incorporado
 
@@ -100,11 +114,17 @@ Estas decisiones las tomó el grupo; la herramienta solo las registró o detall�
 | IA-14 | Revisión del modelo frente al `.drawio` del Proyecto 1 y los CAM registrados | _Pendiente_ |
 | IA-16 | Ejecución de `sql/01_esquema.sql` en una base nueva de PostgreSQL 19.0, después de cada bloque y de cada corrección | Sin errores |
 | IA-19 | Ejecución de `01_esquema.sql` y `02_datos.sql` en una base nueva de PostgreSQL 19.0 después de cada parte | Sin errores |
+| IA-21 | Llamadas de prueba en PostgreSQL 19.0: envío creado, tarifa de otro cliente rechazada, revisión sin respaldo y revisor no operador rechazados, medición aplicada | Esperado = observado |
+| IA-22 | Eventos simultáneos, fuera de sede y corrección aceptados; salida ajena, momento futuro, segunda corrección y cierre con pendientes rechazados | Esperado = observado |
+| IA-23 | Manifiesto, sustitución y confirmación aceptados; paquetes no aceptados, vehículo en mantenimiento, falta de refrigeración, cambios en salida confirmada y paquete en dos salidas rechazados | Esperado = observado |
+| IA-24 | Ejecución de `04_consultas.sql` sobre los datos de preparación; las consultas de Lab03 dieron los mismos resultados que en el laboratorio | Esperado = observado |
 
 **Errores de la herramienta detectados por el grupo:**
 - Presentó como plan del grupo una lista de cambios inicial que el grupo no había aprobado (IA-09). Se descartó.
 - Afirmó inicialmente que los conflictos de supuestos no podían resolverse con código existente; el grupo aclaró que se resolverían en base al código nuevo de esta entrega.
 - Envió una versión anterior de `Control_de_Cambios.md` en lugar de la actualizada, y en otra ocasión reenvió el archivo completo con un pendiente (PEN-22) que el grupo ya había quitado. Desde entonces solo entrega fragmentos.
 - La numeración de pendientes de la herramienta dejó de coincidir con la del grupo después de que el grupo eliminó uno; la herramienta citó un número (PEN-23) que en la copia del grupo correspondía a otro pendiente (PEN-22), y el grupo agregó una fila duplicada que luego eliminó.
-
+- Declaró `p_num_paquete` como `SMALLINT` en dos procedimientos, lo que impedía llamarlos con un número escrito directamente; lo detectó al revisar el código pegado y se corrigió a `INTEGER` antes de probarlo.
+- Incluyó decisiones de diseño en el código (revisor operador de sede y momento no futuro) antes de consultarlas con el grupo; desde entonces planteó las decisiones antes de escribir el código (Algo antes lo venía haciendo antes hasta cierto punto).
+- En la consulta C8 tomó los medios de contacto solo del participante, que quedaban vacíos para participantes vinculados a un cliente; se corrigió para usar también los del cliente.
 

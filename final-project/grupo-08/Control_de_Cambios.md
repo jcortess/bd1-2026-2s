@@ -417,6 +417,66 @@ Los identificadores tienen la forma `CAM-NNN`. Las reglas se citan con su numera
 | Archivos modificados | _Previsto:_ `sql/01_esquema.sql` (función y triggers sobre `entrega` y `entrega_paquete`). |
 | Evidencia de validación | _Pendiente._ Debe mostrar: entrega exitosa con receptor y constancia aceptada; rechazo al confirmar una entrega exitosa sin constancia; rechazo de una entrega de un paquete con PRUEBA_IDENTIDAD sin documento; rechazo de una entrega no completada sin motivo; y rechazo de quitar después la constancia de una entrega exitosa. |
 
+### CAM-024 — Un evento de seguimiento no puede tener momento futuro
+
+| Campo | Información verificable |
+|---|---|
+| Identificador del cambio | CAM-024 |
+| Fuente u origen | **Decisión propia** del grupo, sobre RN-24 (el evento registra el momento del hecho) y el anexo G08-P03-L (hecho registrado después de ocurrir). |
+| Elemento afectado | Operaciones `fn_registrar_evento` y `fn_corregir_evento` (G08-P03). |
+| Situación anterior | **P1:** `momento` no tiene ninguna restricción. **Lab03:** no implementado. **Observado:** podía registrarse un hecho que aún no había ocurrido, y ese evento pasaría a ser el actual del paquete. |
+| Modificación realizada | Ambas rutinas rechazan un `momento` posterior al momento de registro, con la restricción lógica `ck_evento_seguimiento_momento`. Un hecho registrado después de ocurrir sigue permitido. |
+| Justificación | Un evento describe un hecho ocurrido; uno futuro desplazaría la ubicación actual con información que aún no es real. Se valida en las rutinas y no con un CHECK, porque un CHECK con `now()` no es determinista. |
+| Reglas relacionadas | RN-24, RN-25; CAM-003. |
+| Impacto en modelo y operaciones | La estructura no cambia. Un `INSERT` directo en EVENTO_SEGUIMIENTO no valida esta regla: la ruta admitida son las rutinas de P03. |
+| Archivos modificados | `sql/03_rutinas.sql` (`fn_registrar_evento`, `fn_corregir_evento`). |
+| Evidencia de validación | _Pendiente._ Debe mostrar: evento con momento pasado aceptado; rechazo de un evento con momento futuro. |
+
+### CAM-025 — Compatibilidad del vehículo con la carga (PEN-10)
+
+| Campo | Información verificable |
+|---|---|
+| Identificador del cambio | CAM-025 |
+| Fuente u origen | **Requisito:** RN-20 (vehículo operativo y compatible en peso, volumen y condiciones); anexo G08-P02-I y P02-L (exceder peso o volumen, vehículo en mantenimiento, carga exacta en una dimensión sin ignorar la otra) y AC-G08-P02-02. **Decisión propia** del grupo: cuándo y cómo se verifica. |
+| Elemento afectado | Operaciones `fn_asignar_salida` y `sp_confirmar_salida` (G08-P02). |
+| Situación anterior | **P1:** el Proyecto 1 declaró RN-20 no garantizable solo con la estructura. **Lab03:** no implementado. **Observado:** sin una operación que lo verifique, una salida podía confirmarse con un vehículo en mantenimiento, sobrecargado o sin refrigeración. |
+| Modificación realizada | **Al asignar** un vehículo a una salida: debe estar OPERATIVO y sin periodo fuera de servicio que se cruce con el intervalo de la asignación. **Al confirmar** la salida: se repite esa revisión; la suma de pesos (kg) y de volúmenes (m³) de los paquetes del manifiesto no puede superar la capacidad del vehículo (se usa la medición aplicada o, si no hay, lo declarado, S-07); y si algún paquete tiene la condición REFRIGERACION, el vehículo debe ser refrigerado. |
+| Justificación | Verificar la capacidad una sola vez, al confirmar, evita revisarla en cada cambio del manifiesto, que solo puede modificarse antes de confirmar (CAM-026). La revisión de disponibilidad se repite al confirmar porque el vehículo pudo entrar en mantenimiento después de asignarse. **Alternativa considerada:** revisar la capacidad al agregar cada paquete; se descartó por decisión del grupo. |
+| Reglas relacionadas | RN-20, S-07; CAM-009, CAM-015. |
+| Impacto en modelo y operaciones | La estructura no cambia. La demostración concurrente de P02 se hace con dos sesiones que compiten por el mismo vehículo o la misma persona (rechazo por las restricciones de exclusión de CAM-015); la salida se bloquea al confirmar para que nadie modifique su manifiesto durante la revisión. |
+| Archivos modificados | `sql/03_rutinas.sql` (`fn_asignar_salida`, `sp_confirmar_salida`). |
+| Evidencia de validación | _Pendiente._ Debe mostrar: confirmación aceptada con carga exacta en peso y por debajo en volumen; rechazo por exceso de peso; rechazo por exceso de volumen; rechazo de asignar un vehículo en mantenimiento; rechazo de confirmar un paquete refrigerado en un vehículo no refrigerado. |
+
+### CAM-026 — Reglas del manifiesto (PEN-12)
+
+| Campo | Información verificable |
+|---|---|
+| Identificador del cambio | CAM-026 |
+| Fuente u origen | **Requisito:** RN-13 y S-12 (los paquetes quedan registrados antes de partir); anexo G08-P02-L (paquetes retenidos o rechazados no se confunden con carga aceptada). **Decisión propia** del grupo: el manifiesto se cierra al confirmar y un paquete no viaja en dos salidas activas. |
+| Elemento afectado | Operación `sp_agregar_paquete_salida` (G08-P02). |
+| Situación anterior | **P1:** S-12 marcaba la partida con un evento de salida y la declaraba no representable en el diseño lógico. **Lab03:** no implementado. **Observado:** sin una operación que lo controle, podían agregarse paquetes después de confirmada o iniciada la salida, paquetes no aceptados, o un mismo paquete en dos salidas a la vez. |
+| Modificación realizada | Un paquete solo se agrega si la salida está PLANIFICADA, si su revisión es ACEPTADO y si no está en otra salida PLANIFICADA, CONFIRMADA o EN_RUTA. Al confirmar, el manifiesto queda cerrado. La partida se registra con el paso de la salida a EN_RUTA (`sp_iniciar_salida`). |
+| Justificación | Cerrar el manifiesto al confirmar garantiza que la capacidad revisada en CAM-025 no cambie después y que el manifiesto exista antes de partir (RN-13). Un paquete no puede estar en dos vehículos a la vez; cuando una salida termina, el paquete puede ir en otra, y la anterior se conserva en el manifiesto histórico. |
+| Reglas relacionadas | RN-13, S-12, RN-11; CAM-025. |
+| Impacto en modelo y operaciones | Interpreta S-12: la partida se marca con el estado de la salida y no con un evento. Un `INSERT` directo en SALIDA_PAQUETE no valida estas reglas: la ruta admitida es la rutina. |
+| Archivos modificados | `sql/03_rutinas.sql` (`sp_agregar_paquete_salida`, `sp_iniciar_salida`). |
+| Evidencia de validación | _Pendiente._ Debe mostrar: paquete aceptado agregado; rechazo de un paquete retenido o rechazado; rechazo de agregar a una salida confirmada; rechazo de un paquete que está en otra salida activa. |
+
+### CAM-027 — Requisitos para confirmar una salida y sustituir asignaciones
+
+| Campo | Información verificable |
+|---|---|
+| Identificador del cambio | CAM-027 |
+| Fuente u origen | **Requisito:** RN-13 (salida con un vehículo y una persona responsable); RN-23 (cambio antes de ejecutar conserva el original y el motivo); anexo G08-P02 («sustitución fallida conserva plan previo válido») y AC-G08-P02-03 y 04. **Decisión propia** del grupo: condiciones de confirmación y momento de la sustitución. |
+| Elemento afectado | Operaciones `sp_confirmar_salida` y `fn_sustituir_asignacion` (G08-P02). |
+| Situación anterior | **P1:** RN-13 y RN-23 no fijan qué se exige para confirmar una salida ni hasta cuándo se sustituye. **Lab03:** no implementado. **Observado:** una salida podía confirmarse sin paquetes, sin conductor o con vehículos distintos entre sus asignaciones. |
+| Modificación realizada | **Para confirmar:** al menos un paquete en el manifiesto, al menos una asignación vigente con función CONDUCTOR, y un único vehículo entre todas las asignaciones vigentes. **Sustitución:** solo mientras la salida está PLANIFICADA; marca la asignación original como no vigente y crea la nueva con motivo, en una transacción. |
+| Justificación | Un único vehículo por salida permite comparar la carga sin ambigüedad (CAM-025). Restringir la sustitución a salidas PLANIFICADAS evita cambiar el vehículo después de revisar la capacidad; si hace falta un cambio, la salida se planifica de nuevo. **Alternativa considerada:** permitir la sustitución en salidas confirmadas, revisando de nuevo la carga; se descartó por decisión del grupo. |
+| Reglas relacionadas | RN-13, RN-21, RN-23; CAM-008, CAM-015, CAM-016. |
+| Impacto en modelo y operaciones | La estructura no cambia. Si la sustitución falla (por ejemplo, por traslape del nuevo recurso), la transacción se deshace y la asignación original sigue vigente. |
+| Archivos modificados | `sql/03_rutinas.sql` (`sp_confirmar_salida`, `fn_sustituir_asignacion`). |
+| Evidencia de validación | _Pendiente._ Debe mostrar: confirmación aceptada con conductor y un solo vehículo; rechazo sin paquetes; rechazo sin conductor; rechazo con dos vehículos vigentes; sustitución aceptada conservando la original y su motivo; rechazo de sustituir en una salida confirmada; sustitución fallida que conserva la original vigente. |
+
 ---
 
 ## 3. Reutilización sin modificación
@@ -442,6 +502,26 @@ Los identificadores tienen la forma `CAM-NNN`. Las reglas se citan con su numera
 | Razón para conservarlo | Funciona y documenta su alternativa basada en conjuntos |
 | Dependencias compatibles | `fn_prioridad_solicitud`, SOLICITUD y CLIENTE |
 | Pruebas actuales que confirman que sigue funcionando | Ejecutada el 25/11/2026 en PostgreSQL 19.0, sobre la misma base. `SELECT * FROM fn_reporte_prioridades();` Esperado: 7 filas (1 NORMAL, 2 ALTA, 3 BAJA, 4 BAJA, 5 CRITICA, 6 CRITICA, 7 NORMAL). Observado: las mismas 7 filas y prioridades. Coincide con el resultado histórico de Lab03 |
+
+| Campo | Información verificable |
+|---|---|
+| Componente | `fn_solicitudes_cliente(p_tipo_id, p_numero_id, p_desde, p_hasta)` |
+| Archivo / versión de origen | Lab03, `04_rutinas.sql` (F1); ahora en `sql/03_rutinas.sql`, parte 1 |
+| Propósito | Consultar las solicitudes de un cliente, con rango de fechas opcional, rechazando un cliente inexistente |
+| Reglas que cubre | RN-05 (solicitudes de un único contratante). Es la «función tabular de solicitudes» que el anexo pide reutilizar (sección D) |
+| Razón para conservarlo | SOLICITUD y CLIENTE no cambiaron de estructura; la función sigue siendo correcta |
+| Dependencias compatibles | CLIENTE y SOLICITUD |
+| Pruebas actuales que confirman que sigue funcionando | Ejecutada el 26/11/2026 en PostgreSQL 19.0 sobre una base nueva con `01_esquema.sql`, `02_datos.sql` y `03_rutinas.sql`. `SELECT * FROM fn_solicitudes_cliente('CEDULA_JURIDICA','3-101-111111');` Esperado: solicitudes 4, 5 y 6. Observado: las mismas tres filas. Coincide con el resultado histórico de Lab03 |
+
+| Campo | Información verificable |
+|---|---|
+| Componente | `sp_registrar_contacto(...)` |
+| Archivo / versión de origen | Lab03, `04_rutinas.sql` (P1); ahora en `sql/03_rutinas.sql`, parte 1 |
+| Propósito | Registrar un contacto de una organización con su primera facultad y su primer medio, en una sola operación |
+| Reglas que cubre | RN-02, S-02. Es la ruta de escritura admitida para contactos: garantiza al menos una facultad (CAM-011, CAM-012). Es el «alta atómica de contacto» que el anexo pide reutilizar (sección D) |
+| Razón para conservarlo | Sigue siendo compatible; su validación de organización ahora también la garantizan los triggers de CAM-011 |
+| Dependencias compatibles | CLIENTE, CONTACTO, FACULTAD_CONTACTO y MEDIO_CONTACTO_CONTACTO. Limitación: no recibe descripción, por lo que no registra medios de tipo OTRO (CAM-010) |
+| Pruebas actuales que confirman que sigue funcionando | _Pendiente:_ se prueba en `pruebas/05_pruebas.sql` (alta exitosa y rechazo para una persona física) |
 
 ### 3.2 Candidatos a reutilización (pendiente de confirmar por el grupo)
 
@@ -485,11 +565,11 @@ Estados posibles: **conservada**, **corregida**, **ampliada**, **implementada po
 | 16 | INTENTO_RECOLECCION | No implementada | Por implementar por primera vez | — | _Pendiente_ |
 | 17 | VEHICULO | No implementada | Por implementar por primera vez | CAM-009 | _Pendiente_ |
 | 18 | PERIODO_FUERA_SERVICIO | No implementada | Por implementar por primera vez, **corregida** | CAM-015 | _Pendiente_ |
-| 19 | ASIGNACION | No implementada | Por implementar por primera vez, **corregida** | CAM-008, CAM-015, CAM-016 | _Pendiente_ |
+| 19 | ASIGNACION | No implementada | Por implementar por primera vez, **corregida** | CAM-008, CAM-015, CAM-016, CAM-027 | _Pendiente_ |
 | 20 | PERSONAL | No implementada | Por implementar por primera vez | — | _Pendiente_ |
 | 21 | FUNCION_PERSONAL | No implementada | Por implementar por primera vez | CAM-016, CAM-022 | _Pendiente_ |
-| 22 | SALIDA_PAQUETE | No implementada | Por implementar por primera vez | CAM-018 | _Pendiente_ |
-| 23 | SALIDA_RUTA | No implementada | Por implementar por primera vez | — | _Pendiente_ |
+| 22 | SALIDA_PAQUETE | No implementada | Por implementar por primera vez | CAM-018, CAM-026 | _Pendiente_ |
+| 23 | SALIDA_RUTA | No implementada | Por implementar por primera vez | CAM-025, CAM-026, CAM-027 | _Pendiente_ |
 | 24 | RUTA | No implementada | Por implementar por primera vez, **corregida** | CAM-017 | _Pendiente_ |
 | 25 | SEDE | No implementada | Por implementar por primera vez | — | _Pendiente_ |
 | 26 | ENTREGA | No implementada | Por implementar por primera vez, **corregida** | CAM-022, CAM-023 | _Pendiente_ |
@@ -507,9 +587,9 @@ El Proyecto 1 declaró estas reglas como no garantizables solo con la estructura
 | Regla | Fuente | Cómo se verifica | Prueba |
 |---|---|---|---|
 | RN-16: una sola entrega final válida por paquete | P1, nota final de las reglas | Índice único parcial sobre `(numero_guia, num_paquete)` donde `es_final` es verdadero (CAM-019) | _Pendiente_ |
-| RN-20: vehículo operativo y compatible con la carga | P1, nota final de las reglas | _Pendiente de diseño_ (PEN-10) | _Pendiente_ |
+| RN-20: vehículo operativo y compatible con la carga | P1, nota final de las reglas | Rutinas de P02: disponibilidad al asignar y al confirmar; capacidad de peso y volumen y refrigeración al confirmar (CAM-025) | _Pendiente_ |
 | RN-21 / S-13: sin traslapes incompatibles de personas o vehículos | P1, nota final de las reglas y S-13 | `EXCLUDE USING gist` sobre `[inicio, fin)` por persona y por vehículo, solo entre asignaciones vigentes (CAM-015) | _Pendiente_ |
-| S-12: no se agregan paquetes a una salida después de su partida | P1, S-12 | _Pendiente de diseño_ (PEN-12) | _Pendiente_ |
+| S-12: no se agregan paquetes a una salida después de su partida | P1, S-12 | Rutina de P02: los paquetes solo se agregan a salidas PLANIFICADAS; la partida es el paso a EN_RUTA (CAM-026) | _Pendiente_ |
 
 ### 4.3 Supuestos, ambigüedades y hallazgos pendientes de decisión
 
@@ -526,9 +606,9 @@ Hallazgos identificados al revisar el Proyecto 1, Lab03 y el anexo. **Ninguno es
 | PEN-07 **(Resuelto en CAM-012)** | S-06, RN-07; CAM-004 | Mínimos: al menos un envío por solicitud, un paquete por envío y un paquete por devolución | ¿Con qué mecanismo se garantizan los mínimos? | No se pueden expresar con FK |
 | PEN-08 **(Resuelto en CAM-019)** | RN-16; anexo sección C | `ENTREGA_PAQUETE.es_final` no tiene restricción | ¿Cómo se garantiza una sola entrega final por paquete? | Ver 4.2 |
 | PEN-09 **(Resuelto en CAM-008)** | Anexo G08, sección C, «Asignaciones» | ASIGNACION tiene `id_recoleccion` e `id_salida` opcionales | ¿Cómo se evita que una asignación apunte a ambas o a ninguna? | Afecta G08-P02 |
-| PEN-10 | RN-20; anexo G08-P02-I y P02-L | Capacidad de peso y volumen, condición operativa y periodos fuera de servicio | ¿Cómo y cuándo se compara la carga con la capacidad? | Afecta G08-P02 y su concurrencia |
+| PEN-10 **(Resuelto en CAM-025)** | RN-20; anexo G08-P02-I y P02-L | Capacidad de peso y volumen, condición operativa y periodos fuera de servicio | ¿Cómo y cuándo se compara la carga con la capacidad? | Afecta G08-P02 y su concurrencia |
 | PEN-11 **(Resuelto en CAM-015)** | RN-21, S-13 | Traslape de asignaciones; se permite empezar cuando termina la anterior | ¿Qué mecanismo se usa? | Ver 4.2 |
-| PEN-12 | S-12, RN-13 | La partida se marca con un evento de salida | ¿Cómo se impide agregar paquetes después de la partida? | Ver 4.2 |
+| PEN-12 **(Resuelto en CAM-026)** | S-12, RN-13 | La partida se marca con un evento de salida | ¿Cómo se impide agregar paquetes después de la partida? | Ver 4.2 |
 | PEN-13 **(Resuelto en CAM-016)** | RN-22, S-14 | `ASIGNACION.funcion_ejercida` es independiente de FUNCION_PERSONAL | ¿Se exige que la función pertenezca a la persona? | Afecta G08-P02 |
 | PEN-14 **(Resuelto en CAM-009)** | Enunciado general, sección 2.1; anexo G08-P02-L | El diccionario del Proyecto 1 fija kilogramos para el peso y centímetros para las dimensiones declaradas del paquete, pero no hay unidad para volumen (capacidad del vehículo, rangos de tarifa) ni para las mediciones | ¿Qué unidad de volumen se usa y cómo se compara con las dimensiones en centímetros? | Afecta diccionario, P01 y P02 |
 | PEN-15 **(Descartado: resuelto con diccionario del Proyecto 1)** | S-07, RN-10 | `PAQUETE.num_medicion_aplicada` | ¿Cómo se asegura que la medición aplicada sea del mismo paquete? | La FK compuesta (numero_guia, num_paquete, num_medicion_aplicada) → MEDICION ya lo garantiza |
