@@ -460,3 +460,24 @@ En cada conflicto, la conexión observadora identificó por `application_name` a
 ### 9.5. Conclusión
 
 La instalación avanzada validó la semilla del esquema completo. La batería secuencial obtuvo los diagnósticos previstos y comprobó los estados temporales antes de su reversión. La lectura posterior confirmó las cardinalidades persistidas examinadas. En las cuatro pruebas concurrentes, el diagnóstico de B y los datos confirmados coincidieron con la condición específica en conflicto: último cupo, uso de espacio, reducción de capacidad o duplicidad de matrícula.
+
+## 10. Comprobación funcional de los componentes originales de Lab03
+
+**Fecha de ejecución:** 27 de noviembre de 2026. La comprobación se realizó en PostgreSQL 17.11, mediante Docker Compose y `psql` con `-X` y `ON_ERROR_STOP=1`, utilizando el usuario `bd1` y la base nueva `universidad_horizonte_lab03_f205`.
+
+Se instalaron, en orden, los cinco archivos SQL actuales del modelo físico (`01_esquema_base.sql` a `05_integridad_avanzada.sql`). Posteriormente, sin modificar los archivos históricos, se cargaron las cuatro rutinas de `lab03/grupo-03/sql/04_rutinas.sql`, se ejecutaron las tres consultas de `03_consultas.sql` y se ejecutaron las nueve pruebas originales de `05_pruebas.sql`.
+
+| Comprobación | Resultado observado |
+|---|---|
+| Instalación del modelo físico | Cinco scripts ejecutados correctamente, con confirmación de sus transacciones. |
+| Q01 — Cursos de la versión 102 | Siete cursos: seis obligatorios y uno optativo. |
+| Q02 — Requisitos de `UH-BDAT1` en la versión 102 | Un requisito previo y dos correquisitos. |
+| Q03 — Participaciones por versión | Versión 101: 5/1; versión 102: 6/1; versión 201: 2/1, en orden obligatorio/optativo. |
+| Cuatro rutinas originales | Instalación correcta. Se comprobaron las funciones de créditos y clasificación, el procedimiento de alta y rechazo de duplicados y la función con cursor. |
+| Pruebas originales P01–P09 | Las nueve emitieron el aviso `EXITOSA`, sin errores no controlados. |
+| Inventario del modelo | 26 relaciones y 135 atributos. |
+| Conservación de datos | Permanecieron las 16 participaciones y los diez requisitos iniciales. Las modificaciones temporales de P03, P07 y P08 no permanecieron después de sus reversiones. |
+
+La comprobación adicional mediante un bloque `DO` verificó los recuentos de Q01–Q03, los valores de las funciones curriculares, la presencia de los tres requisitos esperados en la salida del cursor y la conservación de los registros examinados. Finalizó con el aviso `F2-05: consultas, funciones y conservación de datos verificadas`.
+
+**Conclusión:** los componentes originales de Lab03 conservaron su funcionamiento en el modelo físico completo, dentro de los contratos y escenarios examinados. Esta ejecución es posterior e independiente de la evidencia histórica del laboratorio y de las tres baterías de integridad del proyecto final. No se requirió modificar los archivos SQL originales.
