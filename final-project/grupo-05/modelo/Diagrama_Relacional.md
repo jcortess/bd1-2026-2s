@@ -1,6 +1,10 @@
 # Diagrama relacional físico consolidado
 
-Generado desde las mismas 19 tablas y sus FK que el [diccionario](Diccionario_Datos.md). Las nueve relaciones pendientes de Jean Carlos no se presentan como implementadas. Los tipos de dominio se muestran sin prefijo de esquema. PK identifica la clave completa; FK/UQ se detallan en el diccionario. Las flechas expresan obligatoriedad de la referencia; los CHECK y triggers pueden restringir más las cardinalidades (por ejemplo, una inicial por etapa y un único sucesor confirmado de decisión).
+Generado a partir de las 28 tablas físicas y sus claves foráneas, correspondientes al modelo integrado de Jason, Paula y Jean Carlos. Se conservan las 27 relaciones originales del modelo normalizado de P1 y la ampliación `compatibilidad_animal_hogar`.
+
+Los tipos de dominio se muestran sin prefijo de esquema. PK identifica la clave primaria, FK las referencias y UK las restricciones de unicidad. Las claves compuestas se detallan en el [diccionario](Diccionario_Datos.md).
+
+Las relaciones expresan las cardinalidades estructurales. Los CHECK, índices parciales, funciones y triggers complementan las reglas de integridad, incluyendo exclusividad de reservas, coherencia contextual y formalización atómica de adopciones.
 
 ```mermaid
 erDiagram
@@ -126,7 +130,7 @@ erDiagram
         texto_no_vacio detalle_circunstancia "NULL"
         bigint propietario_anterior_id FK "NULL"
         bigint organizacion_origen_id FK "NULL"
-        bigint adopcion_origen_id UK "NULL"
+        bigint adopcion_origen_id UK, FK "NULL"
         bigint receptor_devolucion_id FK "NULL"
         instante fecha_cierre "NULL"
     }
@@ -209,6 +213,164 @@ erDiagram
         especie_animal especie PK "NN"
     }
     ubicacion ||--o{ ubicacion_especie_aceptada : "ubicacion_especie_aceptada_ubicacion_id_fkey"
+
+
+    indicacion {
+        bigint id_indicacion PK "NN"
+        bigint evaluacion_id FK "NN"
+        text tipo_evaluacion FK "NN"
+        text tipo_indicacion "NN"
+        texto_no_vacio descripcion "NN"
+        texto_no_vacio estado_indicacion "NULL"
+        bigint indicacion_sustituida_id FK "NULL"
+    }
+
+    indicacion_diagnostico {
+        bigint indicacion_id PK, FK "NN"
+        bigint evaluacion_id FK "NN"
+        bigint diagnostico_id PK, FK "NN"
+    }
+
+    aplicacion_indicacion {
+        bigint id_aplicacion PK "NN"
+        bigint indicacion_id FK "NN"
+        instante fecha_planificada "NN"
+        instante fecha_real "NULL"
+        bigint responsable_id FK "NULL"
+        texto_no_vacio observaciones "NULL"
+    }
+
+    reserva {
+        bigint id_reserva PK "NN"
+        uuid clave_operacion UK "NN"
+        bigint solicitud_id FK "NN"
+        texto_no_vacio animal_codigo FK "NN"
+        bigint ingreso_id FK "NN"
+        bigint compatibilidad_id FK "NN"
+        instante fecha_reserva "NN"
+        instante fecha_fin_reserva "NULL"
+        bigint responsable_id FK "NN"
+    }
+
+    adopcion {
+        bigint id_adopcion PK "NN"
+        uuid clave_operacion UK "NN"
+        bigint reserva_id FK, UK "NN"
+        bigint solicitud_id FK "NN"
+        texto_no_vacio animal_codigo FK "NN"
+        bigint ingreso_id FK, UK "NN"
+        bigint compatibilidad_id FK "NN"
+        instante fecha_entrega "NN"
+        texto_no_vacio condiciones_aceptadas "NN"
+        bigint responsable_entrega_id FK "NN"
+        text tipo_finalizacion "NULL"
+        instante fecha_finalizacion "NULL"
+    }
+
+    adopcion_responsable {
+        bigint adopcion_id PK, FK "NN"
+        bigint persona_id PK, FK "NN"
+    }
+
+    seguimiento_adopcion {
+        bigint id_seguimiento PK "NN"
+        bigint adopcion_id FK "NN"
+        instante fecha_prevista "NN"
+        instante fecha_efectiva "NULL"
+        bigint responsable_id FK "NN"
+        text medio "NN"
+        texto_no_vacio resultado "NULL"
+        texto_no_vacio acuerdo "NULL"
+        text estado_seguimiento "NN"
+        bigint seguimiento_origen_id FK "NULL"
+    }
+
+    restriccion_persona {
+        bigint id_restriccion PK "NN"
+        bigint persona_afectada_id FK "NN"
+        texto_no_vacio motivo "NN"
+        instante fecha_inicio "NN"
+        instante fecha_fin "NULL"
+        bigint responsable_decision_id FK "NN"
+    }
+
+    resultado_etapa {
+        bigint id_resultado PK "NN"
+        bigint ingreso_id FK, UK "NN"
+        text tipo_resultado "NN"
+        instante fecha "NN"
+        texto_no_vacio circunstancias "NN"
+        bigint responsable_id FK "NN"
+        bigint organizacion_destino_id FK "NULL"
+        texto_no_vacio condiciones_traslado "NULL"
+    }
+
+    evaluacion_salud ||--o{ indicacion : "revision veterinaria"
+    indicacion o|--o{ indicacion : "sustitucion clinica"
+
+    indicacion ||--o{ indicacion_diagnostico : "contexto de indicacion"
+    diagnostico_revision ||--o{ indicacion_diagnostico : "contexto de diagnostico"
+
+    indicacion ||--o{ aplicacion_indicacion : "aplicaciones"
+    persona o|--o{ aplicacion_indicacion : "responsable ejecucion"
+
+    solicitud_animal ||--o{ reserva : "interes individual"
+    ingreso ||--o{ reserva : "contexto de ingreso"
+    compatibilidad_animal_hogar ||--o{ reserva : "compatibilidad"
+    persona ||--o{ reserva : "responsable reserva"
+
+    reserva ||--o| adopcion : "formalizacion"
+    solicitud_animal ||--o{ adopcion : "solicitud animal"
+    ingreso ||--o| adopcion : "cierre adoptivo"
+    compatibilidad_animal_hogar ||--o{ adopcion : "compatibilidad"
+    persona ||--o{ adopcion : "responsable entrega"
+
+    adopcion ||--|{ adopcion_responsable : "responsables adoptivos"
+    persona ||--o{ adopcion_responsable : "persona responsable"
+
+    adopcion ||--o{ seguimiento_adopcion : "seguimientos"
+    persona ||--o{ seguimiento_adopcion : "responsable seguimiento"
+    seguimiento_adopcion o|--o| seguimiento_adopcion : "reprogramacion"
+
+    persona ||--o{ restriccion_persona : "persona afectada"
+    persona ||--o{ restriccion_persona : "responsable decision"
+
+    ingreso ||--o| resultado_etapa : "resultado no adoptivo"
+    persona ||--o{ resultado_etapa : "responsable resultado"
+    organizacion_externa o|--o{ resultado_etapa : "destino traslado"
+
+    adopcion o|--o| ingreso : "origen devolucion recuperacion"
+
 ```
 
-Para integrar P03, las referencias propuestas a compatibilidad y las dependencias clínicas se explican en [Integración](../Integracion.md#contrato-de-paula-para-jean-carlos). No existe todavía una FK desde RESERVA/ADOPCION o INDICACION_DIAGNOSTICO porque esas tablas no están disponibles. El bloqueo `zz_ingreso_adopcion_pendiente` sigue activo.
+## Integridad complementaria del modelo
+
+El diagrama representa las 28 relaciones físicas implementadas. Las siguientes restricciones complementan las cardinalidades estructurales:
+
+- Una evaluación inicial obligatoria por ingreso, comprobada al confirmar la transacción.
+- Una indicación solo puede asociarse con diagnósticos de su propia revisión veterinaria.
+- Una aplicación realizada requiere fecha efectiva, responsable y observaciones.
+- Una reserva debe corresponder a una solicitud aprobada, compatibilidad favorable, ingreso abierto y disponibilidad vigente.
+- Un animal puede tener varias reservas históricas, pero únicamente una reserva vigente.
+- Cada reserva puede originar como máximo una adopción.
+- Cada ingreso puede tener como máximo una adopción o un resultado no adoptivo, sin coexistencia de ambos.
+- Una adopción requiere al menos un responsable adoptivo.
+- La formalización registra la adopción y sus responsables, finaliza la reserva y cierra el ingreso y la estancia de forma atómica.
+- La reprogramación de seguimiento conserva la misma adopción y una fecha posterior.
+- Las restricciones personales corresponden a decisiones documentadas, no a consecuencias automáticas de una devolución.
+- Un nuevo ingreso por devolución o recuperación debe referenciar la adopción de origen del mismo animal.
+
+## Integración del bloque G05-P03
+
+Las referencias contextuales de RESERVA, ADOPCION e INDICACION_DIAGNOSTICO se encuentran implementadas.
+
+La restricción provisional `zz_ingreso_adopcion_pendiente` fue sustituida por la FK contextual `ingreso_adopcion_origen_fk`, que vincula el ingreso con la adopción de origen y su animal.
+
+Las claves únicas compuestas, índices parciales, restricciones CHECK y mecanismos transaccionales se detallan en:
+
+- [Modelo relacional](Modelo_Relacional.md).
+- [Diccionario de datos](Diccionario_Datos.md).
+- [Matriz de integridad](Matriz_Integridad.md).
+- [Integración](../Integracion.md).
+- [Resultados del bloque G05-P03](../evidencias/Resultados_Jeank.md).
+- [Casos de prueba](../pruebas/Casos_Jeank.md).

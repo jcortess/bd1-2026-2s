@@ -1,4 +1,8 @@
-# Control de cambios · Aporte de Jason
+# Control de cambios · Huellas Seguras · Grupo 05
+
+Consolidación 2.0 — 28-11-2026. Los apartados de Jason y Paula conservan el estado histórico de sus respectivas versiones; el estado integrado vigente se documenta al final.
+
+## Aporte de Jason · versión 0.1
 
 Grupo 05, Huellas Seguras. Jason Madrigal Pineda, María Paula Romero Garro y Jean Carlos Segura Vargas. Versión 0.1 del bloque G05-P01. Las referencias son el Proyecto 1 de octubre de 2026 (modelo inicial §4, decisión N-01 en §5.7, resultado normalizado §5.8–5.9, diagramas §3.2/4.8/6 y diccionario y trazabilidad §7–8), la hoja de calificación del Proyecto 1 (pestaña **Calificación**), Lab03 revisado el 28 de octubre de 2026 y el anexo vigente del equipo. El Word de distribución asigna responsables. [Especificación oficial](../Control_de_Cambios_Especificacion.md) · [Anexo](05_Grupo_05_Refugio.md)
 
@@ -56,3 +60,36 @@ Se conserva **sin modificar** `huellas._bloquear_alojamiento()` de `sql/02_opera
 ### Cobertura y pendientes actualizados
 
 La [correspondencia de las 27 relaciones](modelo/Modelo_Relacional.md#correspondencia-completa-de-las-27-relaciones-y-ampliación) y la [matriz](modelo/Matriz_Integridad.md) distinguen cada implementación y estado. P1→Lab03→final se describe sin convertir «fuera del recorte» en «inexistente en P1». Pendientes de Jean Carlos: sus nueve relaciones, consumo real de compatibilidad/disponibilidad, corrección de A2 en INDICACION_DIAGNOSTICO, FK de regreso, reserva/adopción/cierre, sus pruebas y defensa conjunta. La inicial diferida y la clave de compatibilidad se documentan como contratos que el equipo debe revisar, no como acuerdos humanos ya aprobados. La grabación y enlace accesible no se inventan.
+
+## Aporte de Jean Carlos · versión 2.0 · 28-11-2026
+
+Se integran las nueve relaciones asignadas a Jean Carlos, sin eliminar las 27 relaciones originales ni la ampliación de Paula. El instalador completo comprueba 28 tablas. Los cambios siguientes distinguen la implementación de la evidencia efectivamente obtenida.
+
+| ID | Fuente y naturaleza | Elemento | Situación anterior | Modificación y justificación | Impacto y evidencia |
+|---|---|---|---|---|---|
+| JC-01 | Lab03 A2; RN-12 | INDICACION_DIAGNOSTICO | Se aceptaba un diagnóstico ajeno a la revisión de origen. | Se conserva la PK pareja y se incorpora `evaluacion_id` con dos FK contextuales hacia INDICACION y DIAGNOSTICO_REVISION. | Corrección del contexto clínico; PC06 rechaza con 23503 y PC07 acepta el contexto correcto en transacción revertida. SQL 10. |
+| JC-02 | RN-12/13; reutilización adaptada de Lab03 | INDICACION y APLICACION_INDICACION | Recorte clínico sin integración completa de etapa y personas. | FK discriminada a revisión, sustitución del mismo animal con control cronológico, aplicación planificada diferenciada de realizada; procedimiento `registrar_aplicacion` con bloqueo y validación de ejecución. | SQL 10–13; PC01–PC05 verifican ejecución, repetición, fecha anterior e información incompleta. Sustitución válida en semilla; rechazos específicos de sustitución no aislados. |
+| JC-03 | RN-19/20/24; AC-G05-P03-01/02 | RESERVA | Interés y compatibilidad no adjudicaban un animal. | FK a interés, etapa y compatibilidad concreta; consumo de `_exigir_compatibilidad`, disponibilidad y restricción vigente; índice único parcial por animal con reserva abierta y UUID único. | SQL 10–11; PJ-01/02/03/06/10. Dos sesiones reales conservan una sola reserva vigente y ambas valoraciones. |
+| JC-04 | F11; RN-21/25; AC-G05-P03-03/04 | ADOPCION, ADOPCION_RESPONSABLE, RESERVA, INGRESO, ESTANCIA | Cierre privado de Jason disponible, sin formalización integrada. | FK contextuales, reserva e ingreso únicos, responsables y condiciones; `formalizar_adopcion` registra y cierra los hechos en una transacción mediante `_cerrar_etapa_alojamiento`; comprobación diferida de integridad. | SQL 10–11; PJ-04/05/07/11/12. P1006 por estancia incorrecta deja estado previo intacto; reintento correcto confirmado. |
+| JC-05 | RN-23; F9/F10/F11/F14 | INGRESO y ADOPCION | FK inversa pendiente y bloqueo provisional de regreso. | SQL 11 instala `ingreso_adopcion_origen_fk` y retira `zz_ingreso_adopcion_pendiente`; trigger valida animal, finalización y cronología. Se conserva receptor y se exige inicial de la nueva etapa. | PJ-09: devolución voluntaria, nuevo ingreso con inicial y sin restricción automática. No ejecutar aparte el parche histórico de Jason. PJ-16 verifica el rechazo de un reingreso asociado a otro animal. Recuperación y demás variantes de origen no aisladas. |
+| JC-06 | RN-22/24; S-15 | SEGUIMIENTO_ADOPCION y RESTRICCION_PERSONA | Relaciones sin implementación física. | Seguimiento con estados y resultado, autorreferencia contextual y fecha posterior al reprogramar; restricción documentada con motivo, actor y periodo independiente de la devolución. | SQL 10–11; PS01–PS05, PJ-03/09. Se verifica rechazo de origen ajeno y de restricción vigente; otras fronteras no aisladas. |
+| JC-07 | RN-25; S-08/S-09 | RESULTADO_ETAPA | Sin ruta física para resultados distintos de adopción. | Resultado único por ingreso, destino y condiciones exigidos en traslado, exclusión con adopción y reserva vigente, comprobación diferida de cierre. | SQL 10–11; PJ-08 rechaza resultado incompatible P3022. PJ-17 verifica traslado válido y cierre no adoptivo; PJ-18 rechaza traslado sin organización de destino mediante SQLSTATE 23514. |
+| JC-08 | Prueba de integración; permisos | `_adopcion_diferida_jeank` | La confirmación bajo rol operativo falló por permisos del auxiliar privado. | Se corrige a SECURITY DEFINER con search_path controlado; se conserva la separación de privilegios y se revoca acceso público a auxiliares. | SQL 11; PJ-12 valida instalación limpia y formalización confirmada; PP01 rechaza UPDATE directo 42501. |
+| JC-09 | Prueba de instalación y consultas | Vistas, guiones y datos | La vista de control usaba un nombre incorrecto de fecha de fin de estancia; el guion de devolución dependía de un ID fijo y de search_path local tras COMMIT. | Se usa `fecha_fin_real`, se obtiene la adopción por contexto y se restablece el esquema para lecturas posteriores. Se agregan instaladores 14/15 y guiones reproducibles. | SQL 13–15; pruebas 07/09/11/12; PJ-09/12 y vistas de control. |
+| JC-10 | F12/F14/F15; trazabilidad | Documentación y evidencias | Consolidación de 19 tablas y contratos pendientes. | Se actualizan modelo, diccionario, diagrama, matriz, README, integración y procesos; se registran casos y evidencias sin atribuir cobertura exhaustiva. | [Matriz](modelo/Matriz_Integridad.md), [casos](pruebas/Casos_Jeank.md), [resultados](evidencias/Resultados_Jeank.md). |
+
+### Reutilización y revalidación
+
+Se reutilizan sin modificar las primitivas de Jason `_bloquear_alojamiento()` y `_cerrar_etapa_alojamiento`, y la interfaz de Paula `_exigir_compatibilidad` junto con sus claves y vistas. Se mantiene el orden de bloqueo compartido y READ COMMITTED. La FK discriminada, la completitud de aplicaciones, el procedimiento de ejecución y las consultas clínicas de Lab03 se adaptan al esquema `huellas`, a bigint, a instantes y a las referencias del modelo completo. La corrección A2 no es una copia sin cambios. Las pruebas PJ, PC y PS documentan la revalidación de los escenarios ejecutados; no se afirma equivalencia de todos los casos del recorte anterior.
+
+### Estado integrado y límites
+
+La instalación completa se verificó con PostgreSQL y psql 16.16 en Windows. Se registraron 33 casos identificados: PJ-01–PJ-18, PC01–PC09, PS01–PS05 y PP01., PC01–PC07, PS01–PS05 y PP01. Las ejecuciones históricas de Jason y Paula conservan sus versiones y alcance originales. La primera lectura de verificación concurrente se hizo antes del COMMIT de A y se repitió después de finalizar ambas sesiones; la comprobación final fue satisfactoria. No se confunde ese incidente de orden de ejecución con un defecto de exclusividad.
+
+## Ampliación de cobertura
+
+Se incorpora `pruebas/13_cobertura_adicional_jeank.sql` para verificar ocho escenarios adicionales de independencia de operaciones, vigencia de restricciones, contexto de reingresos, resultados no adoptivos, identidad e inmutabilidad clínica.
+
+Los ocho casos fueron superados en la base independiente `huellas_g05_cobertura`, sin modificar la implementación física ni las operaciones existentes.
+
+Evidencia: [Ejecución de cobertura adicional](evidencias/Ejecucion_Jeank_Cobertura.md).

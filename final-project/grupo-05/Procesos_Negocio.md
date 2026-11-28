@@ -61,7 +61,7 @@ La ocupación se cuenta por intervalos reales. Si se registra una admisión pasa
 
 ## Escritura, concurrencia y rechazos
 
-- A usuarios operativos se les concede el rol `huellas_g05_operador`. Puede consultar las tablas y vistas y ejecutar únicamente `mover_animal` en este bloque. El instalador administra el catálogo y los ingresos preparados, actúa como propietario de la función y debe mantenerse separado del rol operativo. Las pruebas SQL que intentan DML directo sobre ESTANCIA como propietario lo hacen en una transacción reversible para verificar sus restricciones físicas. Para operación normal, la escritura sobre ESTANCIA pasa por la función pública o por la primitiva privada dentro de la futura formalización.
+- A usuarios operativos se les concede el rol `huellas_g05_operador`. Puede consultar las tablas y vistas y ejecutar únicamente `mover_animal` en este bloque. El instalador administra el catálogo y los ingresos preparados, actúa como propietario de la función y debe mantenerse separado del rol operativo. Las pruebas SQL que intentan DML directo sobre ESTANCIA como propietario lo hacen en una transacción reversible para verificar sus restricciones físicas. Para operación normal, la escritura sobre ESTANCIA pasa por la función pública o por la primitiva privada dentro de la formalización integrada de G05-P03.
 - La función controla su `search_path` y ejecuta con privilegios del propietario. Las funciones internas carecen de `EXECUTE` público. Las FK impiden borrar registros referenciados y los triggers de catálogo protegen los datos utilizados en el historial. Los cambios de especie usada, de oferta usada y de aprobación que invaliden una entrada histórica son rechazados.
 - Se serializan los movimientos y el DML de los catálogos relevantes en toda la base mediante un bloqueo asesor transaccional. Esta elección prioriza una sola regla de adquisición y las transacciones cortas en la escala académica del bloque. Su coste es que también se esperan movimientos de animales y lugares independientes. Bajo `READ COMMITTED`, las consultas internas que siguen al bloqueo ven lo confirmado por la primera transacción. La segunda operación revalida tanto el cupo como la estancia esperada. [Aislamiento](https://www.postgresql.org/docs/16/transaction-iso.html) · [Bloqueos asesores](https://www.postgresql.org/docs/16/explicit-locking.html) · [Visibilidad de funciones VOLATILE](https://www.postgresql.org/docs/16/xfunc-volatility.html)
 
@@ -121,7 +121,7 @@ El archivo [08_paula_consultas.sql](sql/08_paula_consultas.sql) puede ejecutarse
 | `historial_evaluaciones`, `resumen_revisiones`, `contar_revisiones_animal` | Antecedentes clínicos por animal/etapa; iniciales sin diagnóstico y apariciones confirmadas, sin inferir disponibilidad. |
 | `disponibilidad_actual` | Última decisión sanitaria/administrativa por animal e ingreso, con actor y valoración. |
 
-La primitiva **privada** `_exigir_compatibilidad(p_solicitud bigint,p_animal text,p_ingreso bigint,p_fecha timestamptz) → bigint` puede ser invocada por la futura rutina SECURITY DEFINER de Jean Carlos bajo el mismo propietario. Requiere decisión general APROBADA no posterior a la operación, etapa abierta del animal y última valoración individual FAVORABLE no posterior. Devuelve el ID de la evidencia, conservable mediante la clave `(id_compatibilidad,solicitud_id,animal_codigo,ingreso_id)`. No modifica disponibilidad, reserva, adopción, estancia ni etapa. El consumidor debe comprobar por separado disponibilidad atribuible, restricciones y adjudicación exclusiva. Si otra familia evalúa al animal favorablemente, esa evaluación tampoco adjudica el animal.
+La primitiva **privada** `_exigir_compatibilidad(p_solicitud bigint,p_animal text,p_ingreso bigint,p_fecha timestamptz) → bigint` puede ser invocada por las rutinas SECURITY DEFINER integradas de Jean Carlos bajo el mismo propietario. Requiere decisión general APROBADA no posterior a la operación, etapa abierta del animal y última valoración individual FAVORABLE no posterior. Devuelve el ID de la evidencia, conservable mediante la clave `(id_compatibilidad,solicitud_id,animal_codigo,ingreso_id)`. No modifica disponibilidad, reserva, adopción, estancia ni etapa. El consumidor debe comprobar por separado disponibilidad atribuible, restricciones y adjudicación exclusiva. Si otra familia evalúa al animal favorablemente, esa evaluación tampoco adjudica el animal.
 
 Los diagnósticos pueden existir sin nuevas indicaciones y sin nuevos cambios de disponibilidad. Esos hechos se preparan y verifican como integridad; no se incorpora un cuarto proceso operativo de atención médica.
 
@@ -169,4 +169,113 @@ Ante pérdida de respuesta de COMMIT, consultar `clave_operacion` en solicitud, 
 
 ## Reproducción y defensa
 
-[README, bloque Paula](README.md#bloque-de-paula-g05-p02) identifica instalación y sesiones. [Defensa.md](Defensa.md) contiene la secuencia de demostración para Paula; la grabación e integración de P03 están pendientes de los responsables del equipo.
+[README, bloque Paula](README.md#bloque-de-paula-g05-p02) identifica instalación y sesiones. [Defensa.md](Defensa.md) contiene la secuencia de demostración para Paula; P03 se documenta a continuación; la grabación del equipo sigue pendiente.
+
+# G05-P03 · Reservar y formalizar adopciones · Jean Carlos
+
+Implementado en [10_jeank_esquema.sql](sql/10_jeank_esquema.sql) y [11_jeank_operaciones.sql](sql/11_jeank_operaciones.sql). Consume las interfaces de P01 y P02 sin sustituirlas. [Casos](pruebas/Casos_Jeank.md) · [Resultados](evidencias/Resultados_Jeank.md) · [Matriz](modelo/Matriz_Integridad.md).
+
+## Operaciones públicas
+
+Las firmas pertenecen al esquema `huellas`. El cliente controla BEGIN, COMMIT y ROLLBACK.
+
+| Operación y retorno | Parámetros en orden | Validaciones y efectos |
+|---|---|---|
+| `registrar_reserva(uuid,bigint,text,bigint,timestamptz,bigint) → bigint` | `p_clave_operacion`, `p_solicitud_id`, `p_animal_codigo`, `p_ingreso_id`, `p_fecha_reserva`, `p_responsable_id` | Exige aprobación, interés, compatibilidad favorable vigente, etapa abierta, disponibilidad habilitada, actor válido y solicitante sin restricción vigente. Impide otra reserva activa y resultados incompatibles. Devuelve el ID de reserva. |
+| `finalizar_reserva(bigint,timestamptz,bigint) → bigint` | `p_reserva_id`, `p_fecha_fin`, `p_responsable_id` | Valida actor, reserva vigente y cronología; registra fin sin borrar historia. El actor de finalización se valida pero no se almacena en una columna independiente. |
+| `formalizar_adopcion(uuid,bigint,bigint,timestamptz,text,bigint,bigint[]) → bigint` | `p_clave_operacion`, `p_reserva_id`, `p_estancia_esperada`, `p_fecha_entrega`, `p_condiciones_aceptadas`, `p_responsable_entrega`, `p_responsables` | Revalida reserva, contexto, compatibilidad, disponibilidad y restricciones. Exige responsables, incluido el solicitante. Inserta adopción y responsables, finaliza reserva y cierra alojamiento e ingreso en la misma transacción. Devuelve ID de adopción. |
+
+La aprobación de una solicitud no crea una reserva. La reserva identifica una adjudicación concreta por animal y etapa. Una solicitud puede producir adopciones individuales de distintos animales; cada ingreso admite una sola adopción. Las claves UUID son únicas por tabla; ante pérdida de respuesta, consultar la clave y el estado persistido antes de reenviar.
+
+## Ejemplo reproducible
+
+En una base nueva instalada mediante `sql/15_instalar_proyecto_completo.sql`, ejecutar `pruebas/05_preparacion_jeank.sql` antes del ejemplo. No combinar este ejemplo con el guion secuencial en la misma base, pues ambos consumen los mismos antecedentes. Ejecutar en psql:
+
+```sql
+BEGIN;
+SET LOCAL ROLE huellas_g05_operador;
+SELECT huellas.registrar_reserva(
+  '19000000-0000-0000-0000-000000000001',
+  1, 'HS-01', 1, '2026-10-07 13:00:00-06', 1
+) AS reserva_creada \gset
+COMMIT;
+
+BEGIN;
+SET LOCAL ROLE huellas_g05_operador;
+SELECT huellas.formalizar_adopcion(
+  '19000000-0000-0000-0000-000000000003',
+  :reserva_creada, 1, '2026-10-07 14:00:00-06',
+  'Condiciones aceptadas para la demostración', 1, ARRAY[101]::bigint[]
+);
+COMMIT;
+SELECT * FROM huellas.v_control_adopciones_jeank;
+```
+
+El resultado esperado es una adopción CONSISTENTE. Los identificadores del ejemplo corresponden a la preparación indicada; para otros datos consultar los IDs reales. Los guiones de pruebas constituyen la reproducción de referencia.
+
+## Atomicidad, concurrencia y cierre
+
+Las operaciones adquieren el bloqueo asesor compartido de alojamiento y catálogo, bajo READ COMMITTED, antes de validar y modificar el contexto. La reserva se protege también con el índice único parcial `reserva_animal_vigente_uq`. La formalización usa `_cerrar_etapa_alojamiento` con la estancia esperada; no confirma internamente. El trigger diferido `adopcion_integridad_final` comprueba responsables, cierre del ingreso y reserva al instante de entrega y ausencia de resultado incompatible. La vista de control incluye la comprobación de estancia abierta.
+
+PJ-10 demuestra dos sesiones reales: A mantiene la reserva sin confirmar, B espera el bloqueo asesor, A confirma y B recibe P3021 y revierte. La lectura posterior confirma una sola reserva vigente y conserva ambas compatibilidades. PJ-11 provoca P1006 con una estancia esperada incorrecta, comprueba que no hay adopción ni cierre parcial y confirma un reintento correcto. [Concurrencia](evidencias/Ejecucion_Jeank_Concurrencia.md) · [Secuencial](evidencias/Ejecucion_Jeank_Secuencial.md).
+
+## Devolución, seguimiento y otros resultados
+
+- La finalización de una adopción conserva su historia y exige tipo y fecha coherentes. El reingreso por devolución o recuperación referencia la adopción del mismo animal, finalizada con el tipo correspondiente; exige receptor, motivo y evaluación inicial propia antes de COMMIT. La FK `ingreso_adopcion_origen_fk` se instala en 11; no ejecutar el parche histórico por separado.
+- Una devolución voluntaria no crea una restricción. `restriccion_persona` registra una decisión independiente con motivo, actor y periodo; la vigencia se comprueba al reservar y formalizar. PJ-03 y PJ-09 aportan evidencia de ambos escenarios.
+- El seguimiento conserva fecha prevista, medio, responsable, estado y resultado. Una realización exige fecha efectiva y resultado; una reprogramación crea otra fila vinculada a la misma adopción, con fecha posterior y origen REPROGRAMADO. PS01–PS05 comprueban realización, cronología, historia y reprogramación.
+- `resultado_etapa` representa cierres distintos de adopción. El traslado exige organización y condiciones; el trigger diferido exige fecha de cierre coincidente. PJ-08 comprueba rechazo de resultado incompatible; no se documenta todavía una ejecución positiva específica de traslado.
+
+Estas escrituras de finalización de adopción, reingreso, seguimiento, restricciones y otros resultados se preparan mediante DML del propietario sujeto a restricciones y triggers; no se afirma que existan rutinas públicas específicas para ellas.
+
+## Integración clínica (RN-12 y RN-13)
+
+`indicacion` pertenece a una revisión veterinaria. La sustitución conserva el historial y valida animal y cronología. `indicacion_diagnostico` utiliza dos FK contextuales que impiden asociar diagnósticos de una revisión ajena (corrección A2; PC06/PC07).
+
+| Rutina | Propósito |
+|---|---|
+| `CALL huellas.registrar_aplicacion(bigint,timestamptz,bigint,text)` | ID de aplicación, fecha real, responsable y observaciones. Bloquea la fila, valida cronología y datos completos, registra la ejecución una sola vez. |
+| `huellas.estado_aplicacion(bigint) → text` | Consulta estado derivado: REALIZADA, PROGRAMADA o VENCIDA según fecha real y planificada. |
+| `huellas.generar_reporte_pendientes()` | Consulta aplicaciones sin fecha real. |
+
+PC01–PC05 comprueban ejecución, repetición, fecha anterior a evaluación y datos incompletos. No se incorpora un cuarto proceso de negocio; se documenta la integridad clínica del modelo.
+
+## Consultas del bloque
+
+Las vistas se instalan mediante [13_jeank_consultas.sql](sql/13_jeank_consultas.sql).
+
+| Vista | Uso |
+|---|---|
+| `v_indicaciones_jeank`, `v_aplicaciones_jeank` | Indicaciones y ejecución clínica. |
+| `v_reservas_jeank`, `v_reservas_vigentes_jeank` | Historial y adjudicaciones activas. |
+| `v_adopciones_jeank`, `v_responsables_adopcion_jeank` | Formalizaciones y responsables. |
+| `v_restricciones_jeank`, `v_seguimientos_jeank` | Decisiones restrictivas y seguimiento. |
+| `v_resultados_etapa_jeank`, `v_reingresos_jeank` | Otros resultados y retornos. |
+| `v_control_adopciones_jeank` | Coherencia del cierre de adopción. |
+
+## Permisos y errores
+
+El rol `huellas_g05_operador` consulta y ejecuta las operaciones autorizadas, sin DML directo en las nueve tablas. Las rutinas de escritura públicas usan SECURITY DEFINER y search_path controlado. PP01 comprueba el rechazo 42501 al actualizar directamente una indicación. No se atribuye a ese caso la comprobación individual de todos los privilegios.
+
+| SQLSTATE | Causa comprobada en pruebas |
+|---|---|
+| P1006 | Estancia esperada distinta de la vigente. |
+| P2025 | Etapa ajena o incompatible. |
+| P3005 | Aplicación ya realizada. |
+| P3008 | Planificación anterior a evaluación. |
+| P3011 | Datos de aplicación realizada incompletos. |
+| P3015 | Restricción vigente documentada. |
+| P3017 | Reserva ya finalizada. |
+| P3021 | Animal con reserva vigente. |
+| P3022 | Resultado incompatible con adopción. |
+| P3042 | Seguimiento con resultado definitivo. |
+| P3045 | Seguimiento anterior a adopción. |
+| P3048 | Reprogramación de otra adopción. |
+| 23503 | FK contextual clínica incumplida. |
+| 42501 | Permiso insuficiente. |
+
+Los restantes códigos P3001–P3065 y sus condiciones se definen en 11. Ante error no controlado, ejecutar ROLLBACK antes de otra transacción. No reintentar sin consultar el contexto vigente.
+
+## Reproducción y alcance
+
+[README](README.md) contiene el orden de instalación y pruebas; [Casos_Jeank](pruebas/Casos_Jeank.md) identifica los 25 casos PJ, PC, PS y PP. [Instalación](evidencias/Ejecucion_Jeank_Instalacion.md) registra la comprobación de las 28 tablas y formalización en base nueva. Los resultados cubren los escenarios ejecutados; las pruebas declarativas y fronteras todavía no aisladas se identifican en la matriz consolidada. La grabación se documentará en [Defensa](Defensa.md).

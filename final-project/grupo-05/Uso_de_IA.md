@@ -1,4 +1,6 @@
-# Uso de IA · Aporte de Jason
+# Uso de IA · Grupo 05 · Huellas Seguras
+
+## Aporte de Jason
 
 Se utilizó ChatGPT Codex, con herramientas locales de lectura, edición y terminal, para desarrollar esta primera versión del bloque. Codex contrastó la documentación de Proyecto 1 y Lab03, propuso los mecanismos de integridad, escribió los archivos SQL y Markdown y ejecutó las pruebas PostgreSQL. El anexo y la hoja del profesor sustentan las correcciones académicas. El Word sustenta el reparto de trabajo.
 
@@ -54,3 +56,90 @@ Las bases `_a` y `_b` conservan los intentos fallidos de pruebas; no se borraron
 ### Limitaciones y pendientes verificables
 
 Los nueve objetos de Jean Carlos y G05-P03 no están en el esquema final disponible; faltan su consumo real de compatibilidad/disponibilidad, corrección A2 de INDICACION_DIAGNOSTICO, regreso ligado a adopción, restricciones y exclusión de resultados/cierre completo. No se ejecutaron pruebas sobre esas tablas ausentes. La ausencia de reservas automáticas se constata sin tabla RESERVA real instalada, cuya comprobación antes/después debe repetirse al integrarla. Video, minutajes y aprobación humana del diseño siguen pendientes. No se inventan enlaces ni una certificación de coherencia del 100 % del proyecto del equipo.
+
+## Aporte de Jean Carlos · 28 de noviembre de 2026
+
+### Herramientas utilizadas
+
+Se utilizó ChatGPT como herramienta de asistencia para el análisis de requisitos, diseño de mecanismos de integridad, generación y corrección de código SQL, preparación de pruebas y consolidación de documentación técnica. Visual Studio Code, PowerShell, Git, PostgreSQL y psql fueron herramientas de desarrollo y validación. Jean Carlos ejecutó las pruebas en su entorno local siguiendo las instrucciones preparadas con asistencia de ChatGPT.
+
+### Instrucciones y alcance de la asistencia
+
+La conversación iterativa se orientó a implementar las nueve relaciones asignadas y G05-P03, conservar los aportes de Jason y Paula, corregir A2 de Lab03, integrar reservas, adopciones, devoluciones y cierres, preparar pruebas válidas, negativas, concurrentes y de atomicidad, analizar resultados reales y consolidar la documentación sin atribuir resultados a pruebas no ejecutadas.
+
+El [registro de instrucciones relevantes](evidencias/Prompt_Desarrollo_Jeank.md) es una reconstrucción de las instrucciones principales, no una transcripción literal completa.
+
+### Componentes desarrollados con asistencia de IA
+
+| Archivo | Propósito |
+|---|---|
+| `sql/10_jeank_esquema.sql` | Nueve relaciones físicas. |
+| `sql/11_jeank_operaciones.sql` | Operaciones, funciones, procedimientos, triggers y permisos. |
+| `sql/12_jeank_datos.sql` | Antecedentes ficticios. |
+| `sql/13_jeank_consultas.sql` | Vistas y consultas de control. |
+| `sql/14_instalar_bloque_jeank.sql` | Instalación del bloque. |
+| `sql/15_instalar_proyecto_completo.sql` | Instalación consolidada. |
+| `pruebas/05_preparacion_jeank.sql` a `pruebas/12_atomicidad_jeank.sql` | Preparación y pruebas. |
+| `pruebas/concurrencia_jeank/` | Sesiones independientes. |
+| `pruebas/Casos_Jeank.md` | Identificación de casos. |
+| `evidencias/` | Resultados y ejecuciones del bloque. |
+| `modelo/` | Consolidación del modelo, diccionario, diagrama y matriz. |
+
+También se utilizó asistencia para actualizar README, Integración, Procesos de Negocio, Control de Cambios, Uso de IA y preparar la defensa.
+
+### Decisiones técnicas propuestas con asistencia de IA
+
+- Claves foráneas compuestas para garantizar el contexto entre indicaciones y diagnósticos.
+- Consumo de compatibilidad individual y disponibilidad del bloque de Paula.
+- Índice único parcial para impedir reservas vigentes simultáneas del mismo animal.
+- Reutilización del bloqueo asesor transaccional de Jason y aislamiento READ COMMITTED.
+- Formalización y cierre de reserva, estancia e ingreso dentro de una transacción.
+- Restricciones diferidas para comprobar la adopción al confirmar.
+- Reingresos vinculados con la adopción del mismo animal.
+- Restricciones de personas como decisiones independientes, sin generarlas automáticamente por devolución voluntaria.
+- Conservación del historial de seguimientos y reprogramaciones.
+- Restricción de escrituras directas del rol operativo.
+
+Véanse [Modelo Relacional](modelo/Modelo_Relacional.md), [Matriz de Integridad](modelo/Matriz_Integridad.md) y [Control de Cambios](Control_de_Cambios.md).
+
+### Validaciones realmente ejecutadas
+
+Se utilizó PostgreSQL y psql 16.16 en Windows, bases nuevas UTF-8 y extensión `btree_gist`. Se verificaron instalación de 28 tablas, reserva válida, exclusividad, restricción vigente, formalización individual, repetición rechazada, contexto incompatible, exclusión de resultados, devolución voluntaria con nuevo ingreso y sin restricción automática, concurrencia con dos sesiones y observador, atomicidad ante estancia incorrecta, aplicaciones clínicas, corrección contextual A2, seguimientos y reprogramaciones, protección de resultados definitivos y rechazo de escritura directa no autorizada.
+
+Se documentaron 33 casos identificados: 18 PJ, nueve PC, cinco PS y uno PP. Las evidencias son:
+
+- [Ejecución de cobertura adicional](evidencias/Ejecucion_Jeank_Cobertura.md).
+- [Resultados](evidencias/Resultados_Jeank.md).
+- [Ejecución secuencial](evidencias/Ejecucion_Jeank_Secuencial.md).
+- [Ejecución concurrente](evidencias/Ejecucion_Jeank_Concurrencia.md).
+- [Instalación](evidencias/Ejecucion_Jeank_Instalacion.md).
+- [Casos de prueba](pruebas/Casos_Jeank.md).
+
+### Errores encontrados y corregidos
+
+| Error observado | Corrección y validación |
+|---|---|
+| Permisos insuficientes en la comprobación diferida de adopción. | SECURITY DEFINER y search_path controlado en `_adopcion_diferida_jeank`; formalización verificada desde rol operativo en base nueva. |
+| Referencia a `es.fecha_fin`. | Sustitución por `es.fecha_fin_real`; instalación posterior verificada. |
+| Identificador fijo de adopción en prueba de devolución. | Localización por contexto real, sin depender de identificadores consumidos en intentos previos. |
+| Consulta posterior al COMMIT sin search_path requerido. | Corrección del contexto de consulta y comprobación de datos persistidos. |
+| Verificación concurrente antes de confirmar A. | Repetición después de COMMIT de A y ROLLBACK de B; una sola reserva vigente. |
+| Diferencias de codificación en terminal. | Lectura explícita UTF-8 de documentos; no se confunde visualización con fallo de integridad. |
+
+Los intentos fallidos no se presentan como ejecuciones satisfactorias.
+
+### Participación humana y responsabilidad académica
+
+Jean Carlos participó en la ejecución de comandos, creación y modificación de archivos, preparación de bases, ejecución de scripts, coordinación de sesiones concurrentes y comunicación de resultados. ChatGPT proporcionó propuestas de implementación, instrucciones, análisis de errores y asistencia documental. La validación de los escenarios específicos no sustituye la revisión humana ni la comprensión individual necesaria para la defensa.
+
+### Estado de la integración y limitaciones
+
+Se encuentran implementadas las 27 relaciones originales y la ampliación de compatibilidad animal–hogar, para un total de 28 tablas. Las dependencias principales se integraron y se verificaron formalización, cierre atómico, concurrencia, devolución voluntaria y corrección A2. Los pendientes de los apartados históricos corresponden a sus respectivas versiones, no al estado vigente.
+
+Los 33 casos no constituyen una comprobación exhaustiva de todas las combinaciones de integridad. La matriz distingue mecanismos implementados de escenarios con evidencia específica.
+
+Con asistencia de ChatGPT se diseñaron ocho pruebas adicionales, posteriormente ejecutadas por Jean Carlos mediante PostgreSQL y psql en una base independiente. Los resultados fueron contrastados con la salida real de ejecución.
+
+Se verificaron la independencia entre aprobación y reserva, la finalización independiente de reservas, el límite temporal de restricciones, el contexto de reingresos, los traslados y la integridad histórica clínica.
+
+No se atribuye una aprobación humana conjunta ni se inventan resultados, enlaces de video o minutajes de defensa.

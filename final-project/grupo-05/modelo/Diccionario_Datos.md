@@ -1,6 +1,8 @@
 # Diccionario físico consolidado
 
-Versión Paula 1.0 sobre el bloque de Jason `18359c4`. Extraído de `pg_catalog` en PostgreSQL 18.6 después de ejecutar los scripts 01–08. Incluye las **19 tablas físicas disponibles** (18 originales y la ampliación de compatibilidad). Las nueve de Jean Carlos siguen pendientes y se enumeran en [Modelo consolidado](Modelo_Relacional.md); no se les atribuyen tipos físicos inexistentes.
+Versión de consolidación 2.0, 28 de noviembre de 2026. Integra los bloques de Jason, Paula y Jean Carlos, con las 28 tablas físicas del esquema huellas: las 27 relaciones originales del modelo P1 y la ampliación compatibilidad_animal_hogar.
+
+La implementación integrada fue instalada y validada en PostgreSQL 16.16 mediante sql/15_instalar_proyecto_completo.sql. Se conserva la documentación de catálogo de los bloques anteriores, originalmente obtenida en PostgreSQL 18.6, y se incorpora la documentación del bloque G05-P03.
 
 Cada sección define la relación de todas sus filas. NN es obligatoriedad física; las condiciones adicionales están en la descripción, CHECK y triggers de la misma sección. Todos los tipos `huellas.*` se definen en los scripts 01/05. `texto_no_vacio` exige al menos un carácter no blanco; `instante` es `timestamptz` finito; `especie_animal` usa `^[A-Z][A-Z0-9_]*$`; `estado_solicitud` contiene los siete estados RN-18. Los instantes tienen precisión de microsegundos y se muestran en Costa Rica. NULL significa ausencia; no sustituir datos desconocidos por cero o cadena vacía. Los IDs generados admiten saltos al revertir transacciones.
 
@@ -374,7 +376,7 @@ Reglas: RN-01/02/04/10/23/25.
 | Atributo | Descripción y dominio | Tipo PostgreSQL | Obligatorio | Predeterminado | Claves y referencias |
 |---|---|---|---|---|---|
 | `id_ingreso` | Identidad de una etapa de ingreso. | `bigint` | Sí | IDENTITY BY DEFAULT | ingreso_animal_uq: UNIQUE (id_ingreso, animal_codigo); ingreso_pkey: PRIMARY KEY (id_ingreso) |
-| `animal_codigo` | Código del animal al que pertenece el hecho. | `huellas.texto_no_vacio` | Sí | — | ingreso_animal_codigo_fkey: FOREIGN KEY (animal_codigo) REFERENCES huellas.animal(codigo_interno); ingreso_animal_uq: UNIQUE (id_ingreso, animal_codigo) |
+| `animal_codigo` | Código del animal al que pertenece el hecho. Debe coincidir con el animal de la adopción de origen cuando exista. | `huellas.texto_no_vacio` | Sí | — | ingreso_animal_codigo_fkey: FOREIGN KEY (animal_codigo) REFERENCES huellas.animal(codigo_interno); ingreso_animal_uq: UNIQUE (id_ingreso, animal_codigo); ingreso_adopcion_origen_fk: FOREIGN KEY (adopcion_origen_id, animal_codigo) REFERENCES huellas.adopcion(id_adopcion, animal_codigo) |
 | `fecha_ingreso` | Inicio inclusivo de etapa. | `huellas.instante` | Sí | — | — |
 | `lugar_ingreso` | Lugar de recepción del animal. | `huellas.texto_no_vacio` | Sí | — | — |
 | `condicion_general` | Condición observada al ingreso. | `huellas.texto_no_vacio` | Sí | — | — |
@@ -382,7 +384,9 @@ Reglas: RN-01/02/04/10/23/25.
 | `detalle_circunstancia` | Detalle exigido para OTRA o regreso. | `huellas.texto_no_vacio` | No; ver condición | — | — |
 | `propietario_anterior_id` | Persona propietaria conocida; no confiere derecho automático. | `bigint` | No; ver condición | — | ingreso_propietario_anterior_id_fkey: FOREIGN KEY (propietario_anterior_id) REFERENCES huellas.persona(id_persona) |
 | `organizacion_origen_id` | Organización remesante, exclusiva de TRASLADO. | `bigint` | No; ver condición | — | ingreso_organizacion_origen_id_fkey: FOREIGN KEY (organizacion_origen_id) REFERENCES huellas.organizacion_externa(id_organizacion) |
-| `adopcion_origen_id` | Adopción que originó el regreso; bloqueada hasta instalar FK de Jean Carlos. | `bigint` | No; ver condición | — | ingreso_adopcion_origen_id_key: UNIQUE (adopcion_origen_id) |
+
+| `adopcion_origen_id` | Adopción finalizada que origina una devolución o recuperación del mismo animal. | `bigint` | No; ver condición | — | ingreso_adopcion_origen_id_key: UNIQUE (adopcion_origen_id); ingreso_adopcion_origen_fk: FOREIGN KEY (adopcion_origen_id, animal_codigo) REFERENCES huellas.adopcion(id_adopcion, animal_codigo) |
+
 | `receptor_devolucion_id` | Persona que recibió una devolución/recuperación; requerida en esos regresos. | `bigint` | No; ver condición | — | ingreso_receptor_devolucion_id_fkey: FOREIGN KEY (receptor_devolucion_id) REFERENCES huellas.persona(id_persona) |
 | `fecha_cierre` | Fin exclusivo de la etapa, si terminó. | `huellas.instante` | No; ver condición | — | — |
 
@@ -411,7 +415,7 @@ Restricciones declarativas:
 - `ingreso_propietario_anterior_id_fkey`: `FOREIGN KEY (propietario_anterior_id) REFERENCES huellas.persona(id_persona)`.
 - `ingreso_receptor`: `CHECK (((circunstancia_ingreso = ANY (ARRAY['DEVOLUCION'::text, 'RECUPERACION'::text])) = (receptor_devolucion_id IS NOT NULL)))`.
 - `ingreso_receptor_devolucion_id_fkey`: `FOREIGN KEY (receptor_devolucion_id) REFERENCES huellas.persona(id_persona)`.
-- `zz_ingreso_adopcion_pendiente`: `CHECK ((adopcion_origen_id IS NULL))`.
+- `ingreso_adopcion_origen_fk`: `FOREIGN KEY (adopcion_origen_id, animal_codigo) REFERENCES huellas.adopcion(id_adopcion, animal_codigo)`.
 
 Índices (incluye soporte de PK/UQ y parciales):
 
@@ -426,6 +430,11 @@ Mecanismos adicionales:
 - `CREATE CONSTRAINT TRIGGER ingreso_inicial_paula AFTER INSERT OR UPDATE ON huellas.ingreso DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION huellas._exigir_inicial_paula()`.
 - `CREATE TRIGGER ingreso_serializar BEFORE INSERT OR DELETE OR UPDATE ON huellas.ingreso FOR EACH STATEMENT EXECUTE FUNCTION huellas._serializar_catalogo()`.
 - `CREATE TRIGGER zz_ingreso_contexto_paula BEFORE UPDATE ON huellas.ingreso FOR EACH ROW EXECUTE FUNCTION huellas._preservar_etapa_clinica_paula()`.
+- `_validar_reingreso_jeank()`: valida que la adopción de origen exista, corresponda al mismo animal, se encuentre finalizada y que la circunstancia y fecha del nuevo ingreso sean compatibles con su finalización.
+- El nuevo ingreso por devolución o recuperación requiere una evaluación inicial propia.
+- Una devolución voluntaria no genera automáticamente una restricción para la persona adoptante.
+- Evidencia de integración: PJ-09.
+
 
 ## medio_contacto
 
@@ -734,3 +743,322 @@ Mecanismos adicionales:
 
 - `CREATE TRIGGER especie_aceptada_historia BEFORE INSERT OR DELETE OR UPDATE ON huellas.ubicacion_especie_aceptada FOR EACH ROW EXECUTE FUNCTION huellas._preservar_especies()`.
 - `CREATE TRIGGER especie_aceptada_serializar BEFORE INSERT OR DELETE OR UPDATE ON huellas.ubicacion_especie_aceptada FOR EACH STATEMENT EXECUTE FUNCTION huellas._serializar_catalogo()`.
+
+## adopcion
+
+| Atributo | Descripción y dominio | Tipo PostgreSQL | Obligatorio | Predeterminado | Claves y referencias |
+|---|---|---|---|---|---|
+| `id_adopcion` | Identidad de la adopción individual. | `bigint` | Sí | IDENTITY BY DEFAULT | adopcion_animal_uq: UNIQUE (id_adopcion, animal_codigo); adopcion_pkey: PRIMARY KEY (id_adopcion) |
+| `clave_operacion` | UUID único de la operación. | `uuid` | Sí | — | adopcion_clave_operacion_key: UNIQUE (clave_operacion) |
+| `reserva_id` | Reserva que origina la adopción. | `bigint` | Sí | — | adopcion_reserva_contexto_fk: FOREIGN KEY (reserva_id, solicitud_id, animal_codigo, ingreso_id) REFERENCES huellas.reserva(id_reserva, solicitud_id, animal_codigo, ingreso_id); adopcion_reserva_id_key: UNIQUE (reserva_id) |
+| `solicitud_id` | Solicitud del hogar interesado. | `bigint` | Sí | — | adopcion_compatibilidad_fk: FOREIGN KEY (compatibilidad_id, solicitud_id, animal_codigo, ingreso_id) REFERENCES huellas.compatibilidad_animal_hogar(id_compatibilidad, solicitud_id, animal_codigo, ingreso_id); adopcion_reserva_contexto_fk: FOREIGN KEY (reserva_id, solicitud_id, animal_codigo, ingreso_id) REFERENCES huellas.reserva(id_reserva, solicitud_id, animal_codigo, ingreso_id); adopcion_solicitud_animal_fk: FOREIGN KEY (solicitud_id, animal_codigo) REFERENCES huellas.solicitud_animal(solicitud_id, animal_codigo) |
+| `animal_codigo` | Código del animal del contexto. | `huellas.texto_no_vacio` | Sí | — | adopcion_animal_uq: UNIQUE (id_adopcion, animal_codigo); adopcion_compatibilidad_fk: FOREIGN KEY (compatibilidad_id, solicitud_id, animal_codigo, ingreso_id) REFERENCES huellas.compatibilidad_animal_hogar(id_compatibilidad, solicitud_id, animal_codigo, ingreso_id); adopcion_ingreso_animal_fk: FOREIGN KEY (ingreso_id, animal_codigo) REFERENCES huellas.ingreso(id_ingreso, animal_codigo); adopcion_reserva_contexto_fk: FOREIGN KEY (reserva_id, solicitud_id, animal_codigo, ingreso_id) REFERENCES huellas.reserva(id_reserva, solicitud_id, animal_codigo, ingreso_id); adopcion_solicitud_animal_fk: FOREIGN KEY (solicitud_id, animal_codigo) REFERENCES huellas.solicitud_animal(solicitud_id, animal_codigo) |
+| `ingreso_id` | Etapa de ingreso correspondiente. | `bigint` | Sí | — | adopcion_compatibilidad_fk: FOREIGN KEY (compatibilidad_id, solicitud_id, animal_codigo, ingreso_id) REFERENCES huellas.compatibilidad_animal_hogar(id_compatibilidad, solicitud_id, animal_codigo, ingreso_id); adopcion_ingreso_animal_fk: FOREIGN KEY (ingreso_id, animal_codigo) REFERENCES huellas.ingreso(id_ingreso, animal_codigo); adopcion_ingreso_id_key: UNIQUE (ingreso_id); adopcion_reserva_contexto_fk: FOREIGN KEY (reserva_id, solicitud_id, animal_codigo, ingreso_id) REFERENCES huellas.reserva(id_reserva, solicitud_id, animal_codigo, ingreso_id) |
+| `compatibilidad_id` | Valoración de compatibilidad del contexto. | `bigint` | Sí | — | adopcion_compatibilidad_fk: FOREIGN KEY (compatibilidad_id, solicitud_id, animal_codigo, ingreso_id) REFERENCES huellas.compatibilidad_animal_hogar(id_compatibilidad, solicitud_id, animal_codigo, ingreso_id) |
+| `fecha_entrega` | Instante de entrega del animal. | `huellas.instante` | Sí | — | — |
+| `condiciones_aceptadas` | Condiciones aceptadas para la adopción. | `huellas.texto_no_vacio` | Sí | — | — |
+| `responsable_entrega_id` | Persona responsable de la entrega. | `bigint` | Sí | — | adopcion_responsable_entrega_id_fkey: FOREIGN KEY (responsable_entrega_id) REFERENCES huellas.persona(id_persona) |
+| `tipo_finalizacion` | Categoría de finalización según CHECK. | `text` | No; ver condición | — | — |
+| `fecha_finalizacion` | Instante de finalización, si existe. | `huellas.instante` | No; ver condición | — | — |
+
+Restricciones declarativas:
+
+- `adopcion_animal_uq`: `UNIQUE (id_adopcion, animal_codigo)`.
+- `adopcion_clave_operacion_key`: `UNIQUE (clave_operacion)`.
+- `adopcion_compatibilidad_fk`: `FOREIGN KEY (compatibilidad_id, solicitud_id, animal_codigo, ingreso_id) REFERENCES huellas.compatibilidad_animal_hogar(id_compatibilidad, solicitud_id, animal_codigo, ingreso_id)`.
+- `adopcion_finalizacion_fecha_chk`: `CHECK (((fecha_finalizacion IS NULL) OR ((fecha_finalizacion)::timestamp with time zone >= (fecha_entrega)::timestamp with time zone)))`.
+- `adopcion_finalizacion_par_chk`: `CHECK (((tipo_finalizacion IS NULL) = (fecha_finalizacion IS NULL)))`.
+- `adopcion_id_adopcion_check`: `CHECK ((id_adopcion > 0))`.
+- `adopcion_ingreso_animal_fk`: `FOREIGN KEY (ingreso_id, animal_codigo) REFERENCES huellas.ingreso(id_ingreso, animal_codigo)`.
+- `adopcion_ingreso_id_key`: `UNIQUE (ingreso_id)`.
+- `adopcion_integridad_final`: `TRIGGER DEFERRABLE INITIALLY DEFERRED`.
+- `adopcion_pkey`: `PRIMARY KEY (id_adopcion)`.
+- `adopcion_reserva_contexto_fk`: `FOREIGN KEY (reserva_id, solicitud_id, animal_codigo, ingreso_id) REFERENCES huellas.reserva(id_reserva, solicitud_id, animal_codigo, ingreso_id)`.
+- `adopcion_reserva_id_key`: `UNIQUE (reserva_id)`.
+- `adopcion_responsable_entrega_id_fkey`: `FOREIGN KEY (responsable_entrega_id) REFERENCES huellas.persona(id_persona)`.
+- `adopcion_solicitud_animal_fk`: `FOREIGN KEY (solicitud_id, animal_codigo) REFERENCES huellas.solicitud_animal(solicitud_id, animal_codigo)`.
+- `adopcion_tipo_finalizacion_check`: `CHECK ((tipo_finalizacion = ANY (ARRAY['SATISFACTORIA'::text, 'DEVOLUCION_VOLUNTARIA'::text, 'RECUPERACION_POR_INCUMPLIMIENTO'::text, 'PERDIDA_CONTACTO'::text])))`.
+
+Índices (incluye soporte de PK/UQ y parciales):
+
+- `CREATE INDEX adopcion_animal_idx ON huellas.adopcion USING btree (animal_codigo)`.
+- `CREATE UNIQUE INDEX adopcion_animal_uq ON huellas.adopcion USING btree (id_adopcion, animal_codigo)`.
+- `CREATE UNIQUE INDEX adopcion_clave_operacion_key ON huellas.adopcion USING btree (clave_operacion)`.
+- `CREATE UNIQUE INDEX adopcion_ingreso_id_key ON huellas.adopcion USING btree (ingreso_id)`.
+- `CREATE UNIQUE INDEX adopcion_pkey ON huellas.adopcion USING btree (id_adopcion)`.
+- `CREATE UNIQUE INDEX adopcion_reserva_id_key ON huellas.adopcion USING btree (reserva_id)`.
+- `CREATE INDEX adopcion_solicitud_idx ON huellas.adopcion USING btree (solicitud_id, animal_codigo)`.
+
+Mecanismos adicionales:
+
+- `CREATE TRIGGER adopcion_finalizacion_validar BEFORE DELETE OR UPDATE ON huellas.adopcion FOR EACH ROW EXECUTE FUNCTION huellas._validar_finalizacion_adopcion_jeank()`.
+- `CREATE CONSTRAINT TRIGGER adopcion_integridad_final AFTER INSERT OR UPDATE ON huellas.adopcion DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION huellas._adopcion_diferida_jeank()`.
+- `CREATE TRIGGER adopcion_serializar BEFORE INSERT OR DELETE OR UPDATE ON huellas.adopcion FOR EACH STATEMENT EXECUTE FUNCTION huellas._serializar_catalogo()`.
+- `CREATE TRIGGER adopcion_validar BEFORE INSERT ON huellas.adopcion FOR EACH ROW EXECUTE FUNCTION huellas._validar_adopcion_jeank()`.
+
+
+## adopcion_responsable
+
+| Atributo | Descripción y dominio | Tipo PostgreSQL | Obligatorio | Predeterminado | Claves y referencias |
+|---|---|---|---|---|---|
+| `adopcion_id` | Adopción a la que pertenece el registro. | `bigint` | Sí | — | adopcion_responsable_adopcion_id_fkey: FOREIGN KEY (adopcion_id) REFERENCES huellas.adopcion(id_adopcion); adopcion_responsable_pkey: PRIMARY KEY (adopcion_id, persona_id) |
+| `persona_id` | Persona adoptante responsable. | `bigint` | Sí | — | adopcion_responsable_persona_id_fkey: FOREIGN KEY (persona_id) REFERENCES huellas.persona(id_persona); adopcion_responsable_pkey: PRIMARY KEY (adopcion_id, persona_id) |
+
+Restricciones declarativas:
+
+- `adopcion_responsable_adopcion_id_fkey`: `FOREIGN KEY (adopcion_id) REFERENCES huellas.adopcion(id_adopcion)`.
+- `adopcion_responsable_persona_id_fkey`: `FOREIGN KEY (persona_id) REFERENCES huellas.persona(id_persona)`.
+- `adopcion_responsable_pkey`: `PRIMARY KEY (adopcion_id, persona_id)`.
+
+Índices (incluye soporte de PK/UQ y parciales):
+
+- `CREATE INDEX adopcion_responsable_persona_idx ON huellas.adopcion_responsable USING btree (persona_id)`.
+- `CREATE UNIQUE INDEX adopcion_responsable_pkey ON huellas.adopcion_responsable USING btree (adopcion_id, persona_id)`.
+
+Mecanismos adicionales:
+
+- `CREATE TRIGGER adopcion_responsable_serializar BEFORE INSERT OR DELETE OR UPDATE ON huellas.adopcion_responsable FOR EACH STATEMENT EXECUTE FUNCTION huellas._serializar_catalogo()`.
+- `CREATE TRIGGER adopcion_responsable_validar BEFORE INSERT OR DELETE OR UPDATE ON huellas.adopcion_responsable FOR EACH ROW EXECUTE FUNCTION huellas._validar_responsable_adopcion_jeank()`.
+
+
+## aplicacion_indicacion
+
+| Atributo | Descripción y dominio | Tipo PostgreSQL | Obligatorio | Predeterminado | Claves y referencias |
+|---|---|---|---|---|---|
+| `id_aplicacion` | Identidad de la aplicación clínica. | `bigint` | Sí | IDENTITY BY DEFAULT | aplicacion_indicacion_pkey: PRIMARY KEY (id_aplicacion) |
+| `indicacion_id` | Indicación clínica correspondiente. | `bigint` | Sí | — | aplicacion_indicacion_indicacion_id_fkey: FOREIGN KEY (indicacion_id) REFERENCES huellas.indicacion(id_indicacion) |
+| `fecha_planificada` | Instante planificado de aplicación. | `huellas.instante` | Sí | — | — |
+| `fecha_real` | Instante real de aplicación; NULL si no realizada. | `huellas.instante` | No; ver condición | — | — |
+| `responsable_id` | Persona responsable del hecho. | `bigint` | No; ver condición | — | aplicacion_indicacion_responsable_id_fkey: FOREIGN KEY (responsable_id) REFERENCES huellas.persona(id_persona) |
+| `observaciones` | Observaciones de la aplicación. | `huellas.texto_no_vacio` | No; ver condición | — | — |
+
+Restricciones declarativas:
+
+- `aplicacion_indicacion_id_aplicacion_check`: `CHECK ((id_aplicacion > 0))`.
+- `aplicacion_indicacion_indicacion_id_fkey`: `FOREIGN KEY (indicacion_id) REFERENCES huellas.indicacion(id_indicacion)`.
+- `aplicacion_indicacion_pkey`: `PRIMARY KEY (id_aplicacion)`.
+- `aplicacion_indicacion_responsable_id_fkey`: `FOREIGN KEY (responsable_id) REFERENCES huellas.persona(id_persona)`.
+- `aplicacion_realizada_chk`: `CHECK (((fecha_real IS NULL) OR ((responsable_id IS NOT NULL) AND (observaciones IS NOT NULL))))`.
+
+Índices (incluye soporte de PK/UQ y parciales):
+
+- `CREATE INDEX aplicacion_indicacion_idx ON huellas.aplicacion_indicacion USING btree (indicacion_id)`.
+- `CREATE UNIQUE INDEX aplicacion_indicacion_pkey ON huellas.aplicacion_indicacion USING btree (id_aplicacion)`.
+
+Mecanismos adicionales:
+
+- `CREATE TRIGGER aplicacion_indicacion_serializar BEFORE INSERT OR DELETE OR UPDATE ON huellas.aplicacion_indicacion FOR EACH STATEMENT EXECUTE FUNCTION huellas._serializar_catalogo()`.
+- `CREATE TRIGGER aplicacion_validar BEFORE INSERT OR DELETE OR UPDATE ON huellas.aplicacion_indicacion FOR EACH ROW EXECUTE FUNCTION huellas._validar_aplicacion_jeank()`.
+
+
+## indicacion
+
+| Atributo | Descripción y dominio | Tipo PostgreSQL | Obligatorio | Predeterminado | Claves y referencias |
+|---|---|---|---|---|---|
+| `id_indicacion` | Identidad de la indicación clínica. | `bigint` | Sí | IDENTITY BY DEFAULT | indicacion_contexto_uq: UNIQUE (id_indicacion, evaluacion_id); indicacion_pkey: PRIMARY KEY (id_indicacion) |
+| `evaluacion_id` | Revisión veterinaria de origen. | `bigint` | Sí | — | indicacion_contexto_uq: UNIQUE (id_indicacion, evaluacion_id); indicacion_revision_fk: FOREIGN KEY (evaluacion_id, tipo_evaluacion) REFERENCES huellas.evaluacion_salud(id_evaluacion, tipo_evaluacion) |
+| `tipo_evaluacion` | Discriminador fijo REVISION_VETERINARIA. | `text` | Sí | 'REVISION_VETERINARIA'::text | indicacion_revision_fk: FOREIGN KEY (evaluacion_id, tipo_evaluacion) REFERENCES huellas.evaluacion_salud(id_evaluacion, tipo_evaluacion) |
+| `tipo_indicacion` | Categoría clínica según CHECK. | `text` | Sí | — | — |
+| `descripcion` | Descripción de la indicación. | `huellas.texto_no_vacio` | Sí | — | — |
+| `estado_indicacion` | Estado descriptivo opcional. | `huellas.texto_no_vacio` | No; ver condición | — | — |
+| `indicacion_sustituida_id` | Indicación anterior sustituida, si existe. | `bigint` | No; ver condición | — | indicacion_indicacion_sustituida_id_fkey: FOREIGN KEY (indicacion_sustituida_id) REFERENCES huellas.indicacion(id_indicacion) |
+
+Restricciones declarativas:
+
+- `indicacion_contexto_uq`: `UNIQUE (id_indicacion, evaluacion_id)`.
+- `indicacion_id_indicacion_check`: `CHECK ((id_indicacion > 0))`.
+- `indicacion_indicacion_sustituida_id_fkey`: `FOREIGN KEY (indicacion_sustituida_id) REFERENCES huellas.indicacion(id_indicacion)`.
+- `indicacion_no_autosustitucion`: `CHECK ((indicacion_sustituida_id <> id_indicacion))`.
+- `indicacion_pkey`: `PRIMARY KEY (id_indicacion)`.
+- `indicacion_revision_fk`: `FOREIGN KEY (evaluacion_id, tipo_evaluacion) REFERENCES huellas.evaluacion_salud(id_evaluacion, tipo_evaluacion)`.
+- `indicacion_tipo_evaluacion_check`: `CHECK ((tipo_evaluacion = 'REVISION_VETERINARIA'::text))`.
+- `indicacion_tipo_indicacion_check`: `CHECK ((tipo_indicacion = ANY (ARRAY['TRATAMIENTO'::text, 'MEDICAMENTO'::text, 'VACUNA'::text, 'PROCEDIMIENTO'::text, 'CONTROL_POSTERIOR'::text])))`.
+
+Índices (incluye soporte de PK/UQ y parciales):
+
+- `CREATE UNIQUE INDEX indicacion_contexto_uq ON huellas.indicacion USING btree (id_indicacion, evaluacion_id)`.
+- `CREATE INDEX indicacion_evaluacion_idx ON huellas.indicacion USING btree (evaluacion_id)`.
+- `CREATE UNIQUE INDEX indicacion_pkey ON huellas.indicacion USING btree (id_indicacion)`.
+- `CREATE INDEX indicacion_sustituida_idx ON huellas.indicacion USING btree (indicacion_sustituida_id)`.
+
+Mecanismos adicionales:
+
+- `CREATE TRIGGER indicacion_historia BEFORE DELETE OR UPDATE ON huellas.indicacion FOR EACH ROW EXECUTE FUNCTION huellas._solo_insercion_paula()`.
+- `CREATE TRIGGER indicacion_serializar BEFORE INSERT OR DELETE OR UPDATE ON huellas.indicacion FOR EACH STATEMENT EXECUTE FUNCTION huellas._serializar_catalogo()`.
+- `CREATE TRIGGER indicacion_validar BEFORE INSERT ON huellas.indicacion FOR EACH ROW EXECUTE FUNCTION huellas._validar_indicacion_jeank()`.
+
+
+## indicacion_diagnostico
+
+| Atributo | Descripción y dominio | Tipo PostgreSQL | Obligatorio | Predeterminado | Claves y referencias |
+|---|---|---|---|---|---|
+| `indicacion_id` | Indicación clínica correspondiente. | `bigint` | Sí | — | indicacion_diagnostico_contexto_fk: FOREIGN KEY (indicacion_id, evaluacion_id) REFERENCES huellas.indicacion(id_indicacion, evaluacion_id); indicacion_diagnostico_pkey: PRIMARY KEY (indicacion_id, diagnostico_id) |
+| `evaluacion_id` | Revisión veterinaria de origen. | `bigint` | Sí | — | indicacion_diagnostico_contexto_fk: FOREIGN KEY (indicacion_id, evaluacion_id) REFERENCES huellas.indicacion(id_indicacion, evaluacion_id); indicacion_diagnostico_revision_fk: FOREIGN KEY (evaluacion_id, diagnostico_id) REFERENCES huellas.diagnostico_revision(evaluacion_id, diagnostico_id) |
+| `diagnostico_id` | Diagnóstico de la misma revisión. | `bigint` | Sí | — | indicacion_diagnostico_pkey: PRIMARY KEY (indicacion_id, diagnostico_id); indicacion_diagnostico_revision_fk: FOREIGN KEY (evaluacion_id, diagnostico_id) REFERENCES huellas.diagnostico_revision(evaluacion_id, diagnostico_id) |
+
+Restricciones declarativas:
+
+- `indicacion_diagnostico_contexto_fk`: `FOREIGN KEY (indicacion_id, evaluacion_id) REFERENCES huellas.indicacion(id_indicacion, evaluacion_id)`.
+- `indicacion_diagnostico_pkey`: `PRIMARY KEY (indicacion_id, diagnostico_id)`.
+- `indicacion_diagnostico_revision_fk`: `FOREIGN KEY (evaluacion_id, diagnostico_id) REFERENCES huellas.diagnostico_revision(evaluacion_id, diagnostico_id)`.
+
+Índices (incluye soporte de PK/UQ y parciales):
+
+- `CREATE UNIQUE INDEX indicacion_diagnostico_pkey ON huellas.indicacion_diagnostico USING btree (indicacion_id, diagnostico_id)`.
+- `CREATE INDEX indicacion_diagnostico_revision_idx ON huellas.indicacion_diagnostico USING btree (evaluacion_id, diagnostico_id)`.
+
+Mecanismos adicionales:
+
+- `CREATE TRIGGER indicacion_diagnostico_historia BEFORE DELETE OR UPDATE ON huellas.indicacion_diagnostico FOR EACH ROW EXECUTE FUNCTION huellas._solo_insercion_paula()`.
+- `CREATE TRIGGER indicacion_diagnostico_serializar BEFORE INSERT OR DELETE OR UPDATE ON huellas.indicacion_diagnostico FOR EACH STATEMENT EXECUTE FUNCTION huellas._serializar_catalogo()`.
+
+
+## reserva
+
+| Atributo | Descripción y dominio | Tipo PostgreSQL | Obligatorio | Predeterminado | Claves y referencias |
+|---|---|---|---|---|---|
+| `id_reserva` | Identidad de la reserva. | `bigint` | Sí | IDENTITY BY DEFAULT | reserva_contexto_uq: UNIQUE (id_reserva, solicitud_id, animal_codigo, ingreso_id); reserva_pkey: PRIMARY KEY (id_reserva) |
+| `clave_operacion` | UUID único de la operación. | `uuid` | Sí | — | reserva_clave_operacion_key: UNIQUE (clave_operacion) |
+| `solicitud_id` | Solicitud del hogar interesado. | `bigint` | Sí | — | reserva_compatibilidad_fk: FOREIGN KEY (compatibilidad_id, solicitud_id, animal_codigo, ingreso_id) REFERENCES huellas.compatibilidad_animal_hogar(id_compatibilidad, solicitud_id, animal_codigo, ingreso_id); reserva_contexto_uq: UNIQUE (id_reserva, solicitud_id, animal_codigo, ingreso_id); reserva_solicitud_animal_fk: FOREIGN KEY (solicitud_id, animal_codigo) REFERENCES huellas.solicitud_animal(solicitud_id, animal_codigo) |
+| `animal_codigo` | Código del animal del contexto. | `huellas.texto_no_vacio` | Sí | — | reserva_compatibilidad_fk: FOREIGN KEY (compatibilidad_id, solicitud_id, animal_codigo, ingreso_id) REFERENCES huellas.compatibilidad_animal_hogar(id_compatibilidad, solicitud_id, animal_codigo, ingreso_id); reserva_contexto_uq: UNIQUE (id_reserva, solicitud_id, animal_codigo, ingreso_id); reserva_ingreso_animal_fk: FOREIGN KEY (ingreso_id, animal_codigo) REFERENCES huellas.ingreso(id_ingreso, animal_codigo); reserva_solicitud_animal_fk: FOREIGN KEY (solicitud_id, animal_codigo) REFERENCES huellas.solicitud_animal(solicitud_id, animal_codigo) |
+| `ingreso_id` | Etapa de ingreso correspondiente. | `bigint` | Sí | — | reserva_compatibilidad_fk: FOREIGN KEY (compatibilidad_id, solicitud_id, animal_codigo, ingreso_id) REFERENCES huellas.compatibilidad_animal_hogar(id_compatibilidad, solicitud_id, animal_codigo, ingreso_id); reserva_contexto_uq: UNIQUE (id_reserva, solicitud_id, animal_codigo, ingreso_id); reserva_ingreso_animal_fk: FOREIGN KEY (ingreso_id, animal_codigo) REFERENCES huellas.ingreso(id_ingreso, animal_codigo) |
+| `compatibilidad_id` | Valoración de compatibilidad del contexto. | `bigint` | Sí | — | reserva_compatibilidad_fk: FOREIGN KEY (compatibilidad_id, solicitud_id, animal_codigo, ingreso_id) REFERENCES huellas.compatibilidad_animal_hogar(id_compatibilidad, solicitud_id, animal_codigo, ingreso_id) |
+| `fecha_reserva` | Instante de creación de la reserva. | `huellas.instante` | Sí | — | — |
+| `fecha_fin_reserva` | Fin de la reserva; NULL mientras esté vigente. | `huellas.instante` | No; ver condición | — | — |
+| `responsable_id` | Persona responsable del hecho. | `bigint` | Sí | — | reserva_responsable_id_fkey: FOREIGN KEY (responsable_id) REFERENCES huellas.persona(id_persona) |
+
+Restricciones declarativas:
+
+- `reserva_clave_operacion_key`: `UNIQUE (clave_operacion)`.
+- `reserva_compatibilidad_fk`: `FOREIGN KEY (compatibilidad_id, solicitud_id, animal_codigo, ingreso_id) REFERENCES huellas.compatibilidad_animal_hogar(id_compatibilidad, solicitud_id, animal_codigo, ingreso_id)`.
+- `reserva_contexto_uq`: `UNIQUE (id_reserva, solicitud_id, animal_codigo, ingreso_id)`.
+- `reserva_id_reserva_check`: `CHECK ((id_reserva > 0))`.
+- `reserva_ingreso_animal_fk`: `FOREIGN KEY (ingreso_id, animal_codigo) REFERENCES huellas.ingreso(id_ingreso, animal_codigo)`.
+- `reserva_periodo_chk`: `CHECK (((fecha_fin_reserva IS NULL) OR ((fecha_fin_reserva)::timestamp with time zone >= (fecha_reserva)::timestamp with time zone)))`.
+- `reserva_pkey`: `PRIMARY KEY (id_reserva)`.
+- `reserva_responsable_id_fkey`: `FOREIGN KEY (responsable_id) REFERENCES huellas.persona(id_persona)`.
+- `reserva_solicitud_animal_fk`: `FOREIGN KEY (solicitud_id, animal_codigo) REFERENCES huellas.solicitud_animal(solicitud_id, animal_codigo)`.
+
+Índices (incluye soporte de PK/UQ y parciales):
+
+- `CREATE UNIQUE INDEX reserva_animal_vigente_uq ON huellas.reserva USING btree (animal_codigo) WHERE (fecha_fin_reserva IS NULL)`.
+- `CREATE UNIQUE INDEX reserva_clave_operacion_key ON huellas.reserva USING btree (clave_operacion)`.
+- `CREATE UNIQUE INDEX reserva_contexto_uq ON huellas.reserva USING btree (id_reserva, solicitud_id, animal_codigo, ingreso_id)`.
+- `CREATE INDEX reserva_ingreso_idx ON huellas.reserva USING btree (ingreso_id)`.
+- `CREATE UNIQUE INDEX reserva_pkey ON huellas.reserva USING btree (id_reserva)`.
+- `CREATE INDEX reserva_solicitud_idx ON huellas.reserva USING btree (solicitud_id, animal_codigo)`.
+
+Mecanismos adicionales:
+
+- `CREATE TRIGGER reserva_serializar BEFORE INSERT OR DELETE OR UPDATE ON huellas.reserva FOR EACH STATEMENT EXECUTE FUNCTION huellas._serializar_catalogo()`.
+- `CREATE TRIGGER reserva_validar BEFORE INSERT OR DELETE OR UPDATE ON huellas.reserva FOR EACH ROW EXECUTE FUNCTION huellas._validar_reserva_jeank()`.
+
+
+## restriccion_persona
+
+| Atributo | Descripción y dominio | Tipo PostgreSQL | Obligatorio | Predeterminado | Claves y referencias |
+|---|---|---|---|---|---|
+| `id_restriccion` | Identidad de la restricción documentada. | `bigint` | Sí | IDENTITY BY DEFAULT | restriccion_persona_pkey: PRIMARY KEY (id_restriccion) |
+| `persona_afectada_id` | Persona sujeta a la restricción. | `bigint` | Sí | — | restriccion_persona_persona_afectada_id_fkey: FOREIGN KEY (persona_afectada_id) REFERENCES huellas.persona(id_persona) |
+| `motivo` | Fundamento documentado de la restricción. | `huellas.texto_no_vacio` | Sí | — | — |
+| `fecha_inicio` | Inicio de vigencia. | `huellas.instante` | Sí | — | — |
+| `fecha_fin` | Fin de vigencia; NULL si abierta. | `huellas.instante` | No; ver condición | — | — |
+| `responsable_decision_id` | Persona que decide la restricción. | `bigint` | Sí | — | restriccion_persona_responsable_decision_id_fkey: FOREIGN KEY (responsable_decision_id) REFERENCES huellas.persona(id_persona) |
+
+Restricciones declarativas:
+
+- `restriccion_periodo_chk`: `CHECK (((fecha_fin IS NULL) OR ((fecha_fin)::timestamp with time zone >= (fecha_inicio)::timestamp with time zone)))`.
+- `restriccion_persona_id_restriccion_check`: `CHECK ((id_restriccion > 0))`.
+- `restriccion_persona_persona_afectada_id_fkey`: `FOREIGN KEY (persona_afectada_id) REFERENCES huellas.persona(id_persona)`.
+- `restriccion_persona_pkey`: `PRIMARY KEY (id_restriccion)`.
+- `restriccion_persona_responsable_decision_id_fkey`: `FOREIGN KEY (responsable_decision_id) REFERENCES huellas.persona(id_persona)`.
+
+Índices (incluye soporte de PK/UQ y parciales):
+
+- `CREATE UNIQUE INDEX restriccion_persona_pkey ON huellas.restriccion_persona USING btree (id_restriccion)`.
+- `CREATE INDEX restriccion_persona_vigencia_idx ON huellas.restriccion_persona USING btree (persona_afectada_id, fecha_inicio, fecha_fin)`.
+
+Mecanismos adicionales:
+
+- `CREATE TRIGGER restriccion_serializar BEFORE INSERT OR DELETE OR UPDATE ON huellas.restriccion_persona FOR EACH STATEMENT EXECUTE FUNCTION huellas._serializar_catalogo()`.
+- `CREATE TRIGGER restriccion_validar BEFORE INSERT OR DELETE OR UPDATE ON huellas.restriccion_persona FOR EACH ROW EXECUTE FUNCTION huellas._validar_restriccion_jeank()`.
+
+
+## resultado_etapa
+
+| Atributo | Descripción y dominio | Tipo PostgreSQL | Obligatorio | Predeterminado | Claves y referencias |
+|---|---|---|---|---|---|
+| `id_resultado` | Identidad del resultado de etapa. | `bigint` | Sí | IDENTITY BY DEFAULT | resultado_etapa_pkey: PRIMARY KEY (id_resultado) |
+| `ingreso_id` | Etapa de ingreso correspondiente. | `bigint` | Sí | — | resultado_etapa_ingreso_id_fkey: FOREIGN KEY (ingreso_id) REFERENCES huellas.ingreso(id_ingreso); resultado_etapa_ingreso_id_key: UNIQUE (ingreso_id) |
+| `tipo_resultado` | Categoría de resultado según CHECK. | `text` | Sí | — | — |
+| `fecha` | Instante del resultado. | `huellas.instante` | Sí | — | — |
+| `circunstancias` | Descripción del resultado. | `huellas.texto_no_vacio` | Sí | — | — |
+| `responsable_id` | Persona responsable del hecho. | `bigint` | Sí | — | resultado_etapa_responsable_id_fkey: FOREIGN KEY (responsable_id) REFERENCES huellas.persona(id_persona) |
+| `organizacion_destino_id` | Organización de destino del traslado. | `bigint` | No; ver condición | — | resultado_etapa_organizacion_destino_id_fkey: FOREIGN KEY (organizacion_destino_id) REFERENCES huellas.organizacion_externa(id_organizacion) |
+| `condiciones_traslado` | Condiciones documentadas del traslado. | `huellas.texto_no_vacio` | No; ver condición | — | — |
+
+Restricciones declarativas:
+
+- `resultado_etapa_id_resultado_check`: `CHECK ((id_resultado > 0))`.
+- `resultado_etapa_ingreso_id_fkey`: `FOREIGN KEY (ingreso_id) REFERENCES huellas.ingreso(id_ingreso)`.
+- `resultado_etapa_ingreso_id_key`: `UNIQUE (ingreso_id)`.
+- `resultado_etapa_organizacion_destino_id_fkey`: `FOREIGN KEY (organizacion_destino_id) REFERENCES huellas.organizacion_externa(id_organizacion)`.
+- `resultado_etapa_pkey`: `PRIMARY KEY (id_resultado)`.
+- `resultado_etapa_responsable_id_fkey`: `FOREIGN KEY (responsable_id) REFERENCES huellas.persona(id_persona)`.
+- `resultado_etapa_tipo_resultado_check`: `CHECK ((tipo_resultado = ANY (ARRAY['REUNIFICACION'::text, 'TRASLADO'::text, 'CUIDADO_PROLONGADO'::text, 'FALLECIMIENTO'::text])))`.
+- `resultado_integridad_final`: `TRIGGER DEFERRABLE INITIALLY DEFERRED`.
+- `resultado_traslado_chk`: `CHECK (((tipo_resultado <> 'TRASLADO'::text) OR ((organizacion_destino_id IS NOT NULL) AND (condiciones_traslado IS NOT NULL))))`.
+
+Índices (incluye soporte de PK/UQ y parciales):
+
+- `CREATE UNIQUE INDEX resultado_etapa_ingreso_id_key ON huellas.resultado_etapa USING btree (ingreso_id)`.
+- `CREATE UNIQUE INDEX resultado_etapa_pkey ON huellas.resultado_etapa USING btree (id_resultado)`.
+- `CREATE INDEX resultado_organizacion_idx ON huellas.resultado_etapa USING btree (organizacion_destino_id)`.
+
+Mecanismos adicionales:
+
+- `CREATE TRIGGER resultado_etapa_serializar BEFORE INSERT OR DELETE OR UPDATE ON huellas.resultado_etapa FOR EACH STATEMENT EXECUTE FUNCTION huellas._serializar_catalogo()`.
+- `CREATE TRIGGER resultado_etapa_validar BEFORE INSERT OR DELETE OR UPDATE ON huellas.resultado_etapa FOR EACH ROW EXECUTE FUNCTION huellas._validar_resultado_etapa_jeank()`.
+- `CREATE CONSTRAINT TRIGGER resultado_integridad_final AFTER INSERT ON huellas.resultado_etapa DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION huellas._resultado_diferido_jeank()`.
+
+
+## seguimiento_adopcion
+
+| Atributo | Descripción y dominio | Tipo PostgreSQL | Obligatorio | Predeterminado | Claves y referencias |
+|---|---|---|---|---|---|
+| `id_seguimiento` | Identidad del seguimiento. | `bigint` | Sí | IDENTITY BY DEFAULT | seguimiento_adopcion_pkey: PRIMARY KEY (id_seguimiento); seguimiento_contexto_uq: UNIQUE (id_seguimiento, adopcion_id) |
+| `adopcion_id` | Adopción a la que pertenece el registro. | `bigint` | Sí | — | seguimiento_adopcion_adopcion_id_fkey: FOREIGN KEY (adopcion_id) REFERENCES huellas.adopcion(id_adopcion); seguimiento_contexto_uq: UNIQUE (id_seguimiento, adopcion_id); seguimiento_origen_fk: FOREIGN KEY (seguimiento_origen_id, adopcion_id) REFERENCES huellas.seguimiento_adopcion(id_seguimiento, adopcion_id) |
+| `fecha_prevista` | Instante previsto del seguimiento. | `huellas.instante` | Sí | — | — |
+| `fecha_efectiva` | Instante efectivo del seguimiento realizado. | `huellas.instante` | No; ver condición | — | — |
+| `responsable_id` | Persona responsable del hecho. | `bigint` | Sí | — | seguimiento_adopcion_responsable_id_fkey: FOREIGN KEY (responsable_id) REFERENCES huellas.persona(id_persona) |
+| `medio` | Medio de seguimiento según CHECK. | `text` | Sí | — | — |
+| `resultado` | Resultado documentado del seguimiento. | `huellas.texto_no_vacio` | No; ver condición | — | — |
+| `acuerdo` | Acuerdo de seguimiento, si existe. | `huellas.texto_no_vacio` | No; ver condición | — | — |
+| `estado_seguimiento` | Estado del seguimiento según CHECK. | `text` | Sí | — | — |
+| `seguimiento_origen_id` | Seguimiento anterior de la misma adopción. | `bigint` | No; ver condición | — | seguimiento_origen_fk: FOREIGN KEY (seguimiento_origen_id, adopcion_id) REFERENCES huellas.seguimiento_adopcion(id_seguimiento, adopcion_id) |
+
+Restricciones declarativas:
+
+- `seguimiento_adopcion_adopcion_id_fkey`: `FOREIGN KEY (adopcion_id) REFERENCES huellas.adopcion(id_adopcion)`.
+- `seguimiento_adopcion_estado_seguimiento_check`: `CHECK ((estado_seguimiento = ANY (ARRAY['PENDIENTE'::text, 'REALIZADO'::text, 'REPROGRAMADO'::text, 'NO_REALIZADO'::text])))`.
+- `seguimiento_adopcion_id_seguimiento_check`: `CHECK ((id_seguimiento > 0))`.
+- `seguimiento_adopcion_medio_check`: `CHECK ((medio = ANY (ARRAY['LLAMADA'::text, 'MENSAJE'::text, 'VISITA'::text, 'REVISION_VETERINARIA'::text])))`.
+- `seguimiento_adopcion_pkey`: `PRIMARY KEY (id_seguimiento)`.
+- `seguimiento_adopcion_responsable_id_fkey`: `FOREIGN KEY (responsable_id) REFERENCES huellas.persona(id_persona)`.
+- `seguimiento_contexto_uq`: `UNIQUE (id_seguimiento, adopcion_id)`.
+- `seguimiento_no_autorreferencia_chk`: `CHECK ((seguimiento_origen_id <> id_seguimiento))`.
+- `seguimiento_origen_fk`: `FOREIGN KEY (seguimiento_origen_id, adopcion_id) REFERENCES huellas.seguimiento_adopcion(id_seguimiento, adopcion_id)`.
+- `seguimiento_realizado_chk`: `CHECK ((((estado_seguimiento = 'REALIZADO'::text) AND (fecha_efectiva IS NOT NULL) AND (resultado IS NOT NULL)) OR ((estado_seguimiento <> 'REALIZADO'::text) AND (fecha_efectiva IS NULL))))`.
+
+Índices (incluye soporte de PK/UQ y parciales):
+
+- `CREATE INDEX seguimiento_adopcion_idx ON huellas.seguimiento_adopcion USING btree (adopcion_id)`.
+- `CREATE UNIQUE INDEX seguimiento_adopcion_pkey ON huellas.seguimiento_adopcion USING btree (id_seguimiento)`.
+- `CREATE UNIQUE INDEX seguimiento_contexto_uq ON huellas.seguimiento_adopcion USING btree (id_seguimiento, adopcion_id)`.
+- `CREATE INDEX seguimiento_origen_idx ON huellas.seguimiento_adopcion USING btree (seguimiento_origen_id)`.
+- `CREATE UNIQUE INDEX seguimiento_reprogramacion_uq ON huellas.seguimiento_adopcion USING btree (seguimiento_origen_id) WHERE (seguimiento_origen_id IS NOT NULL)`.
+
+Mecanismos adicionales:
+
+- `CREATE TRIGGER seguimiento_serializar BEFORE INSERT OR DELETE OR UPDATE ON huellas.seguimiento_adopcion FOR EACH STATEMENT EXECUTE FUNCTION huellas._serializar_catalogo()`.
+- `CREATE TRIGGER seguimiento_validar BEFORE INSERT OR DELETE OR UPDATE ON huellas.seguimiento_adopcion FOR EACH ROW EXECUTE FUNCTION huellas._validar_seguimiento_jeank()`.

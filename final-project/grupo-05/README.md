@@ -1,6 +1,6 @@
 # Huellas Seguras · Grupo 05
 
-IC-4301 Bases de Datos I · Segunda entrega · Bloque de Jason 0.1 y aporte de Paula 1.0.
+IC-4301 Bases de Datos I · Segunda entrega · Consolidación integrada 2.0.
 
 | Integrante | Responsabilidad de la segunda entrega |
 |---|---|
@@ -8,11 +8,23 @@ IC-4301 Bases de Datos I · Segunda entrega · Bloque de Jason 0.1 y aporte de P
 | María Paula Romero Garro | G05-P02, reportes, evaluaciones y diagnósticos, solicitudes y compatibilidad |
 | Jean Carlos Segura Vargas | G05-P03, indicaciones y aplicaciones, reserva, adopción y cierre |
 
-El bloque instalable contiene las nueve relaciones de Jason, asignación y traslado, historial, ocupación, pruebas y el contrato para integrar la adopción. El inventario general tiene 27 relaciones de partida. El registro de un regreso posterior a una adopción queda bloqueado hasta contar con la tabla y la referencia compuesta que valida su origen. El estado del resto del modelo y de los procesos se detalla en [Integración](Integracion.md).
+**Estado integrado 2.0 (28 de noviembre de 2026):** 28 tablas físicas: nueve de Jason, diez de Paula (incluida la ampliación de compatibilidad) y nueve de Jean Carlos. Se conservan las 27 relaciones originales de P1. Los tres procesos están implementados; la FK contextual de adopción de origen sustituye el bloqueo provisional de reingreso. La cobertura de pruebas y sus límites se detallan en la [matriz de integridad](modelo/Matriz_Integridad.md) y en [Integración](Integracion.md).
 
-**Estado actual conjunto:** hay 19 tablas físicas: nueve de Jason, nueve de Paula y una ampliación de compatibilidad. G05-P02 dispone de operaciones y pruebas reales. Las nueve relaciones y G05-P03 de Jean Carlos siguen pendientes; no se declara completo el modelo del equipo. La instalación conjunta y las pruebas de Paula están en [Bloque de Paula G05-P02](#bloque-de-paula-g05-p02). Los pasos originales siguientes conservan la reproducción del bloque aislado de Jason.
+## Instalación completa recomendada
 
-## Instalación en una base nueva
+Validada con PostgreSQL y psql 16.16 en Windows, base UTF-8, extensión `btree_gist` y zona `America/Costa_Rica`. Desde `final-project/grupo-05`, en PowerShell, elegir un nombre de base nuevo y libre. No eliminar bases existentes. El instalador requiere permisos de creación de base, rol y extensión.
+
+```powershell
+$pg = "C:\Program Files\PostgreSQL\16\bin"
+$base = 'huellas_g05_completo_demo'
+& "$pg\createdb.exe" -U postgres -T template0 -E UTF8 $base
+& "$pg\psql.exe" -X -U postgres -d $base -c 'SELECT version();'
+& "$pg\psql.exe" -X -v ON_ERROR_STOP=1 -U postgres -d $base -f sql/15_instalar_proyecto_completo.sql
+```
+
+El instalador 15 invoca 09 (Jason y Paula) y 14 (Jean Carlos), y comprueba las 28 tablas. No ejecutar nuevamente los instaladores parciales ni `sql/integracion/01_adopcion_origen.sql` sobre esta base. Los antecedentes son ficticios. Las instrucciones históricas siguientes permiten reproducir los bloques aislados; utilizar bases independientes para evitar interferencias entre sus datos de prueba.
+
+## Instalación histórica del bloque de Jason en una base nueva
 
 Se probó PostgreSQL **16.15** con `psql` **16.15**, base UTF-8 y extensión `btree_gist`. Las fechas de las demostraciones se muestran en `America/Costa_Rica`. Se necesita un usuario instalador con permisos para crear la base, instalar la extensión y crear el rol `huellas_g05_operador` si aún no existe. Los comandos usan el administrador de la instancia de prueba.
 
@@ -92,7 +104,7 @@ Los resultados con fechas, IDs y observación de bloqueos están en [Evidencia d
 
 - [Modelo, diccionario y decisiones](modelo/Modelo_Jason.md)
 - [Matriz de integridad](modelo/Matriz_Jason.md)
-- [Cobertura de las 27 relaciones e integración](Integracion.md)
+- [Cobertura de las 28 tablas e integración](Integracion.md)
 - [Aporte a Control de Cambios](Control_de_Cambios.md) y [aporte a Uso de IA](Uso_de_IA.md)
 - [Enunciado general](../README.md) y [anexo del Grupo 05](05_Grupo_05_Refugio.md)
 
@@ -158,8 +170,74 @@ Los scripts no incorporan pausas cronometradas que pretendan demostrar el bloque
 ### Documentación y límites actuales
 
 - [Resultados, errores corregidos y estado de la entrega de Paula](evidencias/Resultados_Paula.md).
-- [Modelo consolidado e inventario de las 27 relaciones](modelo/Modelo_Relacional.md), [diccionario](modelo/Diccionario_Datos.md), [diagrama Mermaid](modelo/Diagrama_Relacional.md) y [matriz de integridad](modelo/Matriz_Integridad.md).
+- [Modelo consolidado e inventario de las 28 tablas](modelo/Modelo_Relacional.md), [diccionario](modelo/Diccionario_Datos.md), [diagrama Mermaid](modelo/Diagrama_Relacional.md) y [matriz de integridad](modelo/Matriz_Integridad.md).
 - [Conciliación y fuentes](modelo/Conciliacion_Paula.md), [casos individuales](pruebas/Casos_Paula.md), [operaciones y concurrencia](Procesos_Negocio.md) y [contrato de integración](Integracion.md#contrato-de-paula-para-jean-carlos).
 - [Aporte a defensa](Defensa.md), [control de cambios](Control_de_Cambios.md) y [uso transparente de IA](Uso_de_IA.md).
 
-Pendiente del equipo: bloque de Jean Carlos (nueve tablas y P03), validación de su consumo real de las interfaces, corrección contextual A2 de indicaciones, regreso/adopción/cierre completos y video accesible de los tres participantes. La comprobación de ausencia de reserva automática se ejecuta sin tabla RESERVA disponible: P02 no la crea; su conteo real antes/después deberá repetirse al integrarla. Ninguna de esas tareas se marca terminada por tener la interfaz preparada.
+La integración posterior de P03 incorpora las nueve tablas, la corrección A2 y el reingreso contextual. La evidencia histórica de P02 se conserva; el conteo específico de RESERVA antes y después de aprobar una solicitud todavía requiere prueba directa en la instalación integrada.
+
+## Bloque de Jean Carlos G05-P03
+
+| Archivo | Propósito |
+|---|---|
+| [10_jeank_esquema.sql](sql/10_jeank_esquema.sql) | Nueve tablas, claves, restricciones e índices. |
+| [11_jeank_operaciones.sql](sql/11_jeank_operaciones.sql) | Validaciones, operaciones públicas, permisos, FK de reingreso y cierre atómico. |
+| [12_jeank_datos.sql](sql/12_jeank_datos.sql) | Antecedentes clínicos y restricción ficticia. |
+| [13_jeank_consultas.sql](sql/13_jeank_consultas.sql) | Vistas de consulta y control de adopciones. |
+| [14_instalar_bloque_jeank.sql](sql/14_instalar_bloque_jeank.sql) | Instalación del bloque sobre Jason y Paula. |
+| [15_instalar_proyecto_completo.sql](sql/15_instalar_proyecto_completo.sql) | Instalación integrada desde base vacía. |
+
+### Pruebas secuenciales y atomicidad
+
+En una base recién instalada mediante 15, ejecutar en el siguiente orden. No combinar con las pruebas históricas de otros bloques en esa misma base. Detenerse ante cualquier error inesperado.
+
+```powershell
+foreach ($n in @('05_preparacion_jeank','09_bloque_jeank','06_preparacion_concurrencia_jeank','10_pruebas_complementarias_jeank','07_devolucion_jeank','11_integridad_final_jeank','08_preparacion_dos_sesiones_jeank','12_atomicidad_jeank')) {
+    & "$pg\psql.exe" -X -v ON_ERROR_STOP=1 -P pager=off -U postgres -d $base -f "pruebas/$n.sql"
+    if ($LASTEXITCODE -ne 0) { throw "Error inesperado en $n" }
+}
+```
+
+El orden conserva las dependencias de capacidad, adopción y devolución. Los casos comprueban reservas, formalización, rechazo de contexto ajeno, restricción vigente, devolución sin prohibición automática, aplicaciones clínicas, seguimiento, permisos y ausencia de efectos parciales ante una estancia incorrecta. Los resultados se verifican después de confirmar o revertir las transacciones.
+
+### Concurrencia de reservas (PJ-10)
+
+Crear otra base nueva mediante las instrucciones de instalación completa, usando por ejemplo `huellas_g05_concurrencia_demo` como `$base`. Ejecutar únicamente `pruebas/05_preparacion_jeank.sql` antes de la carrera. En tres terminales PowerShell, desde el directorio del grupo, definir el mismo `$pg` y `$base`.
+
+```powershell
+# Terminal A: esperar la pausa sin confirmar
+& "$pg\psql.exe" -X -U postgres -d $base -f pruebas/concurrencia_jeank/01_reserva_a.sql
+# Terminal B: ejecutar mientras A sigue abierta
+& "$pg\psql.exe" -X -U postgres -d $base -f pruebas/concurrencia_jeank/02_reserva_b.sql
+# Observador: comprobar bloqueo asesor y a_bloquea_b=t
+& "$pg\psql.exe" -X -U postgres -d $base -f pruebas/concurrencia_jeank/03_espera.sql
+```
+
+Después de observar el bloqueo, pulsar Intro en A para confirmar. B debe rechazar la segunda reserva con P3021 y revertir. Solo después de que ambas sesiones terminen, ejecutar:
+
+```powershell
+& "$pg\psql.exe" -X -U postgres -d $base -f pruebas/concurrencia_jeank/04_verificar.sql
+```
+
+Debe quedar una reserva vigente para HS-01 y conservarse las dos compatibilidades favorables.
+
+### Evidencias y alcance
+
+- [Casos de prueba](pruebas/Casos_Jeank.md) y [resultados](evidencias/Resultados_Jeank.md).
+- [Ejecución secuencial](evidencias/Ejecucion_Jeank_Secuencial.md), [concurrencia](evidencias/Ejecucion_Jeank_Concurrencia.md) e [instalación](evidencias/Ejecucion_Jeank_Instalacion.md).
+- [Modelo](modelo/Modelo_Relacional.md), [diccionario](modelo/Diccionario_Datos.md), [diagrama](modelo/Diagrama_Relacional.md) y [matriz](modelo/Matriz_Integridad.md).
+
+ Los 33 casos identificados del bloque incluyen instalación, concurrencia y cobertura adicional. Todos fueron ejecutados satisfactoriamente. No constituyen cobertura exhaustiva de todas las restricciones; consultar los límites explícitos de la matriz de integridad. El índice y enlace del video se documentan en [Defensa](Defensa.md) cuando estén disponibles.
+
+### Pruebas adicionales de cobertura
+
+En una base de datos independiente, ejecutar los siguientes archivos en orden:
+
+1. `sql/15_instalar_proyecto_completo.sql`
+2. `pruebas/05_preparacion_jeank.sql`
+3. `pruebas/09_bloque_jeank.sql`
+4. `pruebas/06_preparacion_concurrencia_jeank.sql`
+5. `pruebas/07_devolucion_jeank.sql`
+6. `pruebas/13_cobertura_adicional_jeank.sql`
+
+Los resultados se documentan en [Ejecución de cobertura adicional](evidencias/Ejecucion_Jeank_Cobertura.md).
