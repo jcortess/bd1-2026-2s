@@ -7,16 +7,17 @@
 | Curso | IC-4301 Bases de Datos I |
 | Proyecto | Universidad Horizonte |
 | Grupo | 03 |
-| Fecha de ejecución | 25 y 26 de noviembre de 2026 |
+| Fechas de ejecución | 25, 26 y 27 de noviembre de 2026 |
 | Motor | PostgreSQL 17.11 |
 | Imagen | `postgres:17.11-bookworm` |
 | Entorno | Docker Compose |
 | Servicio | `db` |
-| Base de trabajo | `universidad_horizonte_prueba_01` |
+| Base de trabajo secuencial | `universidad_horizonte_prueba_01` |
+| Base de pruebas concurrentes | `universidad_horizonte_concurrencia_01` |
 | Usuario PostgreSQL | `bd1` |
-| Alcance verificado | Estructura del modelo físico de 26 relaciones y 135 atributos; datos iniciales y restricciones declarativas examinadas mediante las dos baterías de pruebas |
+| Alcance verificado | Estructura y semilla del modelo de 26 relaciones y 135 atributos, restricciones declarativas, integridad contextual, temporal e histórica, y cuatro conflictos concurrentes de capacidad, espacio y duplicidad |
 
-Se ejecutaron los siguientes archivos, en el orden indicado:
+En la base secuencial se ejecutaron los siguientes archivos, en el orden indicado:
 
 1. [`sql/01_esquema_base.sql`](../sql/01_esquema_base.sql): creación de relaciones y restricciones.
 2. [`sql/02_datos_base.sql`](../sql/02_datos_base.sql): carga de datos ficticios.
@@ -24,8 +25,10 @@ Se ejecutaron los siguientes archivos, en el orden indicado:
 4. [`sql/03_esquema_relaciones.sql`](../sql/03_esquema_relaciones.sql): creación de las diez relaciones adicionales y sus restricciones.
 5. [`sql/04_datos_relaciones.sql`](../sql/04_datos_relaciones.sql): carga complementaria de datos ficticios.
 6. [`pruebas/02_pruebas_relaciones.sql`](../pruebas/02_pruebas_relaciones.sql): comprobaciones de estructura e integridad declarativa de las relaciones adicionales.
+7. [`sql/05_integridad_avanzada.sql`](../sql/05_integridad_avanzada.sql): instalación y validación de los controles avanzados sobre la semilla.
+8. [`pruebas/03_pruebas_integridad_avanzada.sql`](../pruebas/03_pruebas_integridad_avanzada.sql): comprobaciones secuenciales de integridad avanzada y aislamiento.
 
-Se utilizó `psql` con `-X` y `ON_ERROR_STOP=1`. Los resultados consignados corresponden a la ejecución efectuada en PostgreSQL, no exclusivamente a resultados previstos por los scripts.
+Se utilizó `psql` con `-X` y `ON_ERROR_STOP=1`. En la base independiente de concurrencia se ejecutaron los cinco archivos de `sql/` en orden numérico. Los cuatro conflictos se ejecutaron después mediante conexiones `psql` separadas.
 
 ## 2. Preparación inicial de las estructuras base
 
@@ -337,8 +340,6 @@ Los 53 casos negativos y las cinco comprobaciones adicionales de obligatoriedad 
 
 **Resultado de la validación: satisfactorio para las estructuras, operaciones y restricciones efectivamente comprobadas.**
 
-La evidencia es reproducible mediante los archivos SQL referenciados, ejecutados sobre una base PostgreSQL vacía en el orden documentado. Los resultados aquí consignados proceden de la ejecución observada y de las comprobaciones efectuadas, sin atribuir resultados a pruebas no realizadas.
-
 ## 8. Instalación y validación de las relaciones adicionales
 
 **Fecha de ejecución:** 26 de noviembre de 2026.
@@ -404,4 +405,58 @@ Se completó satisfactoriamente la instalación de las diez relaciones adicional
 
 **Resultado:** el esquema físico contiene 26 relaciones y 135 atributos. Los casos positivos, negativos y de frontera ejecutados cumplieron los criterios comprobados, y la consulta independiente confirmó la conservación de los recuentos iniciales después del `ROLLBACK`.
 
-Las garantías contextuales y las operaciones completas de G03-P01, G03-P02 y G03-P03 no forman parte de los resultados funcionales acreditados por esta ejecución.
+## 9. Instalación y validación de integridad avanzada
+
+**Fecha de ejecución:** 27 de noviembre de 2026. Se utilizó PostgreSQL 17.11 con el servicio `db` de Docker Compose y el usuario `bd1`.
+
+### 9.1. Instalación y versión de los archivos ejecutados
+
+En `universidad_horizonte_prueba_01` se comprobaron 26 tablas, 135 atributos y cero solicitudes de matrícula antes de instalar los controles avanzados. Después de la instalación, el catálogo devolvió `21|94|t`: 21 funciones `uh_%`, 94 triggers no internos `uh_%` y presencia de `public.uh_validar_integridad()`.
+
+| Archivo ejecutado | SHA-256 obtenido con `Get-FileHash` |
+|---|---|
+| `sql/05_integridad_avanzada.sql` | `AEA62EC289F03D3DC983C3A65047774967D6AE3F232E193DE14A6F75145FA648` |
+| `pruebas/03_pruebas_integridad_avanzada.sql` | `7768BE981B62F4651CFA3CE3C4FE4B185386FBC10A0B4300CC31EF391DA5902E` |
+
+### 9.2. Batería secuencial
+
+La batería avanzada finalizó con código de salida `0`. El primer bloque comprobó las 26 tablas, sus 135 atributos, la suma de **81 filas** en las 26 relaciones y los 94 triggers previstos. La llamada a `public.uh_validar_integridad()` sobre los datos iniciales finalizó sin excepción.
+
+| Comprobación | Resultado esperado | Resultado observado |
+|---|---|---|
+| Rechazos de integridad | `23514` y nombre de restricción específico para cada operación negativa. | Se completaron 97 comprobaciones individuales. Cada una comparó `CONSTRAINT_NAME` después de ejecutar la operación y, cuando correspondía, forzar la validación diferida. |
+| Trayectoria y vigencia | Recuperar el plan aplicable antes de un traslado y desde el instante efectivo de cada cambio. | Para la admisión 8 se obtuvieron, en orden, los planes 101, 102 y 103. |
+| Oferta y cancelación | Distinguir apertura y cancelación y conservar las solicitudes existentes. | Se comprobaron dos aperturas. Tras cancelar el grupo 12 permanecieron seis solicitudes y se encontró el evento de cancelación con responsable 1. |
+| Adjudicación y antecedentes académicos | Conservar las matrículas válidas por las vías de satisfacción preparadas y rechazar el antecedente inválido en el instante de adjudicación. | Se contaron cuatro solicitudes matriculadas entre 5017, 5018, 6018 y 6020. Se verificaron ambas matrículas del caso compuesto 6122/6120. La revocación anterior a la adjudicación fue rechazada por `uh_matricula_requisitos`. |
+| Espera y cambio de grupo | Respetar la prioridad, documentar la omisión de una persona no elegible y conservar el antecedente de un cambio válido. | Se comprobó la promoción de 2001 en la primera rama. En la segunda, 2001 seguía en espera y 2002 estaba matriculada. En el cambio 1001/4002 se validó el vínculo y se leyeron los dos estados después del retiro posterior del destino. |
+| Corrección académica | Distinguir la primera carga de la corrección y conservar valores anterior y nuevo. | 5052 carecía de corrección después de su primera asignación. En 5051 se encontró `A/aprobado → B/reprobado`, con autorizador 1. La comprobación que pasó por `NULL` contó tres correcciones antes de revertirse. |
+| Aislamiento de escritura | Rechazar la sentencia de escritura bajo `REPEATABLE READ` y `SERIALIZABLE`. | Se capturó `25001` en ambas pruebas. Cada transacción finalizó con `ROLLBACK`. |
+
+Los estados de esta tabla se verificaron dentro de las transacciones o subtransacciones correspondientes. La transacción principal terminó con `ROLLBACK` antes de las dos comprobaciones de aislamiento. Las operaciones, criterios y consultas de control se identifican en la [sección 10 de Pruebas.md](../pruebas/Pruebas.md#10-pruebas-de-integridad-avanzada).
+
+### 9.3. Estado persistido después de la batería
+
+Una conexión independiente a `universidad_horizonte_prueba_01` devolvió:
+
+```text
+26|135|4|5|5|1|1|0|0|0|0|0
+```
+
+Las columnas corresponden, en orden, a tablas, atributos, grupos, bloques, asignaciones docentes, traslados, reconocimientos, solicitudes, historial de oferta, historial de solicitudes, excepciones y correcciones. Los doce valores coincidieron con los esperados. Permanecieron los cuatro grupos, cinco bloques, cinco asignaciones docentes, un traslado y un reconocimiento de la preparación. Las cinco relaciones operativas examinadas al final de la fila quedaron vacías.
+
+### 9.4. Conflictos concurrentes
+
+En `universidad_horizonte_concurrencia_01`, el inventario posterior a la instalación sobre base nueva fue `26|135|4|5|5|1|1|0|0|0|0|0|21|94`. Los doce primeros campos tienen el orden indicado en la sección 9.3. Los dos últimos corresponden a las funciones y los triggers de integridad avanzada. Se confirmó la preparación de seis grupos auxiliares.
+
+En cada conflicto, la conexión observadora identificó por `application_name` a las dos sesiones. Mientras B esperaba con `wait_event_type = 'Lock'`, `pg_blocking_pids()` incluyó el PID de A entre sus bloqueadores. A confirmó su transacción. La transacción de B fue rechazada y sus cambios se revirtieron. Las consultas posteriores se ejecutaron desde una conexión independiente.
+
+| Conflicto | Resultado esperado | Diagnóstico observado en B | Estado persistido observado |
+|---|---|---|---|
+| A. Último cupo del grupo 990 — RN-10 | Conservar la primera matrícula y mantener la capacidad en 1. | `23514`, `uh_grupo_cupo`. | `6\|1\|0\|1\|0\|0`: seis grupos auxiliares, 9901 matriculada, 9902 ausente y capacidad 1. Los bloques y solicitudes de control de los casos posteriores aún estaban ausentes. |
+| B. Uso del espacio 1 en franjas superpuestas — RN-07 | Conservar un solo bloque entre 992 y 993. | `23514`, `uh_espacio_solapamiento`. | `1\|1`: un bloque entre los examinados, correspondiente al grupo 992. |
+| C. Reducción de cupo del grupo 991 durante una matrícula — RN-10 | Conservar la capacidad y la matrícula confirmada. | `23514`, `uh_grupo_cupo`. | `1\|1`: capacidad 1 y una solicitud matriculada en el grupo 991. |
+| D. Mismo curso y periodo desde dos admisiones del mismo estudiante — RN-16 | Conservar una sola matrícula entre 9941 y 9951. | `23514`, `uh_matricula_duplicada`. | `1\|9941`: una solicitud persistida entre las dos examinadas, identificada como 9941. |
+
+### 9.5. Conclusión
+
+La instalación avanzada validó la semilla del esquema completo. La batería secuencial obtuvo los diagnósticos previstos y comprobó los estados temporales antes de su reversión. La lectura posterior confirmó las cardinalidades persistidas examinadas. En las cuatro pruebas concurrentes, el diagnóstico de B y los datos confirmados coincidieron con la condición específica en conflicto: último cupo, uso de espacio, reducción de capacidad o duplicidad de matrícula.

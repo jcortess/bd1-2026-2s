@@ -6,84 +6,85 @@
 
 ## Entorno de ejecución
 
-El proyecto utiliza PostgreSQL 17.11. Se proporciona una configuración Docker Compose para facilitar su reproducción en equipos independientes. La instalación física comprende las 26 relaciones y los 135 atributos del modelo consolidado. Las comprobaciones ejecutadas hasta esta versión abarcan las restricciones declarativas de las 16 relaciones base y las diez relaciones complementarias; las garantías contextuales, los procesos de negocio asignados y las pruebas de concurrencia requieren sus mecanismos y comprobaciones específicos.
+El proyecto implementa en PostgreSQL el modelo de Universidad Horizonte para admisiones, planes de estudio, oferta académica y solicitudes de matrícula. El esquema contiene 26 relaciones y 135 atributos. La instalación incorpora restricciones declarativas y controles de integridad contextual, temporal e histórica.
+
+Se utilizó PostgreSQL 17.11 con el cliente `psql` incluido en el contenedor. Las tres baterías secuenciales se ejecutaron sobre estados sucesivos de una misma instalación. Las pruebas concurrentes de último cupo, asignación de espacio, reducción de capacidad y duplicidad de matrícula se realizaron en una segunda base de datos.
 
 ### Requisitos
 
 - Docker Desktop o Docker Engine con soporte para contenedores Linux.
 - Docker Compose V2.
+- PowerShell para ejecutar los comandos de este documento.
 
-Los comandos siguientes se ejecutan desde `final-project/grupo-03/`, donde se encuentra `compose.yaml`. No se requiere instalar `psql` en el equipo anfitrión: se utiliza el cliente incluido en el contenedor.
+Los comandos se ejecutan desde `final-project/grupo-03/`, donde se encuentra `compose.yaml`. El servicio `db` utiliza la imagen `postgres:17.11-bookworm`, un volumen persistente y un montaje de solo lectura del directorio del grupo en `/workspace`. Las conexiones se realizan mediante `docker compose exec`; no se requiere instalar `psql` en el equipo anfitrión ni publicar un puerto.
 
 ### Iniciar PostgreSQL
 
 ```powershell
 docker compose config -q
+if ($LASTEXITCODE -ne 0) { throw "Configuración de Docker Compose inválida." }
+
 docker compose up -d --wait
+if ($LASTEXITCODE -ne 0) { throw "El servicio PostgreSQL no está disponible." }
+
 docker compose ps
 ```
 
-La configuración utiliza el servicio `db`, un volumen persistente exclusivo y un montaje de solo lectura del directorio del proyecto en `/workspace`.
-
-No se publica un puerto en el equipo anfitrión. Las conexiones se realizan mediante `docker compose exec`.
+El servicio `db` debe aparecer en estado `healthy`.
 
 ### Verificar la instancia
 
 ```powershell
+docker compose exec -T db psql --version
 docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d postgres -c "SELECT current_database(), current_user, version();"
 ```
 
-Debe identificarse PostgreSQL 17.11 y una conexión válida a la base administrativa `postgres`.
+Debe identificarse la instancia PostgreSQL 17.11 y una conexión a la base administrativa `postgres` con el usuario `bd1`.
 
 ### Crear una base nueva
 
-La base administrativa no debe utilizarse para instalar el esquema del proyecto. Para una instalación independiente, se debe elegir un nombre de base que todavía no exista; los comandos siguientes utilizan `universidad_horizonte_prueba_01` exclusivamente como ejemplo.
+Los siguientes comandos utilizan el nombre de la base secuencial de la ejecución documentada. Para repetir la instalación en una instancia donde ese nombre ya existe, se asigna a `$base` un nombre nuevo y se conserva la misma variable durante todo el procedimiento.
 
 ```powershell
-docker compose exec -T db createdb -U bd1 -T template0 universidad_horizonte_prueba_01
+$base = 'universidad_horizonte_prueba_01'
+
+docker compose exec -T db createdb -U bd1 -T template0 $base
+if ($LASTEXITCODE -ne 0) { throw "No se creó la base nueva. Verificar el nombre antes de continuar." }
+
+docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d $base -c "SELECT current_database() AS base_actual; SELECT COUNT(*) AS tablas_usuario FROM pg_tables WHERE schemaname = 'public';"
+if ($LASTEXITCODE -ne 0) { throw "No se pudo verificar la base de trabajo." }
 ```
 
-Comprobar que la base existe y no contiene tablas de usuario:
-
-```powershell
-docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d universidad_horizonte_prueba_01 -c "SELECT current_database(); SELECT COUNT(*) AS tablas_usuario FROM pg_tables WHERE schemaname = 'public';"
-```
-
-El recuento inicial de tablas en `public` debe ser cero. Si la base ya existe, no se debe repetir `createdb`: para reproducir una instalación integral se utiliza otra base nueva, sin eliminar bases preexistentes.
+Antes de instalar el esquema, `base_actual` debe coincidir con `$base` y `tablas_usuario` debe ser `0`.
 
 ### Instalación y pruebas de integridad
 
-Los scripts se ejecutan en el orden indicado. La batería de integridad base se ejecuta **antes** de incorporar las diez tablas restantes porque valida expresamente el inventario parcial de 16 relaciones. La batería complementaria se ejecuta después de instalar y cargar el modelo físico completo.
-
-**Archivos y orden de ejecución:**
-
 | Orden | Archivo | Propósito |
-| --- | --- | --- |
-| 1 | `sql/01_esquema_base.sql` | Crear las 16 relaciones base, sus claves, restricciones e índices. |
-| 2 | `sql/02_datos_base.sql` | Cargar 64 registros ficticios, incluido el núcleo curricular adaptado de Lab03. |
-| 3 | `pruebas/01_pruebas_base.sql` | Verificar las 16 relaciones base mediante casos válidos, negativos y de frontera; terminar con `ROLLBACK`. |
-| 4 | `sql/03_esquema_relaciones.sql` | Crear las diez relaciones restantes, completando las 26 relaciones y 135 atributos. |
-| 5 | `sql/04_datos_relaciones.sql` | Incorporar 17 registros complementarios ficticios sin precargar resultados de los procesos asignados. |
-| 6 | `pruebas/02_pruebas_relaciones.sql` | Verificar las diez relaciones, operaciones válidas y de frontera, y 102 casos negativos; terminar con `ROLLBACK`. |
+|---:|---|---|
+| 1 | [`sql/01_esquema_base.sql`](sql/01_esquema_base.sql) | Crear las 16 relaciones base, sus claves, restricciones e índices. |
+| 2 | [`sql/02_datos_base.sql`](sql/02_datos_base.sql) | Cargar 64 registros ficticios, incluido el núcleo curricular adaptado de Lab03. |
+| 3 | [`pruebas/01_pruebas_base.sql`](pruebas/01_pruebas_base.sql) | Validar el inventario de 16 relaciones y 57 atributos, sus datos y restricciones. |
+| 4 | [`sql/03_esquema_relaciones.sql`](sql/03_esquema_relaciones.sql) | Crear las diez relaciones restantes y completar las 26 relaciones y 135 atributos. |
+| 5 | [`sql/04_datos_relaciones.sql`](sql/04_datos_relaciones.sql) | Incorporar los 17 registros complementarios. |
+| 6 | [`pruebas/02_pruebas_relaciones.sql`](pruebas/02_pruebas_relaciones.sql) | Validar las relaciones adicionales y sus restricciones declarativas sobre el esquema completo. |
+| 7 | [`sql/05_integridad_avanzada.sql`](sql/05_integridad_avanzada.sql) | Instalar las funciones y los triggers de integridad avanzada y validar la semilla existente. |
+| 8 | [`pruebas/03_pruebas_integridad_avanzada.sql`](pruebas/03_pruebas_integridad_avanzada.sql) | Verificar la integridad contextual, temporal e histórica y el tratamiento de los niveles de aislamiento examinados. |
 
-**Precondición:** disponer de una base de trabajo nueva, sin tablas de usuario. Los archivos de creación y carga se ejecutan una sola vez por base. Cada comando siguiente utiliza `-X` para evitar configuración externa de `psql` y `ON_ERROR_STOP=1` para detenerse ante un error no controlado. Si un comando falla, se debe investigar la causa y verificar el estado de la base antes de continuar.
+El orden forma parte de las precondiciones de prueba. La primera batería exige que existan exactamente 16 tablas. La segunda comprueba las operaciones permitidas por las restricciones declarativas antes de instalar los triggers avanzados. La tercera exige que esos triggers ya estén instalados y que la semilla contenga 81 registros.
+
+Los archivos de esquema y carga se ejecutan una vez por base. La opción `-X` evita que la configuración personal de `psql` altere la ejecución. `ON_ERROR_STOP=1` detiene el cliente ante un error SQL no controlado.
 
 #### Crear el esquema base
 
 ```powershell
-docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d universidad_horizonte_prueba_01 -f /workspace/sql/01_esquema_base.sql
-
-if ($LASTEXITCODE -ne 0) {
-    throw "Error al instalar el esquema base."
-}
+docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d $base -f /workspace/sql/01_esquema_base.sql
+if ($LASTEXITCODE -ne 0) { throw "Error al instalar el esquema base." }
 ```
 
-El script instala automáticamente la extensión `btree_gist`, necesaria para la restricción de exclusión GiST utilizada en `VENTANA_PERIODO`.
-
-**Resultado esperado:** 16 tablas creadas y `COMMIT`, sin errores.
+El archivo instala la extensión `btree_gist`, utilizada por la restricción de exclusión de `VENTANA_PERIODO`. Se espera que la creación de las 16 tablas finalice con `COMMIT`.
 
 ```powershell
-docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d universidad_horizonte_prueba_01 -c "SELECT COUNT(*) AS tablas FROM pg_tables WHERE schemaname = 'public'; SELECT COUNT(*) AS atributos FROM information_schema.columns WHERE table_schema = 'public';"
+docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d $base -c "SELECT COUNT(*) AS tablas FROM pg_tables WHERE schemaname = 'public'; SELECT COUNT(*) AS atributos FROM information_schema.columns WHERE table_schema = 'public';"
 ```
 
 **Resultado esperado:** 16 tablas y 57 atributos.
@@ -91,35 +92,27 @@ docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d universidad_horiz
 #### Cargar los datos base
 
 ```powershell
-docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d universidad_horizonte_prueba_01 -f /workspace/sql/02_datos_base.sql
-
-if ($LASTEXITCODE -ne 0) {
-    throw "Error al cargar los datos base."
-}
+docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d $base -f /workspace/sql/02_datos_base.sql
+if ($LASTEXITCODE -ne 0) { throw "Error al cargar los datos base." }
 ```
 
-**Resultado esperado:** inserciones confirmadas mediante `COMMIT` y 64 registros distribuidos entre las 16 relaciones. Los datos curriculares compatibles de Lab03 se reutilizan con las adaptaciones necesarias. Las fechas incorporadas para representar vigencias son ficticias y no se presentan como conversiones históricas verificadas.
+**Resultado esperado:** carga de 64 registros en las 16 relaciones y confirmación con `COMMIT`. Los datos curriculares compatibles de Lab03 se reutilizan con las adaptaciones del modelo. Las fechas empleadas para representar vigencias son ficticias.
 
 #### Ejecutar las pruebas de integridad base
 
 ```powershell
-docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d universidad_horizonte_prueba_01 -f /workspace/pruebas/01_pruebas_base.sql
-
-if ($LASTEXITCODE -ne 0) {
-    throw "Error durante las pruebas de integridad base."
-}
+docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d $base -f /workspace/pruebas/01_pruebas_base.sql
+if ($LASTEXITCODE -ne 0) { throw "Error durante las pruebas de integridad base." }
 ```
 
-**Resultados esperados:** 16 relaciones y 57 atributos; 16 PK, 15 FK, cuatro UNIQUE, 25 CHECK, índice único parcial y exclusión GiST; casos positivos y de frontera satisfactorios; 53 casos negativos y cinco comprobaciones adicionales de `NOT NULL` rechazados por la causa prevista; finalización con `ROLLBACK`.
-
-Los rechazos previstos se controlan en bloques de excepción PL/pgSQL. Un error no controlado interrumpe la ejecución y no constituye una prueba satisfactoria.
+**Resultado esperado:** comprobación de 16 relaciones, 57 atributos, 16 PK, 15 FK, cuatro restricciones `UNIQUE`, 25 restricciones `CHECK`, el índice único parcial y la exclusión GiST. Las operaciones positivas deben aceptarse. Los 53 casos negativos y las cinco comprobaciones adicionales de `NOT NULL` deben producir el diagnóstico previsto. El archivo debe finalizar con `ROLLBACK`.
 
 #### Comprobar el estado posterior de las relaciones base
 
-Desde una conexión independiente, comprobar que permanecen los 64 registros de partida:
+Desde una conexión independiente, verificar los recuentos antes de incorporar las relaciones complementarias:
 
 ```powershell
-$sql = @'
+$sqlBase = @'
 WITH conteos AS (
     SELECT COUNT(*) AS filas FROM estudiante
     UNION ALL SELECT COUNT(*) FROM admision
@@ -138,101 +131,171 @@ WITH conteos AS (
     UNION ALL SELECT COUNT(*) FROM persona_autorizadora
     UNION ALL SELECT COUNT(*) FROM ventana_periodo
 )
-SELECT COUNT(*) AS relaciones_contadas,
-       SUM(filas) AS registros_totales
+SELECT COUNT(*) AS relaciones_contadas, SUM(filas) AS registros_totales
 FROM conteos;
 '@
 
-docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d universidad_horizonte_prueba_01 -c $sql
+docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d $base -c $sqlBase
 ```
 
-**Resultado esperado:** 16 relaciones y 64 registros totales. Esta comprobación de la semilla base corresponde al estado anterior a cargar los datos complementarios; una vez ejecutado `04_datos_relaciones.sql`, la tabla `ADMISION` incorpora un registro adicional.
+**Resultado esperado:** 16 relaciones contadas y 64 registros. Este total corresponde a la semilla base. La carga complementaria añade, entre otros datos, una fila a `ADMISION`.
 
 #### Crear las relaciones complementarias
 
 ```powershell
-docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d universidad_horizonte_prueba_01 -f /workspace/sql/03_esquema_relaciones.sql
-
-if ($LASTEXITCODE -ne 0) {
-    throw "Error al instalar las relaciones complementarias."
-}
+docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d $base -f /workspace/sql/03_esquema_relaciones.sql
+if ($LASTEXITCODE -ne 0) { throw "Error al instalar las relaciones complementarias." }
 ```
 
-El archivo crea `GRUPO`, `BLOQUE_HORARIO`, `SOLICITUD_MATRICULA`, `TRASLADO_PLAN`, `RECONOCIMIENTO_ACADEMICO`, `GRUPO_DOCENTE`, `HISTORIAL_OFERTA`, `HISTORIAL_SOLICITUD`, `EXCEPCION_REQUISITO` e `HISTORIAL_CORRECCION_CALIFICACION`. Declara diez PK, 27 FK, 32 CHECK, dos restricciones UNIQUE y un índice adicional. Estos mecanismos verifican condiciones locales y referenciales; no sustituyen las reglas contextuales y transaccionales pendientes de implementar.
-
-**Resultado esperado:** diez tablas creadas y `COMMIT`, sin errores.
+El archivo crea `GRUPO`, `BLOQUE_HORARIO`, `SOLICITUD_MATRICULA`, `TRASLADO_PLAN`, `RECONOCIMIENTO_ACADEMICO`, `GRUPO_DOCENTE`, `HISTORIAL_OFERTA`, `HISTORIAL_SOLICITUD`, `EXCEPCION_REQUISITO` e `HISTORIAL_CORRECCION_CALIFICACION`. Declara diez PK, 27 FK, 32 restricciones `CHECK`, una restricción `UNIQUE` y un índice único parcial.
 
 ```powershell
-docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d universidad_horizonte_prueba_01 -c "SELECT COUNT(*) AS tablas FROM pg_tables WHERE schemaname = 'public'; SELECT COUNT(*) AS atributos FROM information_schema.columns WHERE table_schema = 'public';"
+docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d $base -c "SELECT COUNT(*) AS tablas FROM pg_tables WHERE schemaname = 'public'; SELECT COUNT(*) AS atributos FROM information_schema.columns WHERE table_schema = 'public';"
 ```
 
-**Resultado esperado:** 26 tablas y 135 atributos.
+**Resultado esperado:** creación confirmada con `COMMIT` y un inventario de 26 tablas y 135 atributos.
 
 #### Cargar los datos complementarios
 
 ```powershell
-docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d universidad_horizonte_prueba_01 -f /workspace/sql/04_datos_relaciones.sql
-
-if ($LASTEXITCODE -ne 0) {
-    throw "Error al cargar los datos complementarios."
-}
+docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d $base -f /workspace/sql/04_datos_relaciones.sql
+if ($LASTEXITCODE -ne 0) { throw "Error al cargar los datos complementarios." }
 ```
 
-**Resultado esperado:** `COMMIT` y 17 registros añadidos: una admisión histórica, cuatro grupos, cinco bloques de horario, cinco asignaciones docentes, un traslado y un reconocimiento académico. Junto con la semilla base quedan 81 registros. No se precargan solicitudes ni eventos de matrícula, historial de oferta, historial de solicitudes, excepciones o correcciones: esas relaciones se ejercitan mediante datos temporales en las pruebas.
+**Resultado esperado:** `COMMIT` y 17 registros añadidos: una admisión histórica, cuatro grupos, cinco bloques de horario, cinco asignaciones docentes, un traslado y un reconocimiento académico. El total de la semilla asciende a 81 registros. Las tablas de solicitudes, historial de oferta, historial de solicitudes, excepciones y correcciones quedan vacías.
 
 #### Ejecutar las pruebas de relaciones complementarias
 
 ```powershell
-docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d universidad_horizonte_prueba_01 -f /workspace/pruebas/02_pruebas_relaciones.sql
-
-if ($LASTEXITCODE -ne 0) {
-    throw "Error durante las pruebas de relaciones complementarias."
-}
+docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d $base -f /workspace/pruebas/02_pruebas_relaciones.sql
+if ($LASTEXITCODE -ne 0) { throw "Error durante las pruebas de relaciones complementarias." }
 ```
 
-**Resultados esperados:** avisos de conformidad estructural de 26 tablas, 135 atributos y 78 columnas adicionales; conformidad de los datos iniciales; comprobación de casos positivos, fronteras y modificaciones/eliminaciones permitidas; 102 casos negativos y comprobaciones referenciales rechazados por el SQLSTATE y la restricción o columna prevista; terminación con `ROLLBACK`.
-
-Las modificaciones de la batería se realizan dentro de una transacción revertida; no se presentan como operaciones de negocio confirmadas ni como pruebas de concurrencia. Los errores previstos se manejan en PL/pgSQL para que continúe la batería; un error ajeno al caso esperado detiene `psql`.
+**Resultado esperado:** comprobación de las 26 tablas, los 135 atributos y las 78 columnas adicionales. El guion contrasta la semilla, los casos positivos y de frontera, las modificaciones y eliminaciones examinadas y 102 rechazos por el `SQLSTATE` y la restricción o columna previstos. Finaliza con `ROLLBACK`.
 
 #### Comprobar el estado posterior del conjunto completo
 
-Después del `ROLLBACK`, abrir una conexión independiente y verificar los recuentos de las diez relaciones complementarias:
+La siguiente consulta se utiliza en una conexión independiente después de la segunda batería y, nuevamente, después de la tercera. Conservar `$sqlEstado` durante la ejecución de los pasos siguientes.
 
 ```powershell
-docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d universidad_horizonte_prueba_01 -c "SELECT (SELECT COUNT(*) FROM grupo) AS grupos, (SELECT COUNT(*) FROM bloque_horario) AS bloques, (SELECT COUNT(*) FROM grupo_docente) AS docentes, (SELECT COUNT(*) FROM traslado_plan) AS traslados, (SELECT COUNT(*) FROM reconocimiento_academico) AS reconocimientos, (SELECT COUNT(*) FROM solicitud_matricula) AS solicitudes, (SELECT COUNT(*) FROM historial_oferta) AS historial_oferta, (SELECT COUNT(*) FROM historial_solicitud) AS historial_solicitud, (SELECT COUNT(*) FROM excepcion_requisito) AS excepciones, (SELECT COUNT(*) FROM historial_correccion_calificacion) AS correcciones;"
+$sqlEstado = @'
+SELECT
+    (SELECT COUNT(*) FROM pg_tables
+     WHERE schemaname = 'public') AS tablas,
+    (SELECT COUNT(*) FROM information_schema.columns
+     WHERE table_schema = 'public') AS atributos,
+    (SELECT COUNT(*) FROM grupo) AS grupos,
+    (SELECT COUNT(*) FROM bloque_horario) AS bloques,
+    (SELECT COUNT(*) FROM grupo_docente) AS asignaciones_docentes,
+    (SELECT COUNT(*) FROM traslado_plan) AS traslados,
+    (SELECT COUNT(*) FROM reconocimiento_academico) AS reconocimientos,
+    (SELECT COUNT(*) FROM solicitud_matricula) AS solicitudes,
+    (SELECT COUNT(*) FROM historial_oferta) AS historial_oferta,
+    (SELECT COUNT(*) FROM historial_solicitud) AS historial_solicitud,
+    (SELECT COUNT(*) FROM excepcion_requisito) AS excepciones,
+    (SELECT COUNT(*) FROM historial_correccion_calificacion) AS correcciones;
+'@
+
+docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d $base -At -c $sqlEstado
 ```
 
-**Resultado esperado y observado en la verificación de esta versión:** cuatro grupos, cinco bloques, cinco asignaciones docentes, un traslado, un reconocimiento y cero filas en las otras cinco relaciones. La conexión independiente confirmó que la batería dejó intacta la semilla de las relaciones complementarias. Los resultados detallados y las condiciones de cada prueba se documentan en `pruebas/Pruebas.md` y `evidencias/Resultados.md`.
+**Resultado esperado:** `26|135|4|5|5|1|1|0|0|0|0|0`. El campo de asignaciones docentes cuenta las filas de `grupo_docente`.
+
+#### Instalar la integridad avanzada
+
+```powershell
+docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d $base -f /workspace/sql/05_integridad_avanzada.sql
+if ($LASTEXITCODE -ne 0) { throw "Error al instalar la integridad avanzada." }
+```
+
+El archivo instala los controles de escritura sobre el esquema existente y ejecuta `public.uh_validar_integridad()` sobre la semilla antes de confirmar la instalación. Desde una conexión nueva se comprueba el catálogo:
+
+```powershell
+$sqlCatalogo = @'
+SELECT
+    (SELECT COUNT(*)
+     FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+     WHERE n.nspname = 'public' AND p.prokind = 'f'
+       AND left(p.proname::text, 3) = 'uh_') AS funciones,
+    (SELECT COUNT(*)
+     FROM pg_trigger t
+     JOIN pg_class c ON c.oid = t.tgrelid
+     JOIN pg_namespace n ON n.oid = c.relnamespace
+     WHERE n.nspname = 'public' AND NOT t.tgisinternal
+       AND left(t.tgname::text, 3) = 'uh_') AS triggers,
+    to_regprocedure('public.uh_validar_integridad()') IS NOT NULL AS validador;
+'@
+
+docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d $base -At -c $sqlCatalogo
+```
+
+**Resultado esperado:** `21|94|t`, correspondiente a 21 funciones, 94 triggers de usuario y presencia del validador.
+
+#### Ejecutar las pruebas de integridad avanzada
+
+```powershell
+docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d $base -f /workspace/pruebas/03_pruebas_integridad_avanzada.sql
+if ($LASTEXITCODE -ne 0) { throw "Error durante las pruebas de integridad avanzada." }
+
+docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d $base -At -c $sqlEstado
+```
+
+La batería exige 26 tablas, 135 atributos, 81 filas de semilla y 94 triggers. Comprueba los estados de los escenarios antes de revertirlos. Para los rechazos de integridad exige `23514` y el nombre de restricción previsto. Tras revertir la transacción principal, comprueba en dos transacciones separadas el rechazo `25001` bajo `REPEATABLE READ` y `SERIALIZABLE`. Ambas terminan con `ROLLBACK`.
+
+**Resultado esperado:** finalización sin errores no controlados y lectura posterior `26|135|4|5|5|1|1|0|0|0|0|0`. La variante temporal del caso de corrección académica depende del reloj del servidor. La condición y la rama observada el 27 de noviembre de 2026 se identifican en [Pruebas, sección 10.2](pruebas/Pruebas.md#102-casos-secuenciales-y-criterios-de-aceptación).
 
 #### Repetición y recuperación ante errores
 
-Las baterías `01_pruebas_base.sql` y `02_pruebas_relaciones.sql` finalizan sus transacciones con `ROLLBACK`, por lo que sus cambios en tablas no persisten. Deben ejecutarse en sus estados correspondientes: la primera sobre las 16 tablas base con 64 registros, y la segunda sobre las 26 tablas con los datos complementarios cargados. Para repetir las pruebas base, utilícese una nueva instalación en una base vacía; no se debe ejecutar el guion que exige 16 tablas contra el esquema completo de 26.
+| Batería | Estado de instalación necesario para repetirla |
+|---|---|
+| `01_pruebas_base.sql` | Solo el esquema y la carga base: 16 tablas y 64 registros. |
+| `02_pruebas_relaciones.sql` | Archivos de instalación `01` a `04` ejecutados: 26 tablas y 81 registros, antes de instalar los triggers avanzados. |
+| `03_pruebas_integridad_avanzada.sql` | Archivos de instalación `01` a `05` ejecutados, semilla de 81 registros conservada y controles avanzados presentes. |
 
-Para repetir `02_pruebas_relaciones.sql` en una base ya instalada se debe comprobar previamente que las tablas y la semilla mantienen sus recuentos iniciales. En caso de error inesperado, `ON_ERROR_STOP=1` detiene el cliente y la conexión termina; las operaciones de la transacción no confirmada se revierten, pero el estado posterior debe comprobarse mediante otra conexión. No se debe repetir una creación o carga tras un fallo sin identificar antes qué se confirmó.
+Para repetir una batería en su estado de instalación se ejecuta únicamente su archivo de pruebas. Si la instalación ya avanzó más allá de ese estado, se prepara otra base nueva hasta el paso correspondiente. Las tres baterías revierten sus operaciones temporales sobre las tablas.
 
-Para reproducir la instalación integral desde cero se utiliza otra base vacía y se ejecutan los archivos en el orden documentado. No es necesario eliminar bases existentes ni modificar el volumen persistente de Docker.
+Los guiones manejan internamente los rechazos esperados. Ante un error no controlado, se interrumpe la secuencia, se identifica la sentencia y se comprueba desde otra conexión qué esquema o carga quedó confirmado. Los archivos anteriores que ya finalizaron con `COMMIT` conservan sus efectos. Los datos de prueba se verifican mediante los recuentos y las consultas de estado correspondientes a la batería.
 
 ### Sesiones PostgreSQL independientes
 
-Para abrir una sesión interactiva:
+Los cuatro escenarios concurrentes utilizan una **segunda base nueva**. La preparación y la escritura aceptada en cada escenario se confirman. Para reproducir de nuevo A–D se utiliza otra base con la misma semilla inicial.
+
+Desde `final-project/grupo-03/`, elegir un nombre disponible y ejecutar los cinco archivos de instalación:
 
 ```powershell
-docker compose exec db psql -X -U bd1 -d universidad_horizonte_prueba_01
+$baseConcurrente = 'universidad_horizonte_concurrencia_01'
+
+docker compose exec -T db createdb -U bd1 -T template0 $baseConcurrente
+if ($LASTEXITCODE -ne 0) { throw "No se creó la base nueva de concurrencia." }
+
+$archivos = @(
+    '01_esquema_base.sql'
+    '02_datos_base.sql'
+    '03_esquema_relaciones.sql'
+    '04_datos_relaciones.sql'
+    '05_integridad_avanzada.sql'
+)
+
+foreach ($archivo in $archivos) {
+    docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d $baseConcurrente -f "/workspace/sql/$archivo"
+    if ($LASTEXITCODE -ne 0) { throw "Falló la instalación de $archivo." }
+}
+
+docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d $baseConcurrente -At -c $sqlEstado
+docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d $baseConcurrente -At -c $sqlCatalogo
 ```
 
-El comando puede ejecutarse en dos terminales distintas. Dentro de cada sesión:
+Antes de preparar los escenarios, las consultas deben devolver `26|135|4|5|5|1|1|0|0|0|0|0` y `21|94|t`. Ambas variables de consulta se definen en los apartados anteriores.
 
-```sql
-SELECT pg_backend_pid();
+Abrir tres terminales en el directorio del grupo. En cada una, conectarse a la misma base de concurrencia. Si se eligió otro nombre al crearla, utilizar ese nombre en las tres conexiones.
+
+```powershell
+docker compose exec db psql -X -U bd1 -d universidad_horizonte_concurrencia_01
 ```
 
-Los identificadores distintos permiten reconocer las conexiones independientes que se utilizarán para comprobar concurrencia. Abrir dos sesiones no constituye, por sí solo, una prueba concurrente.
+Ejecutar una sola vez la preparación de seis grupos y seguir, en orden, los casos A–D. Dos conexiones realizan las escrituras y la tercera observa el bloqueo y consulta el estado confirmado. Las sentencias de preparación, los nombres de sesión para la reproducción, la intercalación de `BEGIN` y `COMMIT`, los diagnósticos previstos y las consultas finales se encuentran en [Pruebas, secciones 10.4 y 10.5](pruebas/Pruebas.md#104-preparación-de-los-escenarios-concurrentes). Los resultados de la ejecución se encuentran en [Resultados, sección 9.4](evidencias/Resultados.md#94-conflictos-concurrentes).
 
-Para cerrar una sesión:
-
-```text
-\q
-```
+Después de completar el cierre de las transacciones, salir de cada cliente con `\q`.
 
 ### Detener el entorno
 
@@ -240,6 +303,4 @@ Para cerrar una sesión:
 docker compose down
 ```
 
-Este comando detiene y retira los contenedores del proyecto sin eliminar su volumen persistente.
-
-No se debe utilizar `docker compose down -v` como procedimiento ordinario de repetición, porque eliminaría el volumen de datos de esta instancia.
+El comando detiene y retira los contenedores del proyecto conservando el volumen de PostgreSQL. La repetición de las pruebas se realiza con las condiciones de base y semilla indicadas para cada conjunto.

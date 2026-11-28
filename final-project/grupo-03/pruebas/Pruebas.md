@@ -2,13 +2,15 @@
 
 ## 1. Objeto y fuentes de verificación
 
-Este documento registra las pruebas de estructura e integridad del modelo físico de Universidad Horizonte, compuesto por 26 relaciones y 135 atributos. Las verificaciones se realizaron mediante dos baterías sucesivas: [`01_pruebas_base.sql`](01_pruebas_base.sql), correspondiente a las 16 relaciones base y sus 57 atributos, y [`02_pruebas_relaciones.sql`](02_pruebas_relaciones.sql), correspondiente a las diez relaciones adicionales y sus 78 atributos.
+Este documento registra las pruebas del modelo físico de Universidad Horizonte, compuesto por 26 relaciones y 135 atributos. Se ejecutaron tres baterías sobre estados sucesivos de instalación:
 
-Los esquemas examinados se definen en [`01_esquema_base.sql`](../sql/01_esquema_base.sql) y [`03_esquema_relaciones.sql`](../sql/03_esquema_relaciones.sql). Los datos iniciales proceden de [`02_datos_base.sql`](../sql/02_datos_base.sql) y [`04_datos_relaciones.sql`](../sql/04_datos_relaciones.sql). La cobertura se fundamenta en el modelo relacional y el diccionario corregidos.
+1. [`01_pruebas_base.sql`](01_pruebas_base.sql), sobre las 16 relaciones base, sus 57 atributos y 64 registros iniciales.
+2. [`02_pruebas_relaciones.sql`](02_pruebas_relaciones.sql), sobre el esquema de 26 relaciones, después de incorporar las diez relaciones adicionales y sus 78 atributos.
+3. [`03_pruebas_integridad_avanzada.sql`](03_pruebas_integridad_avanzada.sql), sobre el esquema completo con 81 registros iniciales y los controles de integridad contextual, temporal e histórica instalados.
 
-Las pruebas comprueban estructuras, referencias, dominios, obligatoriedad, operaciones válidas, casos de frontera, rechazos por restricciones específicas y efectos posteriores. Los resultados se limitan a las condiciones efectivamente examinadas por cada batería.
+Los esquemas examinados se definen en [`01_esquema_base.sql`](../sql/01_esquema_base.sql) y [`03_esquema_relaciones.sql`](../sql/03_esquema_relaciones.sql). Los datos iniciales proceden de [`02_datos_base.sql`](../sql/02_datos_base.sql) y [`04_datos_relaciones.sql`](../sql/04_datos_relaciones.sql). Los controles avanzados se instalan mediante [`05_integridad_avanzada.sql`](../sql/05_integridad_avanzada.sql). Las referencias RN corresponden a la [matriz de trazabilidad del modelo](../modelo/06_Matriz_Trazabilidad.md).
 
-**Entorno de ejecución:** PostgreSQL 17.11 (`postgres:17.11-bookworm`), servicio `db` de Docker Compose, usuario `bd1` y base `universidad_horizonte_prueba_01`.
+**Entorno de ejecución:** PostgreSQL 17.11 (`postgres:17.11-bookworm`), cliente `psql`, servicio `db` de Docker Compose y usuario `bd1`. Las tres baterías se ejecutaron en `universidad_horizonte_prueba_01`. Los cuatro conflictos concurrentes de la sección 10 se comprobaron mediante sesiones independientes en `universidad_horizonte_concurrencia_01`.
 
 ## 2. Pruebas de las estructuras base: preparación y criterio de aceptación
 
@@ -45,13 +47,11 @@ Las operaciones válidas y las comprobaciones de estado se ejecutan dentro de la
 
 | Regla o fuente | Casos que aportan evidencia | Alcance demostrado |
 | --- | --- | --- |
-| RN-01 — identidad institucional del estudiante | E-01, E-02, N-36; prueba de obligatoriedad NN-01 | Clave de estudiante y campos obligatorios comprobados; el rechazo de PK duplicada de la batería se realiza específicamente en ESCUELA, no en ESTUDIANTE |
+| RN-01 — identidad institucional del estudiante | E-01, E-02, N-36 | Clave de estudiante en el catálogo y rechazo del número institucional en blanco. El caso de PK duplicada N-01 corresponde a `ESCUELA` |
 | RN-02 — multiplicidad de admisiones | V-08, D-02, N-19, N-52 y N-53 | Una persona puede tener dos admisiones; referencias de admisión a estudiante, sede y versión válidas. La comprobación de combinaciones en D-02 se limita a la semilla |
 | RN-05 — requisitos definidos por versión del plan | E-02, D-01, V-09, N-14 a N-18, N-50 y N-51 | PK de cuatro componentes, identificador alternativo, dominio y referencias a versión y cursos |
 | RN-09 y RN-13 — intervalos de ventanas académicas | D-02, N-26 a N-29 y N-32 a N-33 | Existencia, tipos, límites y exclusión de superposiciones del mismo tipo/periodo; no se evalúa aquí una solicitud o un retiro concreto |
-| Diccionario físico — claves, nulabilidad, catálogos y dominios de las restantes relaciones base | E-01 a E-03, V-01 a V-07, N-01 a N-53 y NN-01 a NN-05, según relación y restricción | Comprobación estructural y declarativa; no se atribuyen reglas RN adicionales a pruebas que solo validan campos o referencias |
-
-Las referencias RN identifican **aspectos concretos** respaldados por estas pruebas, no la implementación íntegra de cada regla de negocio cuando exige consultas y decisiones entre relaciones.
+| Diccionario físico — claves, nulabilidad, catálogos y dominios de las restantes relaciones base | E-01 a E-03, V-01 a V-07, N-01 a N-53 y NN-01 a NN-05, según relación y restricción | Comprobación estructural y declarativa |
 
 ### Distribución inicial de registros
 
@@ -175,7 +175,7 @@ Los cinco casos terminaron con el rechazo por la columna prevista; ninguna de es
 
 ### Estado interno de la transacción
 
-Tras el `ROLLBACK` de la batería base, se abrió una nueva conexión PostgreSQL y se consultaron las cardinalidades de las 16 relaciones existentes en esa etapa. La siguiente consulta reproduce dicha comprobación antes de incorporar los datos complementarios.
+Antes del `ROLLBACK`, el guion comprobó el periodo 1, sus cuatro ventanas, los once requisitos curriculares, los tres contactos de `UH-ALU1` y la existencia de la escuela 1. Los recuentos de requisitos y contactos incluían las inserciones válidas de la sección 4. Los rechazos de las secciones 5 y 6 conservaron esos valores de control.
 
 ### Estado persistido después de la reversión
 
@@ -214,15 +214,13 @@ Para repetir esta batería debe reproducirse primero la instalación base en una
 
 La ejecución observada finalizó con `ROLLBACK` y sin errores inesperados. El conjunto de pruebas de las estructuras base superó la comparación del catálogo, la revisión de los 64 registros iniciales, las nueve operaciones válidas, los 53 casos negativos y los cinco rechazos por nulabilidad. La consulta posterior confirmó los recuentos persistidos de los datos iniciales.
 
-Los resultados acreditan el comportamiento **de las restricciones y los datos concretos incluidos en `01_pruebas_base.sql`**. No demuestran por sí solos todas las combinaciones posibles ni sustituyen las verificaciones de integridad contextual o de operaciones transaccionales que exijan otras relaciones del modelo.
-
 ## 9. Pruebas de las relaciones adicionales
 
 ### 9.1. Preparación y ejecución
 
 La batería [`02_pruebas_relaciones.sql`](02_pruebas_relaciones.sql) verifica las diez relaciones adicionales y sus restricciones declarativas sobre el esquema completo.
 
-**Precondiciones:** instalación confirmada de las 26 relaciones y 135 atributos, con ambas cargas de datos iniciales realizadas. La semilla complementaria contiene cuatro grupos, cinco bloques horarios, cinco asignaciones docentes, un traslado de plan y un reconocimiento académico. No contiene solicitudes de matrícula ni registros en los cuatro historiales o excepciones operativas restantes.
+**Precondiciones:** instalación confirmada de las 26 relaciones y 135 atributos, con ambas cargas de datos iniciales realizadas y antes de instalar `05_integridad_avanzada.sql`. La carga complementaria añade una admisión, cuatro grupos, cinco bloques horarios, cinco asignaciones docentes, un traslado de plan y un reconocimiento académico. Las tablas de solicitudes, historial de oferta, historial de solicitudes, excepciones y correcciones están vacías.
 
 Desde `final-project/grupo-03/`, con el servicio PostgreSQL disponible:
 
@@ -257,8 +255,6 @@ Los escenarios se preparan mediante registros temporales válidos. Cada acción 
 | `HISTORIAL_SOLICITUD` — tipos de evento | Insertar transiciones y evaluaciones sin cambio de estado, incluidos estados iguales o ambos nulos. | Inserciones aceptadas; las formas inválidas se examinaron mediante casos negativos. |
 | `EXCEPCION_REQUISITO` — RN-15, autorización y referencias | Insertar dos excepciones vinculadas a solicitudes, requisitos y autorizadores existentes. | Se comprobaron dos excepciones temporales. |
 | `HISTORIAL_CORRECCION_CALIFICACION` — RN-17 y RN-20, conservación de cambios | Registrar dos correcciones sucesivas con calificaciones `80 → 85 → 90`, resultado académico, fecha, motivo y autorizador. | Se comprobaron los dos eventos y la calificación final temporal `90`, con resultado `aprobado`. |
-
-Estas operaciones examinan la integridad declarativa y la representación de los datos. No constituyen la ejecución funcional de los procesos de oferta, resolución de matrícula o gestión de espera.
 
 ### 9.4. Casos negativos
 
@@ -315,10 +311,251 @@ SELECT
 
 Los resultados coincidieron con la semilla complementaria. La comprobación independiente confirma las cardinalidades persistidas; los valores de los escenarios temporales fueron contrastados dentro de la transacción.
 
-La batería puede repetirse sobre la base correctamente instalada y con la semilla conservada, ejecutando únicamente `02_pruebas_relaciones.sql`.
+Para repetir la batería se utiliza el estado de la sección 9.1, con los archivos de instalación `01` a `04` y la semilla conservada. En ese estado se ejecuta únicamente `02_pruebas_relaciones.sql`.
 
 ### 9.6. Conclusión
 
 Las pruebas de las diez relaciones adicionales finalizaron satisfactoriamente para las restricciones declarativas, casos positivos, negativos, de frontera y modificaciones o eliminaciones examinadas.
 
-Los resultados no acreditan por sí solos las garantías contextuales entre relaciones ni la aceptación funcional, transaccional y concurrente de G03-P01, G03-P02 y G03-P03, que requieren mecanismos y pruebas específicos.
+## 10. Pruebas de integridad avanzada
+
+### 10.1. Preparación y ejecución
+
+**Fecha de ejecución:** 27 de noviembre de 2026. La base secuencial contenía 26 tablas, 135 atributos y cero solicitudes de matrícula. Sobre el esquema y las dos cargas de datos de las secciones anteriores se instaló `05_integridad_avanzada.sql`. Después de la instalación se comprobaron 21 funciones `uh_%`, 94 triggers `uh_%` y la presencia de `public.uh_validar_integridad()`.
+
+Desde `final-project/grupo-03/`, sobre la base secuencial en el estado indicado:
+
+```powershell
+docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d universidad_horizonte_prueba_01 -f /workspace/sql/05_integridad_avanzada.sql
+if ($LASTEXITCODE -ne 0) { throw "Error al instalar la integridad avanzada." }
+
+docker compose exec -T db psql -X -v ON_ERROR_STOP=1 -U bd1 -d universidad_horizonte_prueba_01 -f /workspace/pruebas/03_pruebas_integridad_avanzada.sql
+if ($LASTEXITCODE -ne 0) { throw "Error inesperado en las pruebas de integridad avanzada." }
+```
+
+El primer bloque de la batería cuenta las tablas base de `public`, sus columnas, las filas de las 26 relaciones y los triggers no internos de los ocho nombres previstos. Exige, respectivamente, `26`, `135`, `81` y `94`. Después ejecuta `public.uh_validar_integridad()` sobre la semilla. Para repetir la batería sobre esa instalación se conserva la semilla y se ejecuta únicamente el segundo comando.
+
+### 10.2. Casos secuenciales y criterios de aceptación
+
+La preparación, las sentencias y las consultas de control de cada caso se encuentran en [`03_pruebas_integridad_avanzada.sql`](03_pruebas_integridad_avanzada.sql), en orden de ejecución. Para los rechazos de integridad, cada llamada a `pg_temp.esperar_rechazo` identifica el caso, la operación y la restricción esperada. La función ejecuta la operación y fuerza las restricciones diferidas mediante `SET CONSTRAINTS ALL IMMEDIATE`. Solo acepta `SQLSTATE 23514` con el `CONSTRAINT_NAME` previsto. Una aceptación indebida, otro código o una restricción distinta interrumpe la batería. La subtransacción revierte los efectos de la operación rechazada.
+
+| Condición examinada | Preparación y acción | Resultado esperado | Comprobación observada dentro de la transacción |
+|---|---|---|---|
+| Contacto, contexto de admisión y vigencia | Eliminar el último contacto de un estudiante admitido, utilizar una sede existente no habilitada para la carrera o asignar una versión fuera de vigencia. Intentar modificar una admisión con trayectoria. | Rechazo por la condición específica infringida. | Coincidieron, según el caso, `uh_estudiante_contacto`, `uh_admision_carrera_sede`, `uh_admision_vigencia_inicial` y `uh_admision_historia`. |
+| Traslados, reconocimientos y currículo por versión — RN-03, RN-04 y RN-05 | Preparar dos traslados de la admisión 8. Consultar su plan antes del primero y en el instante exacto de ambos cambios. Intentar alterar el origen histórico, utilizar una versión incompatible o modificar reglas ya utilizadas. | La versión destino rige desde el traslado. El reconocimiento y las decisiones anteriores conservan su contexto. | `uh_plan_aplicable` devolvió `101`, `102` y `103` en los tres instantes. Los rechazos distinguieron contexto, secuencia e inmutabilidad. Se aceptó y leyó el cierre de vigencia de la versión 190 sin decisiones de matrícula. |
+| Uso de espacio — RN-07 | Asignar un espacio de otra sede, introducir franjas superpuestas y ampliar un calendario hasta generar conflicto. Probar franjas contiguas y periodos que coinciden en fechas, pero sin el día semanal del bloque en su intersección. | Admitir los usos compatibles y rechazar la incompatibilidad de sede o la ocupación simultánea efectiva. | Se aceptaron los casos compatibles. Para la sede se obtuvo `uh_bloque_espacio_contexto`. Para el solapamiento, incluso entre periodos distintos con un día lectivo común, se obtuvo `uh_espacio_solapamiento`. |
+| Oferta, cancelación e historia — RN-08 y RN-19 | Abrir los grupos 11 y 12, consultar la oferta antes y después de la apertura, cancelar el grupo 12 con solicitudes e intentar alterar el historial. Cancelar también un grupo cerrado que nunca se abrió. | Registrar los cambios reales, conservar las solicitudes al cancelar y distinguir una cancelación de una apertura. | Se comprobaron dos aperturas. La cancelación del grupo 12 conservó seis solicitudes y un evento con estado `cancelada` y responsable 1. En el grupo 13 se comprobó la cancelación desde `cerrada` y la ausencia de apertura. |
+| Ventana, admisión y estado — RN-09 y RN-11 | Intentar matricular desde una admisión inactiva. Registrar la decisión rechazada 9304 con motivo. Ejecutar el caso 3002 en el extremo final y después en el inicial de la ventana. Insertar dos decisiones rechazadas en una sentencia. | La matrícula requiere admisión activa y ventana `[inicio, fin)`. La decisión rechazada conserva su razón. Cada fila del lote genera su transición. | Se rechazó la matrícula desde la admisión inactiva y se leyó el motivo de 9304 en `historial_solicitud`. El final del intervalo fue rechazado y el inicio aceptado. Se contaron dos transiciones para 9390 y 9391. |
+| Ocupación, horario y duplicidad — RN-10 y RN-16 | Ocupar las dos plazas del grupo 12, intentar una tercera matrícula y reducir el cupo por debajo de lo ocupado. Intentar matricular al mismo estudiante desde otra admisión y adjudicarle un grupo con choque horario. Repetir los conflictos sobre instantes anteriores a un retiro. | Mantener capacidad, compatibilidad horaria y una sola matrícula activa por estudiante, curso y periodo, incluidos los instantes históricos examinados. | Se contaron dos matrículas en el grupo 12. Coincidieron los diagnósticos de cupo, duplicidad y horario. Las verificaciones históricas detectaron conflictos que el estado posterior al retiro habría ocultado. |
+| Requisito, correquisito y excepción individual — RN-05, RN-06, RN-15 y RN-18 | Evaluar reconocimiento, aprobación previa y correquisito matriculado en el periodo. Variar el instante de adjudicación o anulación del correquisito. Añadir una excepción para el requisito concreto y probar una autorización tardía y otra de distinto curso. | Admitir cada vía válida en el instante de la decisión. Rechazar el requisito insatisfecho y la excepción incompatible o posterior. | Se contaron cuatro matrículas entre 5017, 5018, 6018 y 6020. La operación compuesta con adjudicación simultánea conservó ambas matrículas 6122 y 6120 antes de revertirse. Coincidieron `uh_matricula_requisitos`, `uh_excepcion_contexto` y `uh_excepcion_temporal` en sus casos respectivos. |
+| Orden y promoción de espera — RN-12 | Preparar 2001 y 2002 con igual instante de entrada. Intentar repetir o reescribir posición, omitir al primer elegible y utilizar una evaluación anterior. Liberar cupo y ensayar ambas ramas de promoción mediante un punto de retorno. | Conservar el orden de entrada y el desempate por `id_solicitud`. Una omisión requiere reevaluación pertinente al instante de promoción. | En la primera rama se comprobó 2001 `matriculada`. Al volver al punto de retorno, inactivar su admisión y registrar la evaluación motivada en el instante de promoción, se comprobó 2001 `en_espera` y 2002 `matriculada`. |
+| Promoción posterior a traslado — RN-03, RN-12 y RN-15 | Poner 9900 en espera con plan 102, trasladar la admisión al plan 105 y ampliar el cupo. Intentar la promoción antes y después de autorizar la excepción del nuevo plan. | Conservar la versión inicial y evaluar el requisito del plan aplicable en la transición. | La primera promoción se rechazó por `uh_matricula_requisitos`. Después se comprobaron estado `matriculada`, orden 1, versión inicial 102 y plan aplicable 105. Se revirtió el escenario al punto de retorno. |
+| Retiro y cambio de grupo — RN-13 y RN-14 | Intentar retiro fuera de plazo, cambio a otro curso y cambio con un minuto de diferencia entre retiro y adjudicación. Ejecutar el cambio de 1001 a 4002 con antecedente y el mismo instante efectivo. Retirar posteriormente el destino. | Rechazar el retiro fuera de plazo y el cambio incompatible. Admitir la operación conjunta válida y conservar el vínculo histórico. | El retiro fuera de plazo produjo `uh_historial_evento_temporal`. Los cambios incompatibles produjeron `uh_solicitud_antecedente`. Se validó el cambio con origen 1001 y destino 4002 y se leyeron ambos estados `retirada` después del retiro posterior del destino. |
+| Resultado académico y correcciones — RN-17 y RN-20 | Asignar una primera nota, intentar calificar antes del cierre lectivo, corregir sin motivo y luego con autorización. Pasar por `NULL` y volver a asignar valores. | Distinguir primera asignación de corrección, conservar los valores anterior y nuevo y respetar el cierre lectivo. | Para 5052 se comprobó ausencia de corrección inicial. Para 5051 se encontró el cambio `A/aprobado → B/reprobado` con autorizador 1. La rama que pasó por `NULL` contó tres correcciones antes de revertirse. Se rechazaron las notas anticipadas y la corrección sin motivo. |
+| Protección de antecedentes y aislamiento | Intentar insertar transiciones ficticias, modificar o eliminar eventos y truncar tablas protegidas directamente o con `CASCADE`. Después de la transacción principal, intentar un `UPDATE ... WHERE FALSE` sobre `grupo` bajo `REPEATABLE READ` y `SERIALIZABLE`. | Rechazar la vía de escritura específica. Para los dos aislamientos con instantánea fija, rechazar la sentencia aun cuando no seleccione filas. | Se comprobaron los diagnósticos individuales de protección. Las dos transacciones de aislamiento capturaron `25001` y terminaron con `ROLLBACK`. |
+
+El 27 de noviembre se comprobaron **97 rechazos de integridad** mediante `pg_temp.esperar_rechazo`. Los dos rechazos por aislamiento se comprobaron aparte. En el caso de revocación de una aprobación utilizada como antecedente, el script compara el reloj del servidor con `2026-12-22 11:00:00-06`. En la ejecución documentada se recorrió la rama anterior a ese instante y se obtuvo `uh_matricula_requisitos`. Una ejecución posterior al umbral recorre la comprobación de conservación del resultado histórico prevista en el mismo archivo.
+
+### 10.3. Estado posterior de la batería secuencial
+
+Los valores de los escenarios anteriores se consultan antes de su reversión. Una vez finalizado `psql`, una conexión independiente a `universidad_horizonte_prueba_01` comprobó el inventario estructural y las diez cardinalidades de la sección 9.5. La siguiente consulta reproduce la lectura de esos campos en el orden del resultado:
+
+```sql
+SELECT
+    (SELECT COUNT(*) FROM pg_tables WHERE schemaname = 'public') AS tablas,
+    (SELECT COUNT(*) FROM information_schema.columns
+     WHERE table_schema = 'public') AS atributos,
+    (SELECT COUNT(*) FROM grupo) AS grupos,
+    (SELECT COUNT(*) FROM bloque_horario) AS bloques,
+    (SELECT COUNT(*) FROM grupo_docente) AS docentes,
+    (SELECT COUNT(*) FROM traslado_plan) AS traslados,
+    (SELECT COUNT(*) FROM reconocimiento_academico) AS reconocimientos,
+    (SELECT COUNT(*) FROM solicitud_matricula) AS solicitudes,
+    (SELECT COUNT(*) FROM historial_oferta) AS historial_oferta,
+    (SELECT COUNT(*) FROM historial_solicitud) AS historial_solicitud,
+    (SELECT COUNT(*) FROM excepcion_requisito) AS excepciones,
+    (SELECT COUNT(*) FROM historial_correccion_calificacion) AS correcciones;
+```
+
+**Esperado y observado:** `26|135|4|5|5|1|1|0|0|0|0|0`. Las cantidades persistidas examinadas coincidieron con la preparación. El total de 81 filas corresponde al control de entrada sobre las 26 relaciones.
+
+### 10.4. Preparación de los escenarios concurrentes
+
+Los casos A a D se ejecutaron en ese orden sobre `universidad_horizonte_concurrencia_01`, una base nueva independiente de la secuencial. Se instalaron, en orden, `01_esquema_base.sql`, `02_datos_base.sql`, `03_esquema_relaciones.sql`, `04_datos_relaciones.sql` y `05_integridad_avanzada.sql`. El inventario coincidió con el de la sección 10.3, más 21 funciones y 94 triggers. Antes de preparar los casos se comprobaron cero grupos con ID entre 990 y 995, cero solicitudes y 94 triggers de usuario con nombre `uh_%`.
+
+Para repetir los cuatro conflictos se utiliza otra base nueva con esa misma instalación. La preparación y las escrituras de la sesión A se confirman. Por tanto, los cuatro casos se recorren una sola vez sobre cada preparación. Desde `final-project/grupo-03/`, el siguiente comando abre una conexión interactiva a la base utilizada en el ensayo:
+
+```powershell
+docker compose exec db psql -X -U bd1 -d universidad_horizonte_concurrencia_01
+```
+
+En una conexión se prepara y confirma el siguiente conjunto. El motivo de preparación es un texto descriptivo para la auditoría de apertura.
+
+```sql
+BEGIN;
+SET LOCAL universidad.autorizador = '1';
+SET LOCAL universidad.motivo = 'Preparacion de escenarios concurrentes';
+
+INSERT INTO estudiante VALUES
+    ('UH-ALU3','Estudiante','Tres',NULL),
+    ('UH-ALU7','Estudiante','Siete',NULL);
+
+INSERT INTO contacto_estudiante VALUES
+    (603,'UH-ALU3','correo','alu3@example.test',TRUE),
+    (607,'UH-ALU7','correo','alu7@example.test',TRUE);
+
+INSERT INTO admision VALUES
+    (4,'UH-ALU3',1,102,DATE '2026-02-01','regular',TRUE),
+    (8,'UH-ALU7',1,102,DATE '2026-02-01','regular',TRUE),
+    (9,'UH-ALU7',1,102,DATE '2026-02-01','regular',TRUE);
+
+INSERT INTO grupo VALUES
+    (990,90,'UH-PROG1',1,1,1,'virtual','cerrada'),
+    (991,91,'UH-PROG1',1,1,1,'virtual','cerrada'),
+    (992,92,'UH-PROG1',1,1,1,'presencial','cerrada'),
+    (993,93,'UH-PROG1',1,1,1,'presencial','cerrada'),
+    (994,94,'UH-PROG1',1,1,2,'virtual','cerrada'),
+    (995,95,'UH-PROG1',1,1,2,'virtual','cerrada');
+
+INSERT INTO bloque_horario VALUES
+    (990,990,5,TIME '08:00',TIME '09:00',FALSE,NULL),
+    (991,991,5,TIME '10:00',TIME '11:00',FALSE,NULL),
+    (994,994,5,TIME '08:00',TIME '09:00',FALSE,NULL),
+    (995,995,5,TIME '09:00',TIME '10:00',FALSE,NULL);
+
+INSERT INTO grupo_docente VALUES
+    (990,1,'responsable'), (991,1,'responsable'),
+    (994,1,'responsable'), (995,2,'responsable');
+
+SET LOCAL universidad.instante_efectivo = '2026-06-30 12:00-06';
+UPDATE grupo SET estado_oferta = 'abierta'
+WHERE id_grupo IN (990,991,994,995);
+SET LOCAL universidad.instante_efectivo = '';
+COMMIT;
+
+SELECT COUNT(*) FROM grupo WHERE id_grupo BETWEEN 990 AND 995;
+```
+
+**Esperado y observado:** seis grupos auxiliares. Los grupos 990 y 991 tienen una plaza cada uno. Los grupos presenciales 992 y 993 permiten probar la asignación del mismo espacio. Los grupos 994 y 995 tienen dos plazas y franjas consecutivas. Las admisiones 8 y 9 pertenecen a `UH-ALU7`, por lo que el último conflicto aísla la duplicidad de curso del mismo estudiante.
+
+### 10.5. Intercalación, diagnósticos y comprobaciones concurrentes
+
+Se utilizaron dos sesiones `psql` independientes dirigidas desde PowerShell y una conexión observadora. En cada caso, A abrió la transacción y ejecutó su escritura. El controlador mantuvo A abierta con `SELECT pg_sleep(20)` e inició B cuando encontró a A activa en esa sentencia. B abrió otra transacción e intentó su escritura. Antes del `COMMIT` de A, el observador comprobó que el PID de A figuraba entre los bloqueadores de B y que B esperaba por un bloqueo.
+
+Para reproducir la intercalación manualmente, se abren tres conexiones a la misma base. Los siguientes nombres de sesión son los usados en las instrucciones de reproducción. En A se ejecuta `SET application_name = 'uh_prueba_a';` y en B, `SET application_name = 'uh_prueba_b';`. En ambos clientes se activa `\set VERBOSITY verbose` para identificar el código y la restricción del error.
+
+1. En A, ejecutar `BEGIN ISOLATION LEVEL READ COMMITTED;` y la escritura A del caso. Mantener abierta la transacción.
+2. En B, ejecutar `BEGIN ISOLATION LEVEL READ COMMITTED;` y la escritura B. Mientras B espera, efectuar la consulta de bloqueo desde el observador.
+3. Tras obtener `t`, ejecutar `COMMIT;` en A. En B, cuando termine la escritura, ejecutar `COMMIT;` si la transacción sigue abierta y válida. La validación diferida puede emitir el rechazo al intentar confirmar. Si el error ya se produjo durante la escritura y la sesión interactiva quedó en transacción abortada, ejecutar `ROLLBACK;`.
+4. Desde el observador, fuera de las transacciones A y B, ejecutar la consulta final del caso. Continuar con el siguiente caso una vez comprobados el diagnóstico y el estado persistido.
+
+Estas son las consultas de sincronización y bloqueo utilizadas, con los nombres de aplicación parametrizados para la reproducción. La primera corresponde a la pausa de la ejecución automatizada. En la ejecución manual, A permanece abierta en el paso 1 hasta que el observador confirme el bloqueo.
+
+```sql
+\set appA uh_prueba_a
+\set appB uh_prueba_b
+
+SELECT COUNT(*) FROM pg_stat_activity
+WHERE application_name = :'appA'
+  AND state = 'active'
+  AND query LIKE '%pg_sleep(20)%';
+
+SELECT EXISTS (
+    SELECT 1 FROM pg_stat_activity a
+    JOIN pg_stat_activity b ON a.pid = ANY(pg_blocking_pids(b.pid))
+    WHERE a.application_name = :'appA'
+      AND b.application_name = :'appB'
+      AND b.wait_event_type = 'Lock'
+);
+```
+
+**A. Último cupo — RN-10.** Dos admisiones distintas compiten por la única plaza del grupo 990. Se espera que A confirme la solicitud 9901 y B reciba `23514`, `uh_grupo_cupo`, al intentar confirmar la segunda matrícula.
+
+```sql
+-- Sesión A
+INSERT INTO solicitud_matricula
+    (id_solicitud,id_admision,id_grupo,id_version_plan_evaluada,fecha_solicitud,estado)
+VALUES (9901,3,990,102,'2026-07-04 08:00-06','matriculada');
+
+-- Sesión B
+INSERT INTO solicitud_matricula
+    (id_solicitud,id_admision,id_grupo,id_version_plan_evaluada,fecha_solicitud,estado)
+VALUES (9902,4,990,102,'2026-07-04 08:01-06','matriculada');
+
+-- Observador, después del cierre de ambas sesiones y antes del caso B
+SELECT
+    (SELECT COUNT(*) FROM grupo WHERE id_grupo BETWEEN 990 AND 995),
+    (SELECT COUNT(*) FROM solicitud_matricula
+     WHERE id_solicitud=9901 AND estado='matriculada'),
+    (SELECT COUNT(*) FROM solicitud_matricula WHERE id_solicitud=9902),
+    (SELECT capacidad FROM grupo WHERE id_grupo=990),
+    (SELECT COUNT(*) FROM bloque_horario WHERE id_bloque IN (992,993)),
+    (SELECT COUNT(*) FROM solicitud_matricula
+     WHERE id_solicitud IN (9911,9941,9951));
+```
+
+**Observado:** bloqueo de B por A, `COMMIT` de A, rechazo de B por la restricción esperada y estado `6|1|0|1|0|0`. Persistió 9901, quedó ausente 9902 y la capacidad permaneció en 1. Los dos últimos ceros corresponden al estado anterior a los casos siguientes.
+
+**B. Solapamiento de espacio — RN-07.** Los grupos 992 y 993 intentan utilizar el espacio 1 el mismo día en franjas que se superponen entre las 15:30 y las 16:00. Se espera que solo persista el bloque de A y que B reciba `23514`, `uh_espacio_solapamiento`.
+
+```sql
+-- Sesión A
+INSERT INTO bloque_horario VALUES
+    (992,992,5,TIME '15:00',TIME '16:00',TRUE,1);
+
+-- Sesión B
+INSERT INTO bloque_horario VALUES
+    (993,993,5,TIME '15:30',TIME '16:30',TRUE,1);
+
+-- Observador
+SELECT COUNT(*)::text || '|' || COUNT(*) FILTER (WHERE id_grupo=992)::text
+FROM bloque_horario WHERE id_bloque IN (992,993);
+```
+
+**Observado:** bloqueo, confirmación de A y rechazo de B por la restricción esperada. El resultado `1|1` indica un bloque entre los dos examinados, perteneciente al grupo 992.
+
+**C. Reducción de capacidad durante una matrícula — RN-10.** A ocupa la única plaza del grupo 991. B intenta reducir a cero su capacidad con autorizador y motivo. Se espera conservar la matrícula y rechazar la reducción mediante `23514`, `uh_grupo_cupo`.
+
+```sql
+-- Sesión A
+INSERT INTO solicitud_matricula
+    (id_solicitud,id_admision,id_grupo,id_version_plan_evaluada,fecha_solicitud,estado)
+VALUES (9911,4,991,102,'2026-07-04 11:00-06','matriculada');
+
+-- Sesión B
+SET LOCAL universidad.autorizador='1';
+SET LOCAL universidad.motivo='Reduccion concurrente de cupo';
+UPDATE grupo SET capacidad=0 WHERE id_grupo=991;
+
+-- Observador
+SELECT capacidad::text || '|' ||
+       (SELECT COUNT(*) FROM solicitud_matricula
+        WHERE id_grupo=991 AND estado='matriculada')::text
+FROM grupo WHERE id_grupo=991;
+```
+
+**Observado:** bloqueo, confirmación de A y rechazo de B por la restricción esperada. El resultado `1|1` indica capacidad 1 y una solicitud matriculada en el grupo 991.
+
+**D. Duplicidad entre admisiones — RN-16.** Las admisiones 8 y 9 del mismo estudiante solicitan dos grupos de `UH-PROG1` en el periodo 1. Ambos grupos disponen de cupo y sus horarios son contiguos. Se espera que solo persista la primera matrícula y que B reciba `23514`, `uh_matricula_duplicada`.
+
+```sql
+-- Sesión A
+INSERT INTO solicitud_matricula
+    (id_solicitud,id_admision,id_grupo,id_version_plan_evaluada,fecha_solicitud,estado)
+VALUES (9941,8,994,102,'2026-07-04 08:00-06','matriculada');
+
+-- Sesión B
+INSERT INTO solicitud_matricula
+    (id_solicitud,id_admision,id_grupo,id_version_plan_evaluada,fecha_solicitud,estado)
+VALUES (9951,9,995,102,'2026-07-04 08:01-06','matriculada');
+
+-- Observador
+SELECT COUNT(*)::text || '|' || COALESCE(MIN(id_solicitud)::text,'')
+FROM solicitud_matricula WHERE id_solicitud IN (9941,9951);
+```
+
+**Observado:** bloqueo, confirmación de A y rechazo de B por la restricción esperada. El resultado `1|9941` identifica una única solicitud persistida entre las dos examinadas.
+
+### 10.6. Conclusión
+
+La batería secuencial verificó los estados temporales y los diagnósticos específicos de los casos de integridad avanzada. La lectura independiente posterior confirmó los recuentos examinados después del `ROLLBACK`. En las cuatro intercalaciones concurrentes se observó la espera de B por A y se comprobó el estado confirmado después del rechazo de B: una matrícula para el último cupo, un único uso del espacio en conflicto, una capacidad compatible con la ocupación y una sola matrícula del estudiante en el mismo curso y periodo.

@@ -320,8 +320,6 @@ La ejecución en PostgreSQL 17.11 confirmó la instalación de las 16 relaciones
 
 ### Prompt
 
-# Prompt definitivo — Implementación de las relaciones restantes del modelo físico
-
 ## 1. Contexto y objetivo
 
 Para el Proyecto Final del curso **IC-4301 Bases de Datos I**, Grupo 03 — Universidad Horizonte, implementa en **PostgreSQL 17.11** las diez relaciones restantes del modelo físico consolidado.
@@ -639,3 +637,266 @@ La segunda ejecución finalizó satisfactoriamente. Se verificaron las 26 tablas
 Una consulta independiente posterior confirmó la conservación de cuatro grupos, cinco bloques horarios, cinco asignaciones docentes, un traslado y un reconocimiento académico, sin registros temporales persistidos en las otras cinco relaciones.
 
 **Resultado de la validación:** implementación estructural y restricciones declarativas verificadas satisfactoriamente en PostgreSQL 17.11, después de las correcciones solicitadas por el estudiante. Las garantías de integridad avanzada y los procesos G03-P01, G03-P02 y G03-P03 permanecen pendientes. No se comprobó la publicación definitiva de los archivos en la rama del repositorio.
+
+
+## Interacción 05 — Implementación de integridad avanzada del modelo físico
+
+### Prompt
+
+# Implementación de integridad avanzada del modelo físico — Universidad Horizonte
+
+## 1. Objetivo
+
+Para el Proyecto Final de **IC-4301 Bases de Datos I**, Grupo 03 — Universidad Horizonte, implementa en **PostgreSQL 17.11** las garantías de integridad avanzada del modelo físico consolidado.
+
+Repositorio: `jcortess/bd1-2026-2s`
+Rama: `grupo-03-proyecto-final`
+Directorio: `final-project/grupo-03/`
+
+El modelo físico comprende **26 relaciones, 135 atributos y 20 reglas de negocio (RN-01 a RN-20)**. Sus estructuras y restricciones declarativas están implementadas.
+
+El objetivo es completar las garantías contextuales, temporales, históricas y entre relaciones que requieren mecanismos adicionales, mediante una implementación integral y comprobaciones específicas reproducibles.
+
+## 2. Fuentes técnicas obligatorias
+
+Fundamenta la implementación en el contraste directo de:
+
+1. La consigna general del Proyecto Final y el anexo específico del Grupo 03.
+2. El enunciado original de Universidad Horizonte y sus aclaraciones complementarias.
+3. Los seis documentos originales corregidos del Proyecto 1: análisis del caso, modelo conceptual, modelo relacional, diccionario de datos, normalización y matriz de trazabilidad. Examina también la representación gráfica del modelo conceptual.
+4. Las versiones consolidadas del modelo y las decisiones de diseño documentadas en el repositorio.
+5. Los scripts SQL existentes de estructuras, datos y pruebas, y los resultados técnicos correspondientes.
+6. Los componentes pertinentes de Lab03 y sus adaptaciones al modelo actual.
+7. El material oficial de Bases de Datos I sobre SQL, PL/pgSQL, funciones, procedimientos, triggers y transacciones.
+8. La documentación oficial de PostgreSQL 17 sobre restricciones, triggers, MVCC, aislamiento, bloqueos y concurrencia.
+
+Determina las garantías que ya están cubiertas y las que requieren mecanismos adicionales, considerando las 20 reglas de negocio y las condiciones aplicables del anexo G03.
+
+## 3. Garantías de integridad avanzada
+
+### 3.1. Contexto académico y trayectoria histórica
+
+Implementa las garantías correspondientes a:
+
+- Compatibilidad entre la carrera derivada de la versión del plan, la sede y la admisión.
+- Coherencia de `CARRERA_SEDE` y `VERSION_PLAN_ESTUDIOS` con las admisiones y antecedentes que dependen de ellas.
+- Consistencia de la trayectoria de cada admisión, incluyendo versión inicial, traslados sucesivos, fechas efectivas y versiones de origen y destino.
+- Correspondencia del plan vigente en cada instante histórico con las solicitudes y reconocimientos asociados.
+- Integridad de resoluciones académicas, curso satisfecho, versión aplicable y fecha de reconocimiento.
+- Conservación de los contextos académicos utilizados en decisiones históricas.
+
+Las comprobaciones deben preservar la independencia entre admisiones de un mismo estudiante y utilizar la trayectoria registrada para determinar el contexto correspondiente a cada operación.
+
+### 3.2. Currículo, requisitos y satisfacción de cursos
+
+Implementa las garantías contextuales sobre:
+
+- Correspondencia entre requisitos, correquisitos, cursos objetivo, cursos exigidos y versiones del plan.
+- Aplicabilidad de cada requisito al curso y versión evaluados.
+- Identificación de cursos satisfechos por aprobación académica previa o reconocimiento válido.
+- Coherencia temporal de los antecedentes utilizados para determinar satisfacción de requisitos.
+- Correspondencia entre excepciones autorizadas, solicitudes, requisitos concretos y versiones evaluadas.
+- Protección de las relaciones curriculares y académicas frente a modificaciones que invaliden dependencias existentes.
+
+Las comprobaciones de satisfacción deben respetar la distinción entre requisito previo y correquisito, así como el significado histórico de los resultados y reconocimientos.
+
+### 3.3. Periodos y ventanas académicas
+
+Implementa las garantías temporales pertinentes para:
+
+- Vigencias de versiones del plan y su relación con trayectorias históricas.
+- Integridad de las ventanas de matrícula, modificación y retiro asociadas a cada periodo.
+- Evaluación de instantes de operación utilizando los intervalos semiabiertos `[inicio, fin)`.
+- Correspondencia entre fecha de solicitud, ventana de matrícula y condición de la admisión en el momento de registrar la operación.
+- Correspondencia entre transiciones de retiro o modificación y sus ventanas autorizadas.
+- Conservación del contexto temporal de solicitudes y transiciones previamente registradas.
+
+Respeta la representación independiente de las fechas lectivas del periodo y sus ventanas operativas.
+
+### 3.4. Oferta académica, docentes y horarios
+
+Implementa las garantías sobre:
+
+- Existencia de exactamente un docente responsable y de los bloques requeridos al confirmar una oferta publicada.
+- Correspondencia entre la sede del grupo y los espacios asignados a sus actividades presenciales.
+- Compatibilidad entre modalidad, presencialidad, espacios y capacidad física conforme al modelo.
+- Ausencia de ocupaciones incompatibles de un mismo espacio, considerando fechas lectivas superpuestas, día de la semana e intervalos horarios.
+- Consistencia entre capacidad de un grupo y ocupación confirmada.
+- Conservación de solicitudes y antecedentes académicos durante cambios de oferta y cancelaciones.
+- Correspondencia entre modificaciones relevantes de oferta y eventos históricos que registran estado o capacidad anterior y nueva, fecha, motivo y responsable.
+
+Los mecanismos deben admitir la construcción transaccional de ofertas y los intervalos horarios consecutivos válidos.
+
+### 3.5. Solicitudes, matrículas y listas de espera
+
+Implementa las garantías transversales sobre:
+
+- Correspondencia entre admisión, grupo, curso, periodo y versión del plan evaluada.
+- Exclusividad de matrícula activa por estudiante, curso y periodo, incluyendo matrículas registradas mediante admisiones diferentes.
+- Consistencia entre ocupación y capacidad del grupo.
+- Conservación del contexto de las solicitudes históricas.
+- Coherencia del estado de espera, orden de ingreso y momento de transición.
+- Integridad de las referencias a solicitudes anteriores, incluyendo identidad de la admisión, mismo curso y periodo, grupo de destino diferente y ausencia de ciclos.
+- Consistencia de los antecedentes de una matrícula durante cambios de grupo.
+- Protección de estas garantías ante modificaciones de admisiones, grupos, capacidades, solicitudes y relaciones vinculadas.
+
+Las condiciones deben mantenerse al confirmar operaciones compuestas y transacciones concurrentes.
+
+### 3.6. Estados, eventos y correcciones académicas
+
+Implementa las garantías sobre:
+
+- Correspondencia entre los estados de `SOLICITUD_MATRICULA` y sus eventos en `HISTORIAL_SOLICITUD`.
+- Consistencia de los estados anterior y nuevo, instantes y motivos de transición.
+- Diferenciación entre transiciones reales y evaluaciones de espera sin cambio de estado.
+- Coherencia entre la oferta vigente y los eventos de `HISTORIAL_OFERTA`.
+- Correspondencia entre correcciones de calificación o resultado académico y sus valores anteriores y nuevos.
+- Integridad de la secuencia de correcciones, sus fechas, motivos y autorizaciones.
+- Conservación de antecedentes y prevención de modificaciones que contradigan hechos históricos.
+
+Los mecanismos que registren cambios autorizados deben utilizar los datos efectivos de la operación y conservar su consistencia transaccional.
+
+## 4. Diseño e implementación técnica
+
+Selecciona el mecanismo PostgreSQL más adecuado para cada garantía, reutilizando las restricciones declarativas existentes y empleando funciones PL/pgSQL, triggers, comprobaciones diferibles y sincronización transaccional según corresponda.
+
+El diseño debe considerar:
+
+1. Invariantes exactos y relaciones involucradas.
+2. Operaciones `INSERT`, `UPDATE` y `DELETE` que puedan afectar cada garantía.
+3. Modificaciones indirectas desde tablas referenciadas.
+4. Dependencias entre funciones, triggers y restricciones.
+5. Comprobaciones inmediatas y diferidas según el estado que debe garantizarse.
+6. Consistencia al finalizar operaciones compuestas.
+7. Tratamiento correcto de `NULL` y comparaciones históricas.
+8. Comportamiento ante operaciones sobre varias filas.
+9. Concurrencia, MVCC, niveles de aislamiento, bloqueos e interbloqueos.
+10. Protección de las garantías mediante las rutas de escritura pertinentes.
+11. Diagnósticos específicos de las infracciones detectadas.
+12. Compatibilidad con las estructuras, restricciones y **81 registros iniciales**.
+
+Verifica que las garantías se mantengan tanto en operaciones individuales como en transacciones concurrentes, considerando los cambios de las relaciones que intervienen en cada comprobación.
+
+Selecciona mecanismos correctos, eficientes, mantenibles y proporcionados a las necesidades del modelo.
+
+## 5. Archivos de implementación
+
+Desarrolla los scripts SQL completos conforme a la organización y numeración existente:
+
+### `sql/05_integridad_avanzada.sql`
+
+Implementación integral de los mecanismos avanzados, incluidas las funciones PL/pgSQL, triggers, restricciones y demás objetos técnicamente necesarios.
+
+El script debe establecer el orden correcto de instalación, comprobar la compatibilidad de los registros existentes y conservar la integridad de las estructuras y datos previamente incorporados.
+
+### `pruebas/03_pruebas_integridad_avanzada.sql`
+
+Batería reproducible de comprobaciones específicas para los nuevos mecanismos.
+
+Debe contener los casos positivos, negativos, de frontera, históricos y de modificación necesarios para demostrar su comportamiento, con preparación controlada y comprobación de los resultados.
+
+Incorpora las secuencias SQL requeridas para las pruebas de concurrencia desde conexiones independientes, organizadas conforme a las dependencias reales de ejecución.
+
+Los scripts deben ser completos, ejecutables mediante `psql` y técnicamente consistentes entre sí.
+
+## 6. Pruebas y verificación
+
+### 6.1. Cobertura
+
+Comprueba:
+
+- Instalación y existencia de todos los mecanismos incorporados.
+- Aceptación de situaciones válidas.
+- Rechazo de incompatibilidades por la causa prevista.
+- Casos límite contextuales, curriculares, temporales e históricos.
+- Operaciones `INSERT`, `UPDATE` y `DELETE` pertinentes.
+- Modificaciones indirectas de relaciones vinculadas.
+- Estados intermedios y finales de operaciones compuestas.
+- Integridad y preservación de antecedentes.
+- Ausencia de efectos parciales incompatibles.
+- Comportamiento bajo transacciones concurrentes.
+- Compatibilidad con las restricciones y registros existentes.
+- Repetibilidad y conservación del estado inicial después de las pruebas temporales.
+
+### 6.2. Calidad de las pruebas
+
+Cada caso debe identificar:
+
+1. Regla o condición examinada.
+2. Precondiciones y datos de preparación.
+3. Operación que se ejecuta.
+4. Resultado esperado.
+5. Consulta de comprobación del resultado y estado posterior.
+
+Los casos negativos deben aislar el mecanismo que pretenden comprobar. Utiliza `SQLSTATE`, diagnósticos específicos y verificaciones del estado de los datos cuando correspondan.
+
+Controla las pruebas mediante transacciones, bloques de excepción, puntos de guardado y `ROLLBACK` según su necesidad. Considera también los efectos no transaccionales de las secuencias PostgreSQL.
+
+Las verificaciones concurrentes deben especificar las acciones de cada sesión, sus intercalaciones, confirmaciones o rechazos y las consultas del estado final.
+
+### 6.3. Procedimiento de ejecución
+
+Proporciona el orden de instalación y los comandos PowerShell necesarios para ejecutar y comprobar los mecanismos en el entorno Docker Compose existente.
+
+Utiliza:
+
+- PostgreSQL 17.11.
+- Servicio `db`.
+- Usuario `bd1`.
+- `psql -X -v ON_ERROR_STOP=1`.
+- Rutas montadas bajo `/workspace`.
+
+Identifica las precondiciones de ejecución, los resultados esperados y las consultas de comprobación posteriores.
+
+Verifica la integridad de la instalación y los datos iniciales antes de ejecutar las pruebas específicas.
+
+## 7. Formato de entrega
+
+Presenta la implementación completa con:
+
+**Decisiones técnicas:** mecanismos utilizados y justificación de las decisiones relevantes.
+
+**Cobertura:** correspondencia entre reglas de negocio, garantías, mecanismos y pruebas.
+
+**Archivos SQL:** scripts completos, organizados y ejecutables.
+
+**Verificación:** procedimientos de ejecución, comandos PowerShell, resultados esperados y comprobaciones del estado de la base.
+
+Revisa previamente la consistencia del conjunto, sus dependencias y la correspondencia con las fuentes.
+
+## 8. Condiciones de aceptación
+
+La implementación será satisfactoria cuando:
+
+1. Estén cubiertas todas las garantías avanzadas pertinentes de las 20 reglas de negocio y del anexo G03.
+2. Los mecanismos correspondan al modelo físico consolidado.
+3. Se mantengan válidas las estructuras, restricciones y datos iniciales.
+4. La instalación complete correctamente sus dependencias.
+5. Las situaciones válidas sean aceptadas.
+6. Las incompatibilidades se rechacen por la condición correcta.
+7. Las reglas permanezcan protegidas ante modificaciones directas e indirectas.
+8. Se conserve la coherencia contextual, temporal e histórica.
+9. Las operaciones compuestas mantengan atomicidad.
+10. Las condiciones concurrentes pertinentes preserven los invariantes.
+11. Las comprobaciones específicas sean reproducibles y permitan verificar el estado posterior.
+12. La implementación disponga de evidencia técnica suficiente para acreditar sus garantías en PostgreSQL 17.11.
+
+**Prioridad:** corrección técnica, cobertura integral, fidelidad al modelo, robustez transaccional, eficiencia, mantenibilidad y verificabilidad.
+
+### Respuesta
+
+GPT-6 preparó inicialmente dos archivos SQL para incorporar las garantías de integridad avanzada al modelo físico de Universidad Horizonte en PostgreSQL 17.11, tomando como referencia las 26 relaciones, 135 atributos y 20 reglas de negocio del modelo corregido.
+
+Se entregaron `sql/05_integridad_avanzada.sql`, con funciones PL/pgSQL, triggers, auditoría de cambios, comprobaciones contextuales e históricas, validaciones diferibles y mecanismos de sincronización transaccional; y `pruebas/03_pruebas_integridad_avanzada.sql`, con escenarios positivos, negativos, temporales, históricos y de operaciones compuestas, además de instrucciones para comprobar concurrencia mediante sesiones independientes.
+
+Los mecanismos se plantearon sobre las estructuras y restricciones declarativas existentes, sin incorporar nuevas relaciones ni atributos. Su alcance fue preservar la integridad entre relaciones, la trayectoria académica, los requisitos curriculares, las ventanas operativas, la oferta y los horarios, la capacidad, las solicitudes, los estados y los historiales. No se desarrollaron los procesos funcionales completos G03-P01, G03-P02 ni G03-P03.
+
+### Verificación posterior
+
+El estudiante examinó la primera implementación y detectó posibles errores y omisiones que impedían aceptarla directamente. A partir de esa revisión, elaboró y proporcionó versiones propias corregidas de ambos archivos, que sustituyeron las entregas iniciales como base del trabajo posterior. Se reforzaron aspectos relacionados con la reconstrucción histórica, los controles temporales, la conservación de antecedentes, las operaciones compuestas, las modificaciones indirectas y la cobertura de pruebas.
+
+Por solicitud expresa del estudiante, las versiones corregidas fueron sometidas a revisiones adicionales de correspondencia con el caso original de Universidad Horizonte, sus aclaraciones, el modelo corregido y las consignas general y específica del Grupo 03. También se utilizó ChatGPT Work para realizar una auditoría estática más amplia y preparar nuevas versiones corregidas de los archivos. La revisión posterior permitió identificar y ajustar casos de prueba con referencias o condiciones de preparación inadecuadas, así como comprobaciones históricas y de integridad que requerían mayor precisión.
+
+El estudiante aprobó expresamente dos decisiones adicionales: exigir una evaluación motivada correspondiente al mismo instante efectivo cuando se omite a un candidato anterior en lista de espera, y conservar un instante efectivo compartido para representar el retiro y la nueva adjudicación de un cambio de grupo dentro de una misma transacción. Ambas decisiones se incorporaron a los mecanismos y a sus comprobaciones correspondientes.
+
+**Resultado de la validación:** los archivos fueron corregidos mediante las revisiones solicitadas y las decisiones aprobadas por el estudiante, y posteriormente examinados por inspección técnica y documental. El estudiante comunicó su incorporación manual.&#x20;
